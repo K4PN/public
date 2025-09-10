@@ -1,211 +1,164 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Mapache Google Dorks</title>
+<meta name="color-scheme" content="dark light" />
 <style>
   :root{
-    --bg:#0e1117; --panel:#161b22; --panel2:#0b0f14; --txt:#e6edf3; --muted:#9fb0c3; --acc:#4cc9f0; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --br:16px;
+    --bg:#0e1116; --panel:#151a21; --ink:#e8eef6; --muted:#a7b3c2; --acc:#4cc9f0; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+    --br:16px; --gap:12px; --pad:14px; --shadow:0 8px 24px rgba(0,0,0,.25);
   }
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;}
-  header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,var(--panel),#12162100);padding:12px 16px 8px;border-bottom:1px solid #1f2630}
-  h1{margin:0;font-size:20px;letter-spacing:.3px}
-  .wrap{padding:12px 14px 96px;max-width:900px;margin:0 auto}
-  .card{background:var(--panel);border:1px solid #1f2630;border-radius:var(--br);padding:12px;box-shadow:0 6px 18px rgba(0,0,0,.22)}
-  label{font-size:12px;color:var(--muted);display:block;margin:6px 2px}
-  input[type="text"], textarea, select{width:100%;background:#0c121a;border:1px solid #1e2a39;color:var(--txt);border-radius:12px;padding:12px 12px;font-size:16px;outline:none}
-  textarea{min-height:96px;resize:vertical}
-  .row{display:flex;gap:8px;align-items:center}
+  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+  header{padding:18px 16px 6px; text-align:center}
+  h1{margin:0;font-size:1.2rem;letter-spacing:.3px}
+  .wrap{max-width:720px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:var(--gap)}
+  .card{background:var(--panel);border-radius:var(--br);padding:var(--pad);box-shadow:var(--shadow)}
+  label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:6px}
+  select, input[type="text"]{
+    width:100%;padding:12px 14px;border-radius:12px;background:#0d131b;color:var(--ink);
+    border:1px solid #253042;font-size:1rem;outline:none
+  }
+  .row{display:flex;gap:10px;align-items:center}
   .row > *{flex:1}
-  .btn{appearance:none;border:1px solid #1e2a39;background:#0c121a;color:var(--txt);padding:12px 14px;border-radius:12px;font-size:15px;font-weight:600}
-  .btn:hover{background:#0f1620}
-  .btn.acc{background:var(--acc);color:#07212a;border:none}
-  .btn.ok{background:var(--ok);color:#05140a;border:none}
-  .btn.warn{background:var(--warn);color:#1f1203;border:none}
-  .btn.ghost{background:transparent;border:1px dashed #2a3443;color:var(--muted)}
-  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-  @media (min-width:520px){.grid{grid-template-columns:repeat(3,1fr)}}
-  @media (min-width:760px){.grid{grid-template-columns:repeat(4,1fr)}}
-  .chips{position:fixed;left:0;right:0;bottom:0;background:linear-gradient(0deg,var(--panel2),#0b0f1400);padding:10px 12px 14px;border-top:1px solid #1f2630;z-index:50}
-  .chips h3{margin:0 0 8px 2px;font-size:13px;color:var(--muted)}
-  .chipbar{display:flex;gap:8px;overflow:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
-  .chip{flex:0 0 auto;scroll-snap-align:start;border:1px solid #2a3443;background:#0c121a;color:var(--txt);padding:10px 12px;border-radius:999px;font-size:14px;white-space:nowrap}
-  .chip:active{transform:scale(.98)}
-  .out{min-height:56px;white-space:pre-wrap;word-break:break-word;background:#0c121a;border:1px dashed #2a3443;border-radius:12px;padding:10px 12px}
-  .badge{display:inline-flex;align-items:center;gap:6px;background:#0c121a;border:1px solid #273241;border-radius:999px;padding:6px 10px;margin:4px 6px 0 0}
-  .badge b{font-weight:700}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
-  .small{font-size:12px;color:var(--muted)}
-  .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);background:#0c121a;border:1px solid #2a3443;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s}
-  .toast.show{opacity:1}
+  .btn{
+    appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:600;
+    background:#223146;color:#e8f3ff;cursor:pointer
+  }
+  .btn:hover{filter:brightness(1.08)}
+  .btn:active{transform:translateY(1px)}
+  .btn-acc{background:linear-gradient(180deg,#58d3fa,#2ea8d1)}
+  .btn-ok{background:linear-gradient(180deg,#3bd67a,#19a754)}
+  .btn-danger{background:#3a1c1c}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{
+    display:inline-flex;align-items:center;gap:8px;background:#0f1622;border:1px solid #263347;color:#cfe7ff;
+    padding:8px 10px;border-radius:999px;font-size:.92rem
+  }
+  .chip small{color:#8fb9d8}
+  .chip button{
+    all:unset;cursor:pointer;background:#223146;border-radius:999px;padding:4px 6px;font-size:.8rem
+  }
+  .ops{display:flex;gap:8px;flex-wrap:wrap}
+  .ops button{flex:1}
+  .preview{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0b1119;border:1px solid #263247;border-radius:12px;padding:12px;min-height:56px;word-break:break-word}
+  .muted{color:var(--muted);font-size:.9rem}
+  .toolbar{display:flex;gap:10px}
+  .foot{opacity:.8;text-align:center;font-size:.8rem}
+  .help{font-size:.9rem;color:var(--muted);line-height:1.35}
+  .seg{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
+  @media (min-width:560px){
+    .seg{grid-template-columns:1fr 180px}
+  }
 </style>
 </head>
 <body>
-  <header>
-    <h1>🦝 MAPACHE • Google Dorks</h1>
-    <div class="small">Constructor móvil para consultas avanzadas</div>
-  </header>  <div class="wrap">
-    <section class="card" aria-label="Editor de bloque actual">
-      <label for="term">Término base (se usa como valor por defecto para comillas y placeholders)</label>
-      <input id="term" type="text" placeholder="ej.: contraseña, admin, facturas, \"Juan Pérez\", ejemplo.com" /><label for="editor" style="margin-top:10px">Bloque en edición (se irán agregando dorks aquí)</label>
-  <textarea id="editor" placeholder="Pulsa chips abajo para insertar plantillas o escribe tu propio dork..."></textarea>
+<header>
+  <h1>🦝 Mapache Google Dorks</h1>
+  <div class="muted">Construye tu consulta eligiendo dorks, texto y uniones (AND / OR / espacio).</div>
+</header>
 
-  <div class="row" style="margin-top:8px">
-    <div>
-      <label for="joiner">Unir con el bloque anterior</label>
-      <select id="joiner">
-        <option value=" ">Nada (espacio)</option>
-        <option value=" AND ">AND</option>
-        <option value=" OR ">OR</option>
-        <option value=" custom ">Otro…</option>
+<main class="wrap">
+  <!-- Constructor -->
+  <section class="card" aria-labelledby="lblDork">
+    <label id="lblDork">1) Elige un dork</label>
+    <div class="row">
+      <select id="dork">
+        <option value="none">Ninguno (texto libre)</option>
+        <option value="quotes">"Frase exacta"</option>
+        <option value="minus">-Exclusión</option>
+        <option value="plus">+Obligatorio</option>
+        <option value="inurl">inurl:</option>
+        <option value="intitle">intitle:</option>
+        <option value="site">site:</option>
+        <option value="intext">intext:</option>
+        <option value="filetype">filetype:</option>
+        <option value="cache">cache:</option>
+        <option value="related">related:</option>
+        <option value="allintitle">allintitle:</option>
+        <option value="allinurl">allinurl:</option>
+        <option value="allintext">allintext:</option>
       </select>
     </div>
-    <div style="align-self:flex-end;display:flex;gap:8px">
-      <button class="btn ghost" id="clearBlock" title="Vaciar el bloque en edición">Vaciar</button>
-      <button class="btn acc" id="addBlock" title="Añadir el bloque construido al resultado">Añadir</button>
+
+    <div class="seg" style="margin-top:10px">
+      <div>
+        <label for="valor">2) Escribe el texto</label>
+        <input id="valor" type="text" inputmode="text" placeholder='Ej.: informe 2024.pdf / ejemplo.com / "frase exacta"' />
+      </div>
+      <div>
+        <label>3) Unión con lo anterior</label>
+        <div class="ops">
+          <button class="btn" data-op="space" title="Espacio (equivale a AND)">Espacio</button>
+          <button class="btn" data-op="AND">AND</button>
+          <button class="btn" data-op="OR">OR</button>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="small">Consejo: toca un chip para insertar una plantilla; si pide valores y dejas vacío, usará el <b>Término base</b>.</div>
-</section>
 
-<section class="card" style="margin-top:12px" aria-label="Resultado">
-  <label>Resultado (consulta final)</label>
-  <div id="result" class="out" tabindex="0"></div>
-  <div id="badges" class="small" style="margin-top:6px"></div>
-  <div class="toolbar" style="margin-top:10px">
-    <button class="btn ok" id="copyBtn">Copiar</button>
-    <button class="btn" id="searchBtn">Buscar en Google</button>
-    <button class="btn warn" id="clearAll">Limpiar todo</button>
-  </div>
-  <div class="small" style="margin-top:6px">Se abrirá en una nueva pestaña usando <code>https://www.google.com/search?q=</code></div>
-</section>
+    <div class="row" style="margin-top:10px">
+      <button class="btn btn-acc" id="add">➕ Añadir</button>
+      <button class="btn btn-danger" id="clear">🗑️ Limpiar</button>
+    </div>
 
-  </div>  <!-- Chips / plantillas en la parte inferior -->  <div class="chips" role="toolbar" aria-label="Plantillas rápidas">
-    <h3>Plantillas rápidas</h3>
-    <div class="chipbar" id="chipbar"></div>
-  </div>  <div class="toast" id="toast">Copiado al portapapeles</div><script>
-// --- Utilidades ---
-const $ = sel => document.querySelector(sel);
-function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); }
-function ask(msg, def=""){ const v = prompt(msg, def ?? ""); return v===null? null : v.trim(); }
+    <div class="help" style="margin-top:8px">
+      Consejos: usa comillas para frases exactas. Puedes combinarlas con <code>-</code> o <code>+</code> (p. ej. <code>-"contrato privado"</code>).  
+      <strong>Espacio</strong> se comporta como AND. Usa <strong>OR</strong> cuando cualquiera de los términos te valga.
+    </div>
+  </section>
 
-// --- Definición de plantillas ---
-// Usamos {t}, {t1}, {t2}, {t3}, {dom}, {neg}
-const templates = [
-  { label:'""', tpl:'""' },
-  { label:'inurl:x -x', tpl:'inurl:{t} -{t}' },
-  { label:'intitle:"" OR intitle:""', tpl:'intitle:"{t1}" OR intitle:"{t2}"' },
-  { label:'site:dom', tpl:'site:{dom}' },
-  { label:'inurl:x', tpl:'inurl:{t}' },
-  { label:'intitle:x', tpl:'intitle:{t}' },
-  { label:'intext:x', tpl:'intext:{t}' },
-  { label:'filetype:pdf ""', tpl:'filetype:pdf "{t}"' },
-  { label:'cache:dom', tpl:'cache:{dom}' },
-  { label:'related:dom', tpl:'related:{dom}' },
-  { label:'allintitle:a b', tpl:'allintitle:{t1} {t2}' },
-  { label:'allinurl:a b', tpl:'allinurl:{t1} {t2}' },
-  { label:'allintext:a b', tpl:'allintext:{t1} {t2}' },
-  { label:'inurl:x.php', tpl:'inurl:{t}.php' },
-  { label:'filetype:xls intext:""', tpl:'filetype:xls intext:"{t}"' },
-  { label:'intitle:"" ""', tpl:'intitle:"{t1}" "{t2}"' },
-  { label:'intext:"" "" ""', tpl:'intext:"{t1}" "{t2}" "{t3}"' },
-  { label:'filetype:log intext:"" -x', tpl:'filetype:log intext:"{t}" -{neg}' },
-  { label:'intext OR intext + inurl', tpl:'intext:"{t1}" OR intext:"{t2}" inurl:{t}' },
-  { label:'2× intext -site', tpl:'intext:"{t1}" intext:"{t2}" -site:{dom}' },
-  { label:'intext + inurl:"" + ""', tpl:'intext:"{t1}" inurl:"{t2}" "{t3}"' },
-  { label:'intitle OR intext + .php?id=', tpl:'intitle:"{t1}" OR intext:"{t2}" inurl:".php?id="' },
-  { label:'3× intext OR', tpl:'intext:"{t1}" OR intext:"{t2}" intext:"{t3}"' },
-  { label:'2× intext + inurl', tpl:'intext:"{t1}" intext:"{t2}" inurl:{t}' },
-  { label:'pdf + 2× intext -site', tpl:'filetype:pdf intext:"{t1}" intext:"{t2}" -site:{dom}' },
-  { label:'intext OR intext -site', tpl:'intext:"{t1}" OR intext:"{t2}" -site:{dom}' },
-  { label:'intext OR intext + intitle', tpl:'intext:"{t1}" OR intext:"{t2}" intitle:"{t3}"' }
-];
+  <!-- Piezas añadidas -->
+  <section class="card">
+    <label>Elementos de la consulta</label>
+    <div id="chips" class="chips" aria-live="polite"></div>
+  </section>
 
-// Render chips
-const chipbar = $('#chipbar');
-for(const t of templates){
-  const b = document.createElement('button');
-  b.className = 'chip';
-  b.type = 'button';
-  b.textContent = t.label;
-  b.addEventListener('click', ()=>insertTemplate(t.tpl));
-  chipbar.appendChild(b);
-}
+  <!-- Vista previa -->
+  <section class="card">
+    <label>Consulta actual</label>
+    <div id="preview" class="preview" aria-live="polite"></div>
+    <div class="toolbar" style="margin-top:10px">
+      <button class="btn btn-ok" id="copy">📋 Copiar</button>
+      <button class="btn btn-acc" id="search">🔎 Buscar en Google</button>
+    </div>
+    <div class="help" style="margin-top:8px">
+      Nota: Google ha cambiado el comportamiento de <code>+</code> en el pasado; sigue siendo útil para delimitar, pero prioriza comillas para exactitud.
+    </div>
+  </section>
 
-function valueOrTerm(v){
-  const base = $('#term').value.trim();
-  return v && v.length ? v : (base.length? base : '');
-}
+  <div class="foot">© Mapache • Construcción rápida de dorks</div>
+</main>
 
-function insertTemplate(tpl){
-  // Detect placeholders and ask the user only for the ones present
-  const placeholders = Array.from(new Set((tpl.match(/\{(t|t1|t2|t3|dom|neg)\}/g) || []).map(x=>x.slice(1,-1))));
-  const vals = {};
-  for(const ph of placeholders){
-    let msg = {
-      t:'Valor (término)', t1:'Valor 1', t2:'Valor 2', t3:'Valor 3', dom:'Dominio (ej. ejemplo.com)', neg:'Negativo (ej. -admin)'
-    }[ph] || ph;
-    const ans = ask(msg, $('#term').value.trim());
-    if(ans===null) return; // cancelado
-    vals[ph] = valueOrTerm(ans);
-  }
-  let out = tpl.replace(/\{(t|t1|t2|t3|dom|neg)\}/g, (_,k)=> vals[k] ?? '');
-  const ed = $('#editor');
-  ed.value = (ed.value.trim() ? ed.value.trim()+ ' ' : '') + out;
-  ed.focus();
-}
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const dorkSel = $('#dork');
+  const valor = $('#valor');
+  const chips = $('#chips');
+  const preview = $('#preview');
+  const addBtn = $('#add');
+  const clearBtn = $('#clear');
+  const copyBtn = $('#copy');
+  const searchBtn = $('#search');
+  const opBtns = Array.from(document.querySelectorAll('.ops .btn'));
 
-// Añadir bloque al resultado con joiner
-const result = $('#result');
-const badges = $('#badges');
-$('#addBlock').addEventListener('click', ()=>{
-  const block = $('#editor').value.trim();
-  if(!block){ toast('Bloque vacío'); return; }
-  let joiner = $('#joiner').value;
-  if(joiner.includes('custom')){
-    const custom = ask('Introduce operador intermedio (se insertará entre bloques), p. ej.: AND site:ejemplo.com');
-    if(custom===null) return; // cancelado
-    joiner = ' ' + custom.trim() + ' ';
-  }
-  const hasExisting = result.textContent.trim().length>0;
-  result.textContent = (hasExisting? result.textContent + joiner : '') + block;
+  // Estado
+  let parts = []; // {raw: string, shown: string}
+  let pendingOp = 'space'; // unión por defecto
 
-  // Añadimos una badge histórica
-  const badge = document.createElement('span');
-  badge.className='badge';
-  badge.innerHTML = `<b>+</b> <span>${escapeHtml(block).slice(0,80)}${block.length>80?'…':''}</span>`;
-  badges.appendChild(badge);
+  // restaurar de localStorage (opcional)
+  try {
+    const saved = JSON.parse(localStorage.getItem('mapache_dorks_v1')||'[]');
+    if (Array.isArray(saved) && saved.length) {
+      parts = saved;
+      render();
+    }
+  } catch {}
 
-  // Limpiar editor
-  $('#editor').value='';
-});
-
-$('#clearBlock').addEventListener('click', ()=>{ $('#editor').value=''; });
-$('#clearAll').addEventListener('click', ()=>{ result.textContent=''; badges.innerHTML=''; $('#editor').value=''; });
-
-$('#copyBtn').addEventListener('click', async ()=>{
-  const txt = result.textContent.trim();
-  if(!txt){ toast('No hay nada que copiar'); return; }
-  try{ await navigator.clipboard.writeText(txt); toast('Consulta copiada ✔'); }
-  catch{ toast('No se pudo copiar'); }
-});
-
-$('#searchBtn').addEventListener('click', ()=>{
-  const q = result.textContent.trim();
-  if(!q){ toast('Crea una consulta primero'); return; }
-  const url = 'https://www.google.com/search?q=' + encodeURIComponent(q);
-  window.open(url, '_blank');
-});
-
-function escapeHtml(s){
-  return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
-}
-
-// Accesibilidad: Enter añade cuando foco en editor
-$('#editor').addEventListener('keydown', (e)=>{
-  if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ e.preventDefault(); $('#addBlock').click(); }
-});
-</script></body>
-</html>
+  opBtns.forEach(b=>{
+    b.addEventListener('click', ()=>{
+      pendingOp = b.dataset.op;
+      opBtns.forEach(x=>x.style.out
