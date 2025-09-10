@@ -1,85 +1,447 @@
-<!DOCTYPE html>
-<html lang="es">
+<!DOCTYPE html><html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Operadores de Google • Constructor</title>
+  <title>MAPACHE • Constructor de Búsquedas Google (Dorks)</title>
   <style>
     :root{
-      --bg:#0b1020; --panel:#121a2b; --ink:#e6eefb; --muted:#9fb0c3; --acc:#60a5fa; --br:12px;
+      --bg:#0f1216; --panel:#161b22; --panel2:#0e141b; --txt:#e9eef5; --muted:#a0b3c6; --acc:#4cc9f0; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+      --br:14px; --gap:12px;
     }
-    body{margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink)}
-    .wrap{max-width:860px; margin:0 auto; padding:16px}
-    h2{margin-top:24px; font-size:18px}
-    .section{background:var(--panel); border-radius:var(--br); padding:12px; margin-top:12px}
-    .field{display:flex; flex-direction:column; margin-bottom:10px}
-    .field label{font-size:14px; margin-bottom:4px; color:var(--muted)}
-    .field input{padding:8px; border-radius:8px; border:none; outline:none; font-size:14px; background:#0f1a33; color:var(--ink)}
-    .checkboxes{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px}
-    .checkboxes label{font-size:13px; display:flex; align-items:center; gap:4px}
-    .result{background:#0e152a; border:1px solid #223153; border-radius:var(--br); padding:12px; margin-top:16px; font-size:14px;}
-    button{padding:8px 12px; border:none; border-radius:8px; background:#1b2c52; color:var(--ink); cursor:pointer; margin-top:8px}
-    button:hover{filter:brightness(1.1)}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; font-family:system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--txt);}
+    header{position:sticky; top:0; z-index:5; background:linear-gradient(180deg, rgba(15,18,22,.95), rgba(15,18,22,.7)); backdrop-filter: blur(6px);}
+    .wrap{max-width:940px; margin:0 auto; padding:12px;}
+    h1{font-size:1.15rem; margin:8px 0 4px; letter-spacing:.2px}
+    .sub{color:var(--muted); font-size:.9rem; margin:0 0 8px}.card{background:var(--panel); border:1px solid #232b36; border-radius:var(--br); padding:14px}
+.row{display:flex; gap:var(--gap); align-items:center; flex-wrap:wrap}
+.col{flex:1 1 240px}
+input[type="text"], input[type="search"], select, textarea{
+  width:100%; background:var(--panel2); color:var(--txt); border:1px solid #2a3442; border-radius:12px; padding:12px 14px; font-size:16px;
+}
+input[type="checkbox"]{width:20px; height:20px}
+label{font-size:.95rem}
+.hint{color:var(--muted); font-size:.85rem; margin-top:6px}
+.ops{display:grid; grid-template-columns:1fr; gap:10px}
+.op{background:#111822; border:1px solid #223042; border-radius:12px; padding:10px}
+.op h3{margin:0; font-size:.95rem}
+.op small{color:var(--muted)}
+.inline{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px}
+.inline > *{flex:1 1 180px}
+
+.pill{display:inline-flex; gap:6px; align-items:center; border-radius:999px; padding:8px 12px; border:1px solid #2a3442; background:var(--panel2)}
+.btn{appearance:none; border:1px solid #2a3442; background:var(--panel2); color:var(--txt); padding:12px 14px; border-radius:12px; font-weight:600; font-size:15px}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--acc); color:#0b1220; border-color:#39b3db}
+.btn.ok{background:var(--ok); color:#05150a; border-color:#1aa14e}
+.btn.ghost{background:transparent}
+
+.out{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background:#0b1118; border:1px dashed #2a3442; padding:12px; border-radius:10px; font-size:.95rem; word-break:break-all}
+
+details{border:1px solid #223042; border-radius:12px; padding:10px; background:#0b1118}
+summary{cursor:pointer; font-weight:600}
+
+footer{color:var(--muted); font-size:.85rem; text-align:center; padding:28px 12px}
+
+@media (min-width:680px){ .ops{grid-template-columns:1fr 1fr} }
+@media (min-width:960px){ .ops{grid-template-columns:1fr 1fr 1fr} }
+
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <h1>Constructor de consultas con operadores de Google</h1>
+  <header>
+    <div class="wrap">
+      <h1>MAPACHE • Constructor de Búsquedas Google</h1>
+      <p class="sub">Introduce un término, marca operadores (dorks) y obtén la consulta lista para copiar o buscar.</p>
+    </div>
+  </header>  <main class="wrap" id="app">
+    <!-- Paso 1: término base -->
+    <section class="card" aria-labelledby="baseTerm">
+      <h2 id="baseTerm" style="margin:0 0 10px; font-size:1.02rem">1) Término base</h2>
+      <div class="row">
+        <div class="col">
+          <input id="qBase" type="search" placeholder="Ej: policia nacional" autofocus />
+          <p class="hint">Sugerencia: usa lenguaje natural, luego afina con los operadores.</p>
+        </div>
+      </div>
+    </section><!-- Paso 2: modificaciones al texto -->
+<section class="card" aria-labelledby="mods">
+  <h2 id="mods" style="margin:0 0 10px; font-size:1.02rem">2) Ajustes rápidos del texto</h2>
+  <div class="row">
+    <div class="pill"><input id="modExact" type="checkbox"/> <label for="modExact">Frase exacta ("…")</label></div>
+    <div class="pill" style="flex:1 1 240px">
+      <input id="modExclude" type="text" placeholder="Excluir términos con - (ej: -admin -login)"/>
+    </div>
+    <div class="pill" style="flex:1 1 240px">
+      <input id="modOR" type="text" placeholder="Alternativas con OR (ej: acceso OR login)"/>
+    </div>
+  </div>
+  <p class="hint">Añade varios excluidos o alternativas separadas por espacios. Se aplican antes del resto de operadores.</p>
+</section>
 
-    <div class="checkboxes">
-      <label><input type="checkbox" id="chkComillas"> Incluir comillas</label>
-      <label><input type="checkbox" id="chkPlus"> Incluir "+" delante</label>
-      <label><input type="checkbox" id="chkMinus"> Incluir "-" delante</label>
+<!-- Paso 3: Operadores -->
+<section class="card" aria-labelledby="ops">
+  <h2 id="ops" style="margin:0 0 12px; font-size:1.02rem">3) Operadores (dorks)</h2>
+  <div class="ops">
+    <!-- inurl:login -admin -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inurlLogin"/> inurl:login -admin</label></h3>
+      <small>Muestra páginas con "login" excluyendo las que contengan "admin".</small>
+      <div class="inline" data-fields="inurlLogin" hidden>
+        <input type="text" data-key="inurlLogin_inc" placeholder="Palabra a incluir en URL (por defecto: login)" value="login"/>
+        <input type="text" data-key="inurlLogin_exc" placeholder="Excluir con - (por defecto: admin)" value="admin"/>
+      </div>
     </div>
 
-    <div id="fields"></div>
+    <!-- intitle:"acceso" OR intitle:"login" -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="intitleAccesoLogin"/> intitle:"acceso" OR intitle:"login"</label></h3>
+      <small>Buscará páginas con "acceso" o "login" en el título.</small>
+      <div class="inline" data-fields="intitleAccesoLogin" hidden>
+        <input type="text" data-key="intitleA" placeholder="Primer título (por defecto: acceso)" value="acceso"/>
+        <input type="text" data-key="intitleB" placeholder="Segundo título (por defecto: login)" value="login"/>
+      </div>
+    </div>
 
-    <button id="btnAdd">Añadir operador</button>
-    <button id="btnBuild">Construir consulta</button>
+    <!-- site: -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="site"/> site:dominio</label></h3>
+      <small>Restringe los resultados a un dominio.</small>
+      <div class="inline" data-fields="site" hidden>
+        <input type="text" data-key="site" placeholder="Ej: ejemplo.com" />
+      </div>
+    </div>
 
-    <div class="result" id="resultado">Aquí aparecerá la consulta final…</div>
+    <!-- inurl:index -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inurlIndex"/> inurl:index</label></h3>
+      <small>Páginas que contienen "index" en la URL.</small>
+      <div class="inline" data-fields="inurlIndex" hidden>
+        <input type="text" data-key="inurlIndex" placeholder="Valor (por defecto: index)" value="index"/>
+      </div>
+    </div>
+
+    <!-- intitle:about -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="intitleAbout"/> intitle:about</label></h3>
+      <small>Título que contenga la palabra "about".</small>
+      <div class="inline" data-fields="intitleAbout" hidden>
+        <input type="text" data-key="intitleAbout" placeholder="Valor (por defecto: about)" value="about"/>
+      </div>
+    </div>
+
+    <!-- intext:policia -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="intext"/> intext:palabra</label></h3>
+      <small>Incluye una palabra en el cuerpo del texto.</small>
+      <div class="inline" data-fields="intext" hidden>
+        <input type="text" data-key="intext" placeholder="Ej: policia" />
+      </div>
+    </div>
+
+    <!-- filetype:pdf "osint" -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="filetype"/> filetype:ext "término"</label></h3>
+      <small>Busca un tipo de archivo concreto con un término exacto.</small>
+      <div class="inline" data-fields="filetype" hidden>
+        <input type="text" data-key="filetype_ext" placeholder="Extensión (ej: pdf, xls, log)" />
+        <input type="text" data-key="filetype_term" placeholder="Término exacto entre comillas" />
+      </div>
+    </div>
+
+    <!-- cache: -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="cache"/> cache:dominio</label></h3>
+      <small>Versión en caché de una página.</small>
+      <div class="inline" data-fields="cache" hidden>
+        <input type="text" data-key="cache" placeholder="Ej: ejemplo.com" />
+      </div>
+    </div>
+
+    <!-- related: -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="related"/> related:dominio</label></h3>
+      <small>Sitios similares a un dominio dado.</small>
+      <div class="inline" data-fields="related" hidden>
+        <input type="text" data-key="related" placeholder="Ej: amazon.com" />
+      </div>
+    </div>
+
+    <!-- allintitle: -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="allintitle"/> allintitle: …</label></h3>
+      <small>Todas las palabras deben aparecer en el título.</small>
+      <div class="inline" data-fields="allintitle" hidden>
+        <input type="text" data-key="allintitle" placeholder="Ej: policia osint" />
+      </div>
+    </div>
+
+    <!-- allinurl: -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="allinurl"/> allinurl: …</label></h3>
+      <small>Todas las palabras deben aparecer en la URL.</small>
+      <div class="inline" data-fields="allinurl" hidden>
+        <input type="text" data-key="allinurl" placeholder="Ej: policia osint" />
+      </div>
+    </div>
+
+    <!-- allintext: -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="allintext"/> allintext: …</label></h3>
+      <small>Todas las palabras deben aparecer en el contenido.</small>
+      <div class="inline" data-fields="allintext" hidden>
+        <input type="text" data-key="allintext" placeholder="Ej: policia osint" />
+      </div>
+    </div>
+
+    <!-- Ejemplos prácticos (opcionales) -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="ex_wpconfig"/> inurl:wp-config.php</label></h3>
+      <small>Detección de exposición de configuración de WordPress.</small>
+    </div>
+
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="ex_file_pw"/> filetype:xls intext:"password"</label></h3>
+      <small>Hojas Excel con la palabra "password".</small>
+    </div>
+
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="ex_indexof_backup"/> intitle:"indexof" "backup"</label></h3>
+      <small>Índices expuestos con copias de seguridad.</small>
+    </div>
+
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="ex_php_notice"/> intext:"Notice: Undefined index" "in file" "on line"</label></h3>
+      <small>Mensajes de error que revelan rutas/versions.</small>
+    </div>
+
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="ex_log_error"/> filetype:log intext:"Error" -git</label></h3>
+      <small>Registros .log con "Error" excluyendo muchos repos de Git.</small>
+    </div>
+
+    <!-- INVESTIGACIÓN -->
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_phish1"/> intext:"verifique su cuenta" OR intext:"actualice su contraseña" inurl:login</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_phish2"/> intext:"confirmar información" intext:"datos bancarios" -site:facebook.com</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_phish3"/> intext:"su sesión ha caducado" inurl:"session" "reinicie la contraseña"</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_phish4"/> intitle:"phishing" OR intext:"phishing" inurl:".php?id="</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_fin1"/> intext:"rentabilidad garantizada" OR intext:"ganancias seguras" intext:"inversión"</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_fin2"/> intext:"multiplica tu dinero" intext:"en poco tiempo" inurl:inversion</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_fin3"/> filetype:pdf intext:"Forex" intext:"rentabilidad mensual" -site:scribd.com</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_fin4"/> intext:"CNMV advierte" OR intext:"chiringuito financiero" -site:www.cnmv.es</label></h3>
+    </div>
+    <div class="op">
+      <h3><label><input type="checkbox" data-op="inv_foros"/> intext:"esta web es una estafa" OR intext:"esta página es un fraude" intitle:"foro"</label></h3>
+    </div>
   </div>
 
-  <script>
-    const fieldsDiv=document.getElementById('fields');
-    const btnAdd=document.getElementById('btnAdd');
-    const btnBuild=document.getElementById('btnBuild');
-    const res=document.getElementById('resultado');
+  <p class="hint" style="margin-top:10px">Marca lo que necesites. Cuando un operador requiera valor, aparecerá un campo editable.</p>
+</section>
 
-    function createField(){
-      const container=document.createElement('div');
-      container.className='field';
-      const label=document.createElement('label');
-      label.textContent='Operador o palabra (ejemplo):';
-      const input=document.createElement('input');
-      input.value="ejemplo";
-      container.appendChild(label);
-      container.appendChild(input);
-      fieldsDiv.appendChild(container);
-    }
+<!-- Salida -->
+<section class="card" aria-labelledby="out">
+  <h2 id="out" style="margin:0 0 10px; font-size:1.02rem">4) Consulta generada</h2>
+  <div class="out" id="queryOut" aria-live="polite">—</div>
+  <div class="row" style="margin-top:10px">
+    <button class="btn" id="copyBtn">Copiar</button>
+    <button class="btn primary" id="openBtn">Buscar en Google</button>
+    <button class="btn ghost" id="resetBtn" title="Limpiar">Reiniciar</button>
+  </div>
+  <p class="hint">La búsqueda se abre en una pestaña nueva con <code>google.com/search?q=…</code></p>
+</section>
 
-    btnAdd.onclick=()=>createField();
+<details>
+  <summary>Ver ayuda rápida de operadores</summary>
+  <ul>
+    <li><code>"frase exacta"</code> — Resultados con la frase exacta.</li>
+    <li><code>-excluir</code> — Excluye resultados con esa palabra.</li>
+    <li><code>OR</code> — Alternativa lógica (A OR B).</li>
+    <li><code>site:dominio</code>, <code>inurl:…</code>, <code>intitle:…</code>, <code>intext:…</code></li>
+    <li><code>filetype:pdf</code>, <code>cache:dominio</code>, <code>related:dominio</code></li>
+    <li><code>allintitle:</code>, <code>allinurl:</code>, <code>allintext:</code></li>
+  </ul>
+</details>
 
-    btnBuild.onclick=()=>{
-      let parts=[];
-      const chkComillas=document.getElementById('chkComillas').checked;
-      const chkPlus=document.getElementById('chkPlus').checked;
-      const chkMinus=document.getElementById('chkMinus').checked;
+  </main>  <footer>
+    Hecho con 🦝 por MAPACHE • Optimizado para móviles • Usa con responsabilidad y conforme a la ley.
+  </footer>  <script>
+    const $ = s => document.querySelector(s);
+    const $$ = s => [...document.querySelectorAll(s)];
 
-      document.querySelectorAll('#fields input').forEach(inp=>{
-        let val=inp.value.trim();
-        if(!val) return;
-        if(chkComillas) val='"'+val+'"';
-        if(chkPlus) val='+'+val;
-        if(chkMinus) val='-'+val;
-        parts.push(val);
+    const fieldGroups = $$('.op [data-fields]');
+
+    // Mostrar/ocultar campos dependientes del checkbox
+    $$('.op input[type="checkbox"][data-op]').forEach(chk => {
+      chk.addEventListener('change', () => {
+        const group = document.querySelector(`[data-fields="${chk.dataset.op}"]`);
+        if (!group) return;
+        group.hidden = !chk.checked;
       });
+    });
 
-      res.textContent=parts.join(' ');
+    // Construye la consulta final
+    function buildQuery(){
+      const parts = [];
+
+      // Paso 1: término base + modificaciones
+      let base = ($('#qBase').value || '').trim();
+
+      const modExact = $('#modExact').checked;
+      const modExclude = ($('#modExclude').value || '').trim();
+      const modOR = ($('#modOR').value || '').trim();
+
+      if (base){ base = modExact ? `"${base}"` : base; parts.push(base); }
+      if (modExclude){ parts.push(modExclude); }
+      if (modOR){ parts.push(modOR); }
+
+      // Operadores con parámetros
+      const op = (name) => $(`input[type="checkbox"][data-op="${name}"]`)?.checked;
+      const val = (key) => $(`[data-key="${key}"]`)?.value?.trim();
+
+      if (op('inurlLogin')){
+        const inc = val('inurlLogin_inc') || 'login';
+        const exc = val('inurlLogin_exc') || 'admin';
+        parts.push(`inurl:${quoteIfNeeded(inc)}`);
+        if (exc) parts.push(`-${quoteIfNeeded(exc)}`);
+      }
+
+      if (op('intitleAccesoLogin')){
+        const a = val('intitleA') || 'acceso';
+        const b = val('intitleB') || 'login';
+        parts.push(`intitle:${quoteIfNeeded(a)} OR intitle:${quoteIfNeeded(b)}`);
+      }
+
+      if (op('site')){
+        const s = val('site'); if (s) parts.push(`site:${s}`);
+      }
+
+      if (op('inurlIndex')){
+        const s = val('inurlIndex') || 'index';
+        parts.push(`inurl:${quoteIfNeeded(s)}`);
+      }
+
+      if (op('intitleAbout')){
+        const s = val('intitleAbout') || 'about';
+        parts.push(`intitle:${quoteIfNeeded(s)}`);
+      }
+
+      if (op('intext')){
+        const s = val('intext'); if (s) parts.push(`intext:${quoteIfNeeded(s)}`);
+      }
+
+      if (op('filetype')){
+        const ext = (val('filetype_ext')||'').replace(/^\./,'');
+        const term = val('filetype_term');
+        if (ext) parts.push(`filetype:${ext}`);
+        if (term) parts.push(`"${term.replace(/^["']|["']$/g,'')}"`);
+      }
+
+      if (op('cache')){
+        const s = val('cache'); if (s) parts.push(`cache:${s}`);
+      }
+
+      if (op('related')){
+        const s = val('related'); if (s) parts.push(`related:${s}`);
+      }
+
+      if (op('allintitle')){
+        const s = val('allintitle'); if (s) parts.push(`allintitle:${s}`);
+      }
+
+      if (op('allinurl')){
+        const s = val('allinurl'); if (s) parts.push(`allinurl:${s}`);
+      }
+
+      if (op('allintext')){
+        const s = val('allintext'); if (s) parts.push(`allintext:${s}`);
+      }
+
+      // Dorks predefinidos
+      if (op('ex_wpconfig')) parts.push('inurl:wp-config.php');
+      if (op('ex_file_pw')) parts.push('filetype:xls intext:"password"');
+      if (op('ex_indexof_backup')) parts.push('intitle:"indexof" "backup"');
+      if (op('ex_php_notice')) parts.push('intext:"Notice: Undefined index" "in file" "on line"');
+      if (op('ex_log_error')) parts.push('filetype:log intext:"Error" -git');
+
+      if (op('inv_phish1')) parts.push('intext:"verifique su cuenta" OR intext:"actualice su contraseña" inurl:login');
+      if (op('inv_phish2')) parts.push('intext:"confirmar información" intext:"datos bancarios" -site:facebook.com');
+      if (op('inv_phish3')) parts.push('intext:"su sesión ha caducado" inurl:"session" "reinicie la contraseña"');
+      if (op('inv_phish4')) parts.push('intitle:"phishing" OR intext:"phishing" inurl:".php?id="');
+      if (op('inv_fin1')) parts.push('intext:"rentabilidad garantizada" OR intext:"ganancias seguras" intext:"inversión"');
+      if (op('inv_fin2')) parts.push('intext:"multiplica tu dinero" intext:"en poco tiempo" inurl:inversion');
+      if (op('inv_fin3')) parts.push('filetype:pdf intext:"Forex" intext:"rentabilidad mensual" -site:scribd.com');
+      if (op('inv_fin4')) parts.push('intext:"CNMV advierte" OR intext:"chiringuito financiero" -site:www.cnmv.es');
+      if (op('inv_foros')) parts.push('intext:"esta web es una estafa" OR intext:"esta página es un fraude" intitle:"foro"');
+
+      const query = parts.filter(Boolean).join(' ').replace(/\s+/g,' ').trim();
+      $('#queryOut').textContent = query || '—';
+      return query;
     }
 
-    // añadir un campo inicial
-    createField();
-  </script>
-</body>
+    function quoteIfNeeded(s){
+      if (!s) return s;
+      return /\s/.test(s) ? `"${s}"` : s;
+    }
+
+    // Eventos que reconstruyen la consulta
+    ['input','change','keyup'].forEach(evt => {
+      document.addEventListener(evt, (e) => {
+        if (e.target.matches('input, select, textarea')) buildQuery();
+      }, true);
+    });
+
+    // Acciones
+    $('#copyBtn').addEventListener('click', async () => {
+      const q = buildQuery();
+      if (!q){ alert('No hay consulta para copiar.'); return; }
+      try{ await navigator.clipboard.writeText(q); flash('#copyBtn', 'Copiado ✓'); }
+      catch{ prompt('Copia manualmente la consulta:', q); }
+    });
+
+    $('#openBtn').addEventListener('click', () => {
+      const q = buildQuery();
+      if (!q){ alert('No hay consulta para buscar.'); return; }
+      const url = `https://www.google.com/search?q=${encodeURIComponent(q)}`;
+      window.open(url, '_blank', 'noopener');
+    });
+
+    $('#resetBtn').addEventListener('click', () => {
+      // limpiar todo
+      $('#qBase').value = '';
+      $('#modExact').checked = false;
+      $('#modExclude').value = '';
+      $('#modOR').value = '';
+      $$('.op input[type="checkbox"][data-op]').forEach(c => c.checked = false);
+      fieldGroups.forEach(g => g.hidden = true);
+      $$('.op [data-key]').forEach(i => i.value = i.defaultValue || '');
+      buildQuery();
+    });
+
+    function flash(sel, text){
+      const el = $(sel);
+      const old = el.textContent;
+      el.textContent = text;
+      el.disabled = true;
+      setTimeout(()=>{ el.textContent = old; el.disabled = false; }, 900);
+    }
+
+    // Primera construcción
+    buildQuery();
+  </script></body>
 </html>
