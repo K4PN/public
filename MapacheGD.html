@@ -1,330 +1,85 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Operadores de Google • Guía móvil</title>
-  <meta name="description" content="Chuleta interactiva de operadores de Google para OSINT e investigación. Optimizada para móviles con ejemplos copiables y un generador de consultas." />
-  <meta name="theme-color" content="#0f172a" />
+  <title>Operadores de Google • Constructor</title>
   <style>
     :root{
-      --bg:#0b1020; --panel:#121a2b; --panel-2:#0e1526; --ink:#e6eefb; --muted:#9fb0c3; --acc:#60a5fa; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --br:14px;
+      --bg:#0b1020; --panel:#121a2b; --ink:#e6eefb; --muted:#9fb0c3; --acc:#60a5fa; --br:12px;
     }
-    *{box-sizing:border-box}
-    html,body{margin:0; height:100%; font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:var(--ink)}
-    a{color:var(--acc); text-decoration:none}
-    .wrap{max-width:880px; margin:0 auto; padding:16px}
-    header{position:sticky; top:0; z-index:40; backdrop-filter:saturate(180%) blur(8px); background:rgba(11,16,32,.65); border-bottom:1px solid rgba(255,255,255,.06)}
-    .nav{display:flex; gap:10px; align-items:center; padding:10px 12px}
-    .title{font-weight:700; font-size:18px; letter-spacing:.3px}
-    .badge{font-size:12px; color:#cbd5e1; background:#0b1222; border:1px solid #20304f; border-radius:999px; padding:4px 10px}
-    .searchbar{display:flex; gap:8px; background:var(--panel); border:1px solid #223153; border-radius:12px; padding:10px}
-    input[type="text"], textarea{width:100%; background:transparent; border:none; color:var(--ink); outline:none; font-size:15px}
-    button{cursor:pointer; border:none; border-radius:10px; padding:10px 12px; background:#1d2640; color:var(--ink)}
-    button:hover{filter:brightness(1.08)}
-    .btn-acc{background:#1b2c52; border:1px solid #27477e}
-    .btn-ghost{background:transparent; border:1px solid #27477e}
-    .grid{display:grid; gap:12px}
-    .cards{grid-template-columns:repeat(1, minmax(0,1fr))}
-    @media(min-width:700px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); border:1px solid #223153; border-radius:var(--br); overflow:hidden}
-    .card h3{margin:0; font-size:16px; padding:12px 12px 0}
-    .card p{margin:0; color:var(--muted); padding:6px 12px 10px; font-size:13px}
-    .query{display:flex; gap:8px; align-items:center; padding:10px 12px; background:var(--panel-2); border-top:1px dashed #223153}
-    .query code{display:block; width:100%; white-space:nowrap; overflow:auto; scrollbar-width:none}
-    .query code::-webkit-scrollbar{display:none}
-    .chiprow{display:flex; flex-wrap:wrap; gap:6px; padding:8px 12px}
-    .chip{font-size:12px; color:#cfe0ff; background:#0e1730; border:1px solid #27477e; padding:6px 8px; border-radius:999px}
-    .section{margin:18px 0}
-    .section h2{margin:0 0 8px; font-size:18px}
-    .hr{height:1px; background:linear-gradient(90deg, transparent, #223153, transparent); margin:16px 0}
-    footer{color:#93a9c8; font-size:12px; padding:20px 0 60px}
-    .tip{font-size:12px; color:#cbd5e1; background:#0d152a; border:1px dashed #27477e; padding:8px 10px; border-radius:10px}
-    .floatbar{position:fixed; bottom:10px; left:50%; transform:translateX(-50%); display:flex; gap:8px; padding:8px; background:#0b1223; border:1px solid #223153; border-radius:999px; z-index:50}
-    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#0b1223; border:1px solid #223153; border-radius:6px; padding:0 6px; font-size:12px}
-    .muted{color:var(--muted)}
+    body{margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink)}
+    .wrap{max-width:860px; margin:0 auto; padding:16px}
+    h2{margin-top:24px; font-size:18px}
+    .section{background:var(--panel); border-radius:var(--br); padding:12px; margin-top:12px}
+    .field{display:flex; flex-direction:column; margin-bottom:10px}
+    .field label{font-size:14px; margin-bottom:4px; color:var(--muted)}
+    .field input{padding:8px; border-radius:8px; border:none; outline:none; font-size:14px; background:#0f1a33; color:var(--ink)}
+    .checkboxes{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px}
+    .checkboxes label{font-size:13px; display:flex; align-items:center; gap:4px}
+    .result{background:#0e152a; border:1px solid #223153; border-radius:var(--br); padding:12px; margin-top:16px; font-size:14px;}
+    button{padding:8px 12px; border:none; border-radius:8px; background:#1b2c52; color:var(--ink); cursor:pointer; margin-top:8px}
+    button:hover{filter:brightness(1.1)}
   </style>
 </head>
 <body>
-  <header>
-    <div class="nav wrap">
-      <div class="title">Operadores de Google — Chuleta OSINT</div>
-      <span class="badge" title="Optimizado móvil">Móvil</span>
-      <span class="badge" title="Copiar con un toque">Copiable</span>
+  <div class="wrap">
+    <h1>Constructor de consultas con operadores de Google</h1>
+
+    <div class="checkboxes">
+      <label><input type="checkbox" id="chkComillas"> Incluir comillas</label>
+      <label><input type="checkbox" id="chkPlus"> Incluir "+" delante</label>
+      <label><input type="checkbox" id="chkMinus"> Incluir "-" delante</label>
     </div>
-    <div class="wrap" style="padding-top:0; padding-bottom:12px">
-      <div class="searchbar">
-        <input id="composer" type="text" placeholder="Escribe tu consulta o toca tarjetas para componer…" aria-label="Compositor de consultas" />
-        <button class="btn-acc" id="btnBuscar" title="Buscar en Google"><span>Buscar</span></button>
-      </div>
-      <div class="tip" style="margin-top:8px">Sugerencia: puedes <b>tocar una consulta</b> para copiarla o <b>añadirla al compositor</b> con pulsación larga. Usa <span class="kbd">⌘/Ctrl</span>+<span class="kbd">K</span> para buscar.</div>
-    </div>
-  </header>  <main class="wrap">
-    <section class="section" id="operadores">
-      <h2>OPERADORES</h2>
-      <div class="grid cards">
-        <!-- Cada tarjeta incluye descripción y consulta copiable -->
-        <article class="card">
-          <h3>Frase exacta</h3>
-          <p>Devuelve resultados que contengan exactamente esta frase.</p>
-          <div class="query"><code>"policia nacional"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>URL contiene / excluye</h3>
-          <p>Muestra páginas con <i>login</i> excluyendo las que contengan <i>admin</i>.</p>
-          <div class="query"><code>inurl:login -admin</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>Título con cualquiera</h3>
-          <p>Buscará páginas con «acceso» <b>o</b> «login» en el título.</p>
-          <div class="query"><code>intitle:"acceso" OR intitle:"login"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>Limitar a dominio</h3>
-          <p>Muestra resultados dentro del dominio indicado (sustituye <code>ejemplo.com</code>).</p>
-          <div class="query"><code>site:ejemplo.com</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>URL contiene “index”</h3>
-          <p>Muestra páginas que tengan la palabra <i>index</i> en la dirección.</p>
-          <div class="query"><code>inurl:index</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>Título contiene “about”</h3>
-          <p>Muestra páginas cuyo título contenga «about».</p>
-          <div class="query"><code>intitle:about</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>Texto contiene «policía»</h3>
-          <p>Muestra páginas que incluyan «policía» en su contenido.</p>
-          <div class="query"><code>intext:policia</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>PDF con término</h3>
-          <p>PDFs que contengan el término «OSINT» en su contenido o título.</p>
-          <div class="query"><code>filetype:pdf "osint"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>Versión en caché</h3>
-          <p>Versión almacenada por Google de un sitio (si existe).</p>
-          <div class="query"><code>cache:ejemplo.com</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-        <article class="card">
-          <h3>Dominios similares</h3>
-          <p>Resultados que Google considera relacionados.</p>
-          <div class="query"><code>related:amazon.com</code><button class="btn-ghost" data-copy>Copiar</button></div>
-        </article>
-      </div>
-    </section><div class="hr"></div>
 
-<section class="section" id="all">
-  <h2>VARIANTE: USO DE “ALL”</h2>
-  <div class="grid cards">
-    <article class="card">
-      <h3>Ambas en el título</h3>
-      <p>Obliga a que <b>todas</b> las palabras estén en el título.</p>
-      <div class="query"><code>allintitle:policia osint</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Ambas en la URL</h3>
-      <p>Equivalente pero en la ruta/dirección.</p>
-      <div class="query"><code>allinurl:policia osint</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Ambas en el texto</h3>
-      <p>Busca páginas cuyo <b>contenido</b> contenga ambas.</p>
-      <div class="query"><code>allintext:policia osint</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
+    <div id="fields"></div>
+
+    <button id="btnAdd">Añadir operador</button>
+    <button id="btnBuild">Construir consulta</button>
+
+    <div class="result" id="resultado">Aquí aparecerá la consulta final…</div>
   </div>
-</section>
 
-<div class="hr"></div>
+  <script>
+    const fieldsDiv=document.getElementById('fields');
+    const btnAdd=document.getElementById('btnAdd');
+    const btnBuild=document.getElementById('btnBuild');
+    const res=document.getElementById('resultado');
 
-<section class="section" id="ejemplos">
-  <h2>EJEMPLOS DE USO</h2>
-  <div class="grid cards">
-    <article class="card">
-      <h3>wp-config expuesto</h3>
-      <p>Archivo sensible de WordPress (puede revelar credenciales).</p>
-      <div class="query"><code>inurl:wp-config.php</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>XLS con «password»</h3>
-      <p>Hojas de cálculo con la palabra «password».</p>
-      <div class="query"><code>filetype:xls intext:"password"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Índices de backups</h3>
-      <p>Comprueba si hay copias de seguridad a la vista.</p>
-      <div class="query"><code>intitle:"indexof" "backup"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Mensajes de error PHP</h3>
-      <p>Rutas internas y versiones a veces quedan expuestas.</p>
-      <div class="query"><code>intext:"Notice: Undefined index" "in file" "on line"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Logs con «Error» (sin git)</h3>
-      <p>Filtra ficheros .log con «Error» excluyendo repos Git.</p>
-      <div class="query"><code>filetype:log intext:"Error" -git</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-  </div>
-</section>
+    function createField(){
+      const container=document.createElement('div');
+      container.className='field';
+      const label=document.createElement('label');
+      label.textContent='Operador o palabra (ejemplo):';
+      const input=document.createElement('input');
+      input.value="ejemplo";
+      container.appendChild(label);
+      container.appendChild(input);
+      fieldsDiv.appendChild(container);
+    }
 
-<div class="hr"></div>
+    btnAdd.onclick=()=>createField();
 
-<section class="section" id="investigacion">
-  <h2>INVESTIGACIÓN</h2>
-  <div class="grid cards">
-    <article class="card">
-      <h3>Phishing — frases típicas</h3>
-      <p>Frases comunes de phishing y «login» en URL.</p>
-      <div class="query"><code>intext:"verifique su cuenta" OR intext:"actualice su contraseña" inurl:login</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Credenciales — exclusión de Facebook</h3>
-      <p>Excluye resultados ruidosos de Facebook.</p>
-      <div class="query"><code>intext:"confirmar información" intext:"datos bancarios" -site:facebook.com</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Sesión caducada + reset</h3>
-      <p>Patrones de caducidad/recuperación (phishing).</p>
-      <div class="query"><code>intext:"su sesión ha caducado" inurl:"session" "reinicie la contraseña"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Menciones de «phishing» + id</h3>
-      <p>Reportes/foros y URLs con parámetros típicos.</p>
-      <div class="query"><code>intitle:"phishing" OR intext:"phishing" inurl:".php?id="</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Promesas de inversión</h3>
-      <p>Frases sospechosas de chiringuitos financieros.</p>
-      <div class="query"><code>intext:"rentabilidad garantizada" OR intext:"ganancias seguras" intext:"inversión"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Multiplica tu dinero</h3>
-      <p>Inversión rápida y multiplicación del capital.</p>
-      <div class="query"><code>intext:"multiplica tu dinero" intext:"en poco tiempo" inurl:inversion</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>PDF sobre Forex</h3>
-      <p>PDFs con «Forex» y «rentabilidad mensual», sin Scribd.</p>
-      <div class="query"><code>filetype:pdf intext:"Forex" intext:"rentabilidad mensual" -site:scribd.com</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Avisos de la CNMV</h3>
-      <p>Menciones a avisos de la CNMV fuera de su web.</p>
-      <div class="query"><code>intext:"CNMV advierte" OR intext:"chiringuito financiero" -site:www.cnmv.es</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-    <article class="card">
-      <h3>Foros — denuncias de fraude</h3>
-      <p>Quejas de usuarios en foros.</p>
-      <div class="query"><code>intext:"esta web es una estafa" OR intext:"esta página es un fraude" intitle:"foro"</code><button class="btn-ghost" data-copy>Copiar</button></div>
-    </article>
-  </div>
-</section>
+    btnBuild.onclick=()=>{
+      let parts=[];
+      const chkComillas=document.getElementById('chkComillas').checked;
+      const chkPlus=document.getElementById('chkPlus').checked;
+      const chkMinus=document.getElementById('chkMinus').checked;
 
-<div class="hr"></div>
-
-<section class="section" id="buscadores">
-  <h2>BUSCADORES — Búsqueda Avanzada</h2>
-  <p class="muted">Amplía resultados combinando operadores. Recuerda: los operadores no sustituyen un buen <i>plan de búsqueda</i> (palabras clave, sinónimos, idioma, filtros de fecha).</p>
-  <div class="chiprow">
-    <span class="chip" data-insert="site:">site:</span>
-    <span class="chip" data-insert="inurl:">inurl:</span>
-    <span class="chip" data-insert="intitle:">intitle:</span>
-    <span class="chip" data-insert="intext:">intext:</span>
-    <span class="chip" data-insert="filetype:">filetype:</span>
-    <span class="chip" data-insert="OR">OR</span>
-    <span class="chip" data-insert="-site:">-site:</span>
-    <span class="chip" data-insert="\"\"">“ ”</span>
-  </div>
-  <div class="searchbar" style="margin-top:8px">
-    <textarea id="area" rows="3" placeholder="Construye aquí tu consulta avanzada…"></textarea>
-  </div>
-  <div style="display:flex; gap:8px; margin-top:8px">
-    <button id="btnPaste" class="btn-ghost" title="Pegar en el compositor">Pegar arriba</button>
-    <button id="btnRun" class="btn-acc" title="Abrir en Google">Abrir en Google</button>
-    <button id="btnClear" class="btn-ghost" title="Limpiar">Limpiar</button>
-  </div>
-  <p class="tip" style="margin-top:10px">Ética y legalidad: usa estas técnicas con <b>consentimiento</b> y <b>finalidad legítima</b>. Evita acceder a información no destinada al público o vulnerar Términos de Servicio.</p>
-</section>
-
-<footer>
-  Hecho para investigación OSINT. © 2025 · Modo oscuro · Pulsa largo en cualquier consulta para <i>añadir al compositor</i> en lugar de copiar.
-</footer>
-
-  </main>  <div class="floatbar">
-    <button id="copyAll" class="btn-ghost" title="Copiar toda la página en texto">Copiar todo</button>
-    <button id="scrollTop" class="btn-ghost" title="Ir arriba">Arriba</button>
-  </div>  <script>
-    // Utilidades de copia/pegado
-    const toast = (msg)=>{ try{ navigator?.setAppBadge?.(1);}catch{}; const el=document.createElement('div'); el.textContent=msg; el.style.cssText='position:fixed;bottom:68px;left:50%;transform:translateX(-50%);background:#0b1223;border:1px solid #223153;color:#e6eefb;padding:8px 10px;border-radius:10px;z-index:99;opacity:0;transition:.2s'; document.body.appendChild(el); requestAnimationFrame(()=>{el.style.opacity=1}); setTimeout(()=>{el.style.opacity=0; setTimeout(()=>el.remove(),200)},1500)}
-
-    function copy(text){ navigator.clipboard.writeText(text).then(()=>toast('Copiado')).catch(()=>{}); }
-
-    // Copiar/añadir desde tarjetas
-    document.querySelectorAll('[data-copy]').forEach(btn=>{
-      btn.addEventListener('click', e=>{
-        const code=e.target.closest('.query').querySelector('code').innerText.trim();
-        copy(code);
+      document.querySelectorAll('#fields input').forEach(inp=>{
+        let val=inp.value.trim();
+        if(!val) return;
+        if(chkComillas) val='"'+val+'"';
+        if(chkPlus) val='+'+val;
+        if(chkMinus) val='-'+val;
+        parts.push(val);
       });
-      // Pulsación larga para añadir al compositor
-      let pressTimer; btn.addEventListener('touchstart', e=>{ pressTimer=setTimeout(()=>{
-        const code=e.target.closest('.query').querySelector('code').innerText.trim();
-        const comp=document.getElementById('composer');
-        comp.value = (comp.value? comp.value + ' ' : '') + code;
-        toast('Añadido al compositor');
-      }, 450); },{passive:true});
-      ['touchend','touchcancel'].forEach(evt=>btn.addEventListener(evt,()=>clearTimeout(pressTimer)));
-    });
 
-    // Chips que insertan operadores en el área
-    document.querySelectorAll('.chip[data-insert]').forEach(ch=>{
-      ch.addEventListener('click', ()=>{
-        const area=document.getElementById('area');
-        const ins=ch.dataset.insert;
-        const [l, r] = ins === '\"\"' ? ['"','"'] : [ins+'',''];
-        const selStart=area.selectionStart, selEnd=area.selectionEnd;
-        const before=area.value.slice(0, selStart), selected=area.value.slice(selStart, selEnd), after=area.value.slice(selEnd);
-        area.value = before + l + selected + r + after;
-        const cursor = (l== '"') ? selEnd + 2 : selEnd + ins.length;
-        area.setSelectionRange(cursor, cursor);
-        area.focus();
-      });
-    });
-
-    // Botones del generador
-    document.getElementById('btnPaste').onclick=()=>{
-      const comp=document.getElementById('composer');
-      const area=document.getElementById('area');
-      comp.value = area.value.trim(); toast('Pegado arriba');
-    }
-    document.getElementById('btnRun').onclick=()=>{
-      const q=document.getElementById('area').value.trim()||document.getElementById('composer').value.trim();
-      if(!q){ toast('Escribe una consulta'); return; }
-      const url = 'https://www.google.com/search?q=' + encodeURIComponent(q);
-      window.open(url, '_blank');
-    }
-    document.getElementById('btnClear').onclick=()=>{ document.getElementById('area').value=''; }
-
-    // Barra superior: buscar
-    document.getElementById('btnBuscar').onclick=()=>{
-      const q=document.getElementById('composer').value.trim(); if(!q){ toast('Escribe una consulta'); return; }
-      const url='https://www.google.com/search?q=' + encodeURIComponent(q); window.open(url, '_blank');
+      res.textContent=parts.join(' ');
     }
 
-    // Atajos: Ctrl/Cmd+K para foco
-    document.addEventListener('keydown', (e)=>{
-      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); document.getElementById('composer').focus(); }
-    });
-
-    // Copiar todo el texto visible
-    document.getElementById('copyAll').onclick=()=>{
-      const txt=[...document.querySelectorAll('h2, h3, .query code')].map(n=>n.textContent.trim()).join('\n');
-      copy(txt);
-    }
-
-    // Scroll arriba
-    document.getElementById('scrollTop').onclick=()=>window.scrollTo({top:0, behavior:'smooth'});
-  </script></body>
-  </html>
+    // añadir un campo inicial
+    createField();
+  </script>
+</body>
+</html>
