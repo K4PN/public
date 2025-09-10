@@ -43,16 +43,15 @@
     all:unset;cursor:pointer;background:#223146;border-radius:999px;padding:4px 6px;font-size:.8rem
   }
   .ops{display:flex;gap:8px;flex-wrap:wrap}
-  .ops button{flex:1}
+  .ops button{flex:1;outline:2px solid transparent}
+  .ops button.active{outline:2px solid var(--acc)}
   .preview{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0b1119;border:1px solid #263247;border-radius:12px;padding:12px;min-height:56px;word-break:break-word}
   .muted{color:var(--muted);font-size:.9rem}
-  .toolbar{display:flex;gap:10px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap}
   .foot{opacity:.8;text-align:center;font-size:.8rem}
   .help{font-size:.9rem;color:var(--muted);line-height:1.35}
   .seg{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
-  @media (min-width:560px){
-    .seg{grid-template-columns:1fr 180px}
-  }
+  @media (min-width:560px){ .seg{grid-template-columns:1fr 180px} }
 </style>
 </head>
 <body>
@@ -62,7 +61,6 @@
 </header>
 
 <main class="wrap">
-  <!-- Constructor -->
   <section class="card" aria-labelledby="lblDork">
     <label id="lblDork">1) Elige un dork</label>
     <div class="row">
@@ -91,17 +89,17 @@
       </div>
       <div>
         <label>3) Unión con lo anterior</label>
-        <div class="ops">
-          <button class="btn" data-op="space" title="Espacio (equivale a AND)">Espacio</button>
-          <button class="btn" data-op="AND">AND</button>
-          <button class="btn" data-op="OR">OR</button>
+        <div class="ops" role="group" aria-label="Uniones">
+          <button type="button" class="btn active" data-op="space" title="Espacio (equivale a AND)">Espacio</button>
+          <button type="button" class="btn" data-op="AND">AND</button>
+          <button type="button" class="btn" data-op="OR">OR</button>
         </div>
       </div>
     </div>
 
     <div class="row" style="margin-top:10px">
-      <button class="btn btn-acc" id="add">➕ Añadir</button>
-      <button class="btn btn-danger" id="clear">🗑️ Limpiar</button>
+      <button type="button" class="btn btn-acc" id="add">➕ Añadir</button>
+      <button type="button" class="btn btn-danger" id="clear">🗑️ Limpiar</button>
     </div>
 
     <div class="help" style="margin-top:8px">
@@ -110,22 +108,20 @@
     </div>
   </section>
 
-  <!-- Piezas añadidas -->
   <section class="card">
     <label>Elementos de la consulta</label>
     <div id="chips" class="chips" aria-live="polite"></div>
   </section>
 
-  <!-- Vista previa -->
   <section class="card">
     <label>Consulta actual</label>
     <div id="preview" class="preview" aria-live="polite"></div>
     <div class="toolbar" style="margin-top:10px">
-      <button class="btn btn-ok" id="copy">📋 Copiar</button>
-      <button class="btn btn-acc" id="search">🔎 Buscar en Google</button>
+      <button type="button" class="btn btn-ok" id="copy">📋 Copiar</button>
+      <button type="button" class="btn btn-acc" id="search">🔎 Buscar en Google</button>
     </div>
     <div class="help" style="margin-top:8px">
-      Nota: Google ha cambiado el comportamiento de <code>+</code> en el pasado; sigue siendo útil para delimitar, pero prioriza comillas para exactitud.
+      Nota: Google ha cambiado el comportamiento de <code>+</code> históricamente; sigue siendo útil para delimitar, pero prioriza comillas para exactitud.
     </div>
   </section>
 
@@ -146,19 +142,169 @@
   const opBtns = Array.from(document.querySelectorAll('.ops .btn'));
 
   // Estado
-  let parts = []; // {raw: string, shown: string}
+  let parts = []; // {raw, shown, op}
   let pendingOp = 'space'; // unión por defecto
 
-  // restaurar de localStorage (opcional)
-  try {
-    const saved = JSON.parse(localStorage.getItem('mapache_dorks_v1')||'[]');
-    if (Array.isArray(saved) && saved.length) {
-      parts = saved;
-      render();
+  // LocalStorage seguro
+  const safe = {
+    load(){
+      try{ return JSON.parse(localStorage.getItem('mapache_dorks_v1')||'[]'); }
+      catch{ return []; }
+    },
+    save(data){
+      try{ localStorage.setItem('mapache_dorks_v1', JSON.stringify(data)); }
+      catch{ /* modo privado / sin almacenamiento */ }
     }
-  } catch {}
+  };
 
+  // Restaurar
+  const saved = safe.load();
+  if (Array.isArray(saved) && saved.length){ parts = saved; render(); }
+
+  // Selección de unión
   opBtns.forEach(b=>{
     b.addEventListener('click', ()=>{
       pendingOp = b.dataset.op;
-      opBtns.forEach(x=>x.style.out
+      opBtns.forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+    }, {passive:true});
+  });
+
+  function needsQuotes(s){
+    if(/^".+"$/.test(s)) return false;
+    return /[\s]/.test(s);
+  }
+
+  function fmtPiece(kind, text){
+    const t = text.trim();
+    if(!t) return '';
+
+    switch(kind){
+      case 'none':
+        return t;
+      case 'quotes':
+        return /^".+"$/.test(t) ? t : `"${t}"`;
+      case 'minus':
+        if (needsQuotes(t)) return `-"${t.replace(/^"|"$/g,'')}"`;
+        return `-${t}`;
+      case 'plus':
+        if (needsQuotes(t)) return `+"${t.replace(/^"|"$/g,'')}"`;
+        return `+${t}`;
+      case 'inurl':
+      case 'intitle':
+      case 'site':
+      case 'intext':
+      case 'filetype':
+      case 'cache':
+      case 'related':
+      case 'allintitle':
+      case 'allinurl':
+      case 'allintext':
+        if(/^allin/.test(kind)){
+          return `${kind}:${t}`;
+        }
+        if (needsQuotes(t)) return `${kind}:"${t.replace(/^"|"$/g,'')}"`;
+        return `${kind}:${t}`;
+      default:
+        return t;
+    }
+  }
+
+  function render(){
+    // Chips
+    chips.innerHTML = '';
+    parts.forEach((p, idx)=>{
+      const el = document.createElement('div');
+      el.className = 'chip';
+      el.innerHTML = `<span>${p.shown}</span><small>${p.op.toUpperCase()==='SPACE'?'espacio':p.op}</small>
+                      <button type="button" aria-label="Eliminar">✕</button>`;
+      el.querySelector('button').addEventListener('click', ()=>{
+        parts.splice(idx,1);
+        safe.save(parts);
+        render();
+      }, {passive:true});
+      chips.appendChild(el);
+    });
+
+    // Preview
+    let out = '';
+    parts.forEach((p,i)=>{
+      if(i===0){ out += p.shown; return; }
+      if(p.op==='space'){ out += ' ' + p.shown; }
+      else { out += ' ' + p.op + ' ' + p.shown; }
+    });
+    preview.textContent = out.trim();
+  }
+
+  addBtn.addEventListener('click', ()=>{
+    const kind = dorkSel.value;
+    const text = valor.value;
+    const piece = fmtPiece(kind, text);
+    if(!piece){
+      valor.focus();
+      return;
+    }
+    const op = (parts.length===0) ? 'space' : pendingOp;
+    parts.push({raw: piece, shown: piece, op});
+    safe.save(parts);
+    render();
+    valor.value='';
+    valor.focus();
+  }, {passive:true});
+
+  clearBtn.addEventListener('click', ()=>{
+    parts = [];
+    safe.save(parts);
+    render();
+    valor.value='';
+    // Visual: vuelve a marcar "Espacio"
+    pendingOp = 'space';
+    opBtns.forEach(x=>x.classList.remove('active'));
+    opBtns.find(b=>b.dataset.op==='space').classList.add('active');
+    valor.focus();
+  }, {passive:true});
+
+  copyBtn.addEventListener('click', async ()=>{
+    const q = preview.textContent.trim();
+    if(!q) return;
+    try{
+      await navigator.clipboard.writeText(q);
+      flash(copyBtn,'✅ Copiado','📋 Copiar');
+    }catch{
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = q; document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch{}
+      document.body.removeChild(ta);
+      flash(copyBtn,'✅ Copiado','📋 Copiar');
+    }
+  }, {passive:true});
+
+  searchBtn.addEventListener('click', ()=>{
+    const q = preview.textContent.trim();
+    if(!q) return;
+    const url = 'https://www.google.com/search?q=' + encodeURIComponent(q);
+    window.open(url, '_blank', 'noopener');
+  }, {passive:true});
+
+  // UX: Enter para añadir
+  valor.addEventListener('keydown', (e)=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      addBtn.click();
+    }
+  });
+
+  function flash(btn, now, later){
+    const old = btn.textContent;
+    btn.textContent = now || 'Listo';
+    setTimeout(()=>btn.textContent = later || old, 1200);
+  }
+
+  // Asegura que “Espacio” aparezca seleccionado al cargar
+  opBtns.forEach(x=>x.classList.remove('active'));
+  opBtns.find(b=>b.dataset.op==='space').classList.add('active');
+})();
+</script>
+</body>
+</html>
