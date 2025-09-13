@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ollama Web UI (Lite)</title>
+  <style>
+    :root{
+      --bg:#0f1216; --panel:#161b22; --muted:#9fb0c3; --txt:#e9eef5; --acc:#4cc9f0; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+      --br:14px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--txt)}
+    header{display:flex;gap:14px;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(180deg,#111827,#0f1216)}
+    header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+    header .hint{color:var(--muted);font-size:12px}
+    .wrap{display:grid;grid-template-columns:320px 1fr;gap:14px;padding:14px;}
+    @media (max-width:980px){.wrap{grid-template-columns:1fr;}}
+    .card{background:var(--panel);border-radius:var(--br);border:1px solid #1f2937}
+    .left{padding:14px}
+    .left h2{font-size:14px;margin:6px 0 10px;color:#cde}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+    input[type="text"], input[type="number"], select, textarea{width:100%;background:#0b0f14;color:var(--txt);border:1px solid #223142;border-radius:10px;padding:10px}
+    textarea{min-height:80px;resize:vertical}
+    .row{display:flex;gap:8px;align-items:center}
+    .btn{appearance:none;border:none;border-radius:12px;padding:10px 12px;background:#223142;color:#e6f2ff;cursor:pointer}
+    .btn:hover{filter:brightness(1.06)}
+    .btn.acc{background:var(--acc);color:#06202a;font-weight:700}
+    .btn.ok{background:var(--ok);color:#06200e;font-weight:700}
+    .btn.danger{background:var(--danger);color:#2b0a0a;font-weight:700}
+    .small{font-size:12px;color:var(--muted)}
+    .chat{display:flex;flex-direction:column;height:calc(100vh - 160px);min-height:420px}
+    .log{flex:1;overflow:auto;padding:14px}
+    .bubble{max-width:900px;line-height:1.35;padding:12px 14px;border-radius:16px;margin:8px 0;white-space:pre-wrap}
+    .user{background:#1f2a36;border:1px solid #2b3e50;border-top-right-radius:4px}
+    .ai{background:#101821;border:1px solid #24394b;border-top-left-radius:4px}
+    .sys{background:#0e1319;border:1px dashed #2a4053;color:#b9d5ee}
+    .input{display:flex;gap:8px;padding:10px;border-top:1px solid #1f2937}
+    .input textarea{height:70px}
+    .right.card{display:flex;flex-direction:column}
+    .status{padding:8px 14px;border-top:1px solid #1f2937;color:var(--muted);font-size:12px}
+    .pill{display:inline-flex;align-items:center;gap:6px;background:#0b0f14;border:1px solid #223142;color:#cde;border-radius:999px;padding:6px 10px;font-size:12px}
+    details{margin-top:10px}
+    code{background:#0b0f14;border:1px solid #223142;border-radius:8px;padding:2px 6px}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Ollama Web UI (Lite)</h1>
+      <div class="hint">Interfaz ligera, 100% local. Detecta modelos instalados automáticamente.</div>
+    </div>
+    <div class="row">
+      <span class="pill" id="conn-pill">Desconectado</span>
+      <button class="btn" id="btn-refresh">Recargar modelos</button>
+      <a class="btn" href="https://github.com/ollama/ollama/blob/main/docs/api.md" target="_blank" rel="noreferrer">API</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <aside class="left card">
+      <h2>Conexión y modelo</h2>
+      <label for="host">Servidor Ollama</label>
+      <input type="text" id="host" placeholder="http://localhost:11434" value="http://localhost:11434">
+
+      <label for="model">Modelo</label>
+      <select id="model"></select>
+      <div class="small">Se autocompleta con los modelos instalados (<code>/api/tags</code>). Puedes escribir a mano si quieres usar otro.</div>
+
+      <label for="sysprompt">Mensaje del sistema (opcional)</label>
+      <textarea id="sysprompt" placeholder="Eres una IA útil, concisa y precisa."></textarea>
+
+      <div class="row">
+        <div style="flex:1">
+          <label for="temp">Temperatura: <span id="tempv">0.7</span></label>
+          <input type="range" id="temp" min="0" max="2" step="0.1" value="0.7" />
+        </div>
+        <div style="width:120px">
+          <label for="maxn">num_predict</label>
+          <input type="number" id="maxn" placeholder="(auto)" min="0" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button class="btn ok" id="btn-new">Nuevo chat</button>
+        <button class="btn danger" id="btn-clear">Borrar historial</button>
+      </div>
+
+      <details>
+        <summary>Ayuda CORS / conexión</summary>
+        <div class="small" style="margin-top:8px">
+          Si ves errores de CORS al usar el navegador, arranca Ollama permitiendo orígenes web:<br>
+          • Linux/macOS: <code>OLLAMA_ORIGINS="*" ollama serve</code><br>
+          • Windows (PowerShell): <code>setx OLLAMA_ORIGINS "*"</code> y reinicia el servicio de Ollama.<br>
+          También puedes restringirlo a <code>http://localhost</code> si prefieres.
+        </div>
+      </details>
+    </aside>
+
+    <main class="right card">
+      <div class="chat">
+        <div id="log" class="log"></div>
+        <div class="input">
+          <textarea id="prompt" placeholder="Escribe tu mensaje y pulsa ENVIAR... (Shift+Enter para salto de línea)"></textarea>
+          <div class="row" style="flex-direction:column;gap:8px;align-items:stretch;width:160px">
+            <button class="btn acc" id="btn-send">Enviar</button>
+            <button class="btn danger" id="btn-stop" disabled>Detener</button>
+          </div>
+        </div>
+      </div>
+      <div class="status" id="status">Listo.</div>
+    </main>
+  </div>
+
+  <script>
+    // --- Estado global ---
+    const els = {
+      host: document.getElementById('host'),
+      model: document.getElementById('model'),
+      sysprompt: document.getElementById('sysprompt'),
+      temp: document.getElementById('temp'),
+      tempv: document.getElementById('tempv'),
+      maxn: document.getElementById('maxn'),
+      prompt: document.getElementById('prompt'),
+      log: document.getElementById('log'),
+      status: document.getElementById('status'),
+      btnSend: document.getElementById('btn-send'),
+      btnStop: document.getElementById('btn-stop'),
+      btnNew: document.getElementById('btn-new'),
+      btnClear: document.getElementById('btn-clear'),
+      btnRefresh: document.getElementById('btn-refresh'),
+      connPill: document.getElementById('conn-pill'),
+    };
+
+    let messages = [];
+    let abortController = null;
+
+    // --- Utiles UI ---
+    const saveLS = (k,v)=>localStorage.setItem(k, JSON.stringify(v));
+    const readLS = (k, d=null)=>{ try { return JSON.parse(localStorage.getItem(k)) ?? d } catch { return d } };
+    const baseURL = ()=> (els.host.value || 'http://localhost:11434').replace(/\/$/, '');
+
+    function addBubble(role, text){
+      const div = document.createElement('div');
+      div.className = `bubble ${role}`;
+      div.textContent = text;
+      els.log.appendChild(div);
+      els.log.scrollTop = els.log.scrollHeight;
+      return div;
+    }
+
+    function setStatus(t){ els.status.textContent = t }
+
+    function setConn(state){
+      if(state){
+        els.connPill.textContent = 'Conectado';
+        els.connPill.style.background = '#0b2a1a';
+        els.connPill.style.border = '1px solid #245335';
+        els.connPill.style.color = '#b4f5c8';
+      } else {
+        els.connPill.textContent = 'Desconectado';
+        els.connPill.style.background = '#2a0b0b';
+        els.connPill.style.border = '1px solid #532424';
+        els.connPill.style.color = '#f5b4b4';
+      }
+    }
+
+    // --- Modelos ---
+    async function loadModels(){
+      const url = baseURL() + '/api/tags';
+      try{
+        const r = await fetch(url, { method:'GET' });
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        const data = await r.json();
+        const models = (data.models || []).map(m=>m.name).sort((a,b)=>a.localeCompare(b));
+
+        els.model.innerHTML = '';
+        // Opción auto
+        const optAuto = document.createElement('option');
+        optAuto.value = '';
+        optAuto.textContent = 'Auto (primero instalado)';
+        els.model.appendChild(optAuto);
+
+        for(const m of models){
+          const o = document.createElement('option');
+          o.value = m; o.textContent = m; els.model.appendChild(o);
+        }
+
+        const last = readLS('ollama_model');
+        if(last && [...els.model.options].some(o=>o.value===last)){
+          els.model.value = last;
+        } else if(models.length){
+          // Preferencias comunes si existen
+          const prefs = ['llama3.1', 'llama3', 'qwen2.5', 'gemma2', 'phi3'];
+          const pick = prefs.find(p=>models.some(m=>m.startsWith(p))) || models[0];
+          els.model.value = pick;
+        }
+        setConn(true);
+        setStatus('Modelos cargados.');
+      }catch(err){
+        setConn(false);
+        setStatus('No se pudieron cargar modelos: '+err.message);
+      }
+    }
+
+    // --- Chat ---
+    function currentModel(){
+      const m = els.model.value.trim();
+      if(m) return m;
+      // Si está en Auto, intentamos usar el primero de la lista (si no es la opción auto)
+      const opts = [...els.model.options].map(o=>o.value).filter(v=>v);
+      return opts[0] || 'llama3.1';
+    }
+
+    function resetMessages(){
+      messages = [];
+      const sys = els.sysprompt.value.trim();
+      if(sys) messages.push({ role:'system', content: sys });
+      saveLS('ollama_messages', messages);
+    }
+
+    function renderFromLS(){
+      els.log.innerHTML = '';
+      const hist = readLS('ollama_history') || [];
+      for(const item of hist){ addBubble(item.role, item.text) }
+      els.log.scrollTop = els.log.scrollHeight;
+    }
+
+    function pushHistory(role, text){
+      const hist = readLS('ollama_history') || [];
+      hist.push({role, text});
+      // Limita tamaño básico
+      while(hist.length > 400){ hist.shift() }
+      saveLS('ollama_history', hist);
+    }
+
+    async function sendMessage(){
+      const q = els.prompt.value.trim();
+      if(!q) return;
+
+      els.btnSend.disabled = true;
+      els.btnStop.disabled = true;
+
+      // Añade user
+      messages.push({ role:'user', content:q });
+      const ub = addBubble('user','👤 '+q);
+      pushHistory('user','👤 '+q);
+      els.prompt.value='';
+
+      // Preparar burbuja de asistente
+      const ab = addBubble('ai','🤖 ');
+
+      const payload = {
+        model: currentModel(),
+        messages: messages,
+        stream: true,
+        options: {}
+      };
+
+      const t = parseFloat(els.temp.value);
+      if(!Number.isNaN(t)) payload.options.temperature = t;
+      const num = parseInt(els.maxn.value,10);
+      if(Number.isFinite(num) && num >= 0) payload.options.num_predict = num;
+      payload.keep_alive = '5m';
+
+      saveLS('ollama_model', payload.model);
+
+      const url = baseURL() + '/api/chat';
+      setStatus('Consultando '+payload.model+' …');
+
+      abortController = new AbortController();
+      els.btnStop.disabled = false;
+
+      try{
+        const r = await fetch(url, {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify(payload),
+          signal: abortController.signal
+        });
+        if(!r.ok){
+          const txt = await r.text();
+          throw new Error('HTTP '+r.status+' '+txt);
+        }
+        const reader = r.body.getReader();
+        const dec = new TextDecoder();
+        let full = '';
+
+        while(true){
+          const {done, value} = await reader.read();
+          if(done) break;
+          const chunk = dec.decode(value, {stream:true});
+          // La API devuelve líneas JSON por fragmento
+          const lines = chunk.split(/\n+/).filter(Boolean);
+          for(const line of lines){
+            try{
+              const obj = JSON.parse(line);
+              if(obj.message && typeof obj.message.content === 'string'){
+                full += obj.message.content;
+                ab.textContent = '🤖 '+full;
+                // Para no llenar LS cada token, guardamos cada ~500 chars
+                if(full.length % 500 < 10){ pushHistory('ai', '🤖 '+full) }
+              }
+              if(obj.done){
+                // Finaliza
+                messages.push({ role:'assistant', content: full });
+                pushHistory('ai', '🤖 '+full);
+              }
+            }catch(e){ /* ignora líneas parciales */ }
+          }
+        }
+        setStatus('Listo.');
+      }catch(err){
+        if(err.name === 'AbortError'){
+          setStatus('Generación detenida.');
+          ab.textContent += '\n\n(Detenido por el usuario)';
+        } else {
+          setStatus('Error: '+err.message);
+          ab.textContent += '\n\n[Error: '+err.message+']';
+        }
+      } finally {
+        els.btnSend.disabled = false;
+        els.btnStop.disabled = true;
+        abortController = null;
+      }
+    }
+
+    function stopGen(){ if(abortController){ abortController.abort(); } }
+
+    // --- Eventos ---
+    els.temp.addEventListener('input', ()=> els.tempv.textContent = els.temp.value);
+    els.btnSend.addEventListener('click', sendMessage);
+    els.btnStop.addEventListener('click', stopGen);
+    els.btnNew.addEventListener('click', ()=>{ resetMessages(); addBubble('sys','🧭 Nuevo chat iniciado.'); pushHistory('sys','🧭 Nuevo chat iniciado.'); setStatus('Historial del mensaje actual reiniciado.'); });
+    els.btnClear.addEventListener('click', ()=>{ localStorage.removeItem('ollama_history'); els.log.innerHTML=''; addBubble('sys','🧹 Historial local borrado.'); setStatus('Historial borrado (solo este navegador).'); });
+    els.btnRefresh.addEventListener('click', loadModels);
+    els.prompt.addEventListener('keydown', (e)=>{ if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendMessage(); } });
+
+    // Carga inicial
+    (async function init(){
+      els.tempv.textContent = els.temp.value;
+      renderFromLS();
+      resetMessages();
+      await loadModels();
+      setStatus('Listo.');
+    })();
+  </script>
+</body>
+</html>
