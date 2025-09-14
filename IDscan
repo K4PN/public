@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Cam + Overlay DNI</title>
+<meta name="theme-color" content="#0b0b0c"/>
+<style>
+  :root{
+    --ui-bg:#0b0b0c; --ui-fg:#f4f4f5; --accent:#4ade80;
+  }
+  html,body{height:100%; margin:0; background:var(--ui-bg); color:var(--ui-fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
+  .app{position:fixed; inset:0; display:flex; flex-direction:column;}
+  /* Zona de preview */
+  .stage{position:relative; flex:1; background:#000; overflow:hidden;}
+  video{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; transform:scaleX(-1); /* espejo por comodidad; quítalo si no lo quieres */
+  }
+  .overlay{
+    position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
+  }
+  /* Marco de documento: proporción ID-1 85.6 x 54 mm ≈ 1.585 */
+  .id-frame{
+    width:min(88vw, 88vh * 1.585);
+    aspect-ratio:1.585 / 1;
+    border-radius:12px;
+    box-shadow:0 0 0 3px rgba(255,255,255,.9), 0 0 0 8px rgba(255,255,255,.15);
+    position:relative;
+    backdrop-filter: none;
+  }
+  /* Guías internas (foto, bandas, texto… meramente orientativas) */
+  .id-frame::before,
+  .id-frame::after{
+    content:""; position:absolute; inset:0; border-radius:12px; pointer-events:none;
+  }
+  .id-frame::before{ /* rejilla suave */
+    background:
+      linear-gradient(to right, rgba(255,255,255,.12) 1px, transparent 1px) 0 0/8% 100%,
+      linear-gradient(to bottom, rgba(255,255,255,.12) 1px, transparent 1px) 0 0/100% 10%;
+    mask:linear-gradient(black, transparent 70%);
+  }
+  .id-frame::after{ /* zona foto circular */
+    width:28%; aspect-ratio:1/1; border-radius:999px; left:6%; top:18%;
+    box-shadow:0 0 0 3px rgba(255,255,255,.7); 
+  }
+
+  /* Marca de agua (texto sobre el documento) */
+  .watermark{
+    position:absolute; left:50%; top:50%;
+    transform:translate(-50%, -50%) rotate(-15deg);
+    font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+    color:rgba(255,255,255,.35);
+    text-shadow: 0 1px 2px rgba(0,0,0,.6);
+    white-space:nowrap; max-width:90%; overflow:hidden; text-overflow:ellipsis;
+    pointer-events:none;
+  }
+
+  /* Panel inferior */
+  .controls{
+    background:linear-gradient(0deg, rgba(11,11,12,1) 60%, rgba(11,11,12,.0));
+    padding: max(12px, env(safe-area-inset-bottom));
+    display:grid; gap:10px;
+  }
+  .row{display:flex; gap:8px; align-items:center;}
+  input[type="text"]{
+    flex:1; padding:12px 14px; border-radius:12px; border:1px solid #262626; background:#121214; color:var(--ui-fg);
+    font-size:16px; outline:none;
+  }
+  .btn{
+    appearance:none; border:0; border-radius:12px; padding:12px 14px; font-weight:700;
+    background:var(--accent); color:#062d12; cursor:pointer;
+  }
+  label{font-size:13px; color:#c9c9ce; min-width:6.5em}
+  input[type="range"]{width:100%}
+  .status{font-size:13px; color:#a1a1aa; min-height:1.2em}
+  .hint{font-size:12px; color:#8a8a90}
+  .caps{font-variant: all-small-caps; letter-spacing:.04em; opacity:.9}
+  .row.wrap{flex-wrap:wrap}
+  .pill{
+    font-size:12px; padding:6px 10px; border-radius:999px; background:#17171a; border:1px solid #262626; color:#c9c9ce
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage" id="stage">
+    <video id="video" playsinline autoplay muted></video>
+    <div class="overlay">
+      <div class="id-frame" id="idFrame">
+        <div class="watermark" id="wm">MUESTRA · NO VÁLIDO</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="row">
+      <button class="btn" id="startBtn">Iniciar cámara</button>
+      <span class="pill caps" id="camState">sin iniciar</span>
+    </div>
+
+    <div class="row">
+      <input id="wmText" type="text" placeholder="Texto de marca de agua (p. ej., 'MUESTRA • CARLOS')" />
+    </div>
+
+    <div class="row wrap">
+      <label for="sizeRange">Tamaño</label>
+      <input type="range" id="sizeRange" min="14" max="64" value="28" />
+      <label for="opacityRange">Opacidad</label>
+      <input type="range" id="opacityRange" min="0.1" max="1" step="0.05" value="0.35" />
+    </div>
+
+    <div class="row wrap">
+      <label for="angleRange">Ángulo</label>
+      <input type="range" id="angleRange" min="-45" max="45" value="-15" />
+      <label for="mirrorChk">Espejo</label>
+      <input type="checkbox" id="mirrorChk" checked />
+    </div>
+
+    <div class="status" id="status"></div>
+    <div class="hint">Consejo: coloca el documento dentro del marco para encuadrar. Esta app no guarda ni sube imágenes.</div>
+  </div>
+</div>
+
+<script>
+  const startBtn = document.getElementById('startBtn');
+  const camState = document.getElementById('camState');
+  const statusEl = document.getElementById('status');
+  const video = document.getElementById('video');
+  const wm = document.getElementById('wm');
+  const wmText = document.getElementById('wmText');
+  const sizeRange = document.getElementById('sizeRange');
+  const opacityRange = document.getElementById('opacityRange');
+  const angleRange = document.getElementById('angleRange');
+  const mirrorChk = document.getElementById('mirrorChk');
+
+  let stream;
+
+  function setStatus(msg){ statusEl.textContent = msg || ""; }
+  function setCamState(text){ camState.textContent = text; }
+
+  function applyWatermarkStyle(){
+    wm.textContent = wmText.value.trim() || 'MUESTRA · NO VÁLIDO';
+    wm.style.fontSize = sizeRange.value + 'px';
+    wm.style.color = `rgba(255,255,255,${parseFloat(opacityRange.value)})`;
+    const angle = parseInt(angleRange.value, 10) || 0;
+    wm.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+  }
+
+  function applyMirror(){
+    video.style.transform = mirrorChk.checked ? 'scaleX(-1)' : 'none';
+  }
+
+  // Persistencia ligera entre recargas
+  const ls = {
+    save(){
+      const data = {
+        t: wmText.value, s: sizeRange.value, o: opacityRange.value, a: angleRange.value, m: mirrorChk.checked
+      };
+      try{ localStorage.setItem('wmCfg', JSON.stringify(data)); }catch{}
+    },
+    load(){
+      try{
+        const raw = localStorage.getItem('wmCfg');
+        if(!raw) return;
+        const d = JSON.parse(raw);
+        if(d.t!==undefined) wmText.value = d.t;
+        if(d.s!==undefined) sizeRange.value = d.s;
+        if(d.o!==undefined) opacityRange.value = d.o;
+        if(d.a!==undefined) angleRange.value = d.a;
+        if(d.m!==undefined) mirrorChk.checked = d.m;
+      }catch{}
+    }
+  };
+
+  ls.load();
+  applyWatermarkStyle();
+  applyMirror();
+
+  wmText.addEventListener('input', ()=>{ applyWatermarkStyle(); ls.save(); });
+  sizeRange.addEventListener('input', ()=>{ applyWatermarkStyle(); ls.save(); });
+  opacityRange.addEventListener('input', ()=>{ applyWatermarkStyle(); ls.save(); });
+  angleRange.addEventListener('input', ()=>{ applyWatermarkStyle(); ls.save(); });
+  mirrorChk.addEventListener('change', ()=>{ applyMirror(); ls.save(); });
+
+  async function startCamera(){
+    setStatus('Solicitando permisos de cámara…');
+    setCamState('solicitando…');
+    startBtn.disabled = true;
+
+    const constraints = {
+      audio: false,
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    };
+
+    try{
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      await video.play();
+      setStatus('Cámara activa.');
+      setCamState('activa');
+      startBtn.textContent = 'Reiniciar cámara';
+      startBtn.disabled = false;
+    }catch(err){
+      console.error(err);
+      setStatus('No se pudo acceder a la cámara: ' + (err.name || err.message || err));
+      setCamState('error');
+      startBtn.disabled = false;
+    }
+  }
+
+  startBtn.addEventListener('click', async ()=>{
+    // Si ya hay stream, intenta pararlo y reiniciar
+    if(stream){
+      stream.getTracks().forEach(t=>t.stop());
+      stream = null;
+    }
+    await startCamera();
+  });
+
+  // Intento automático si el navegador permite autoplay tras gesto de usuario
+  // (El botón garantiza el gesto; este intento es por si recargan con permisos ya concedidos)
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'visible' && !stream){
+      // No auto-llamar sin gesto en iOS. El botón está ahí por compatibilidad.
+    }
+  });
+
+  // Manejo de cambios de orientación: reajustar estilos si fuese necesario
+  window.addEventListener('orientationchange', ()=>{
+    // Los estilos CSS basados en vw/vh ya se adaptan; solo avisamos.
+    setTimeout(()=>setStatus('Orientación actualizada.'), 250);
+    setTimeout(()=>setStatus(''), 2000);
+  });
+
+  // Nota: para iOS Safari, es imprescindible "playsinline" y usar un botón para iniciar.
+</script>
+</body>
+</html>
