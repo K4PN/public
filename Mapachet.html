@@ -2,39 +2,38 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-<title>Chat P2P — Móvil</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Chat P2P por ID — Móvil</title>
 <style>
-  :root{
-    --bg:#f7f7fb; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280;
-    --accent:#3b82f6; --accent-weak:#e5f0ff; --border:#e5e7eb;
-  }
+  :root{--bg:#f7f7fb;--panel:#fff;--ink:#1f2937;--muted:#6b7280;--accent:#3b82f6;--soft:#e5f0ff;--border:#e5e7eb}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Noto Sans',sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Noto Sans',sans-serif}
   .app{display:grid;grid-template-columns:0 1fr;height:100dvh;overflow:hidden}
   .app.menu-open{grid-template-columns:78vw 1fr}
-  .sidebar{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-  .side-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between}
+  aside{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column}
+  .side-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
   .side-title{font-weight:700}
   .conv-list{overflow:auto;flex:1}
-  .conv{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between}
-  .conv.active{background:var(--accent-weak)}
+  .conv{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;gap:8px}
+  .conv.active{background:var(--soft)}
   .conv .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .conv .meta{font-size:12px;color:var(--muted)}
   .btn,button{border:none;background:var(--accent);color:#fff;padding:10px 14px;border-radius:12px;font-weight:600;box-shadow:0 2px 6px rgba(59,130,246,.18)}
   .btn-ghost{background:transparent;color:var(--accent)}
-  .btn[disabled]{opacity:.55;filter:grayscale(.2)}
-  .main{display:flex;flex-direction:column;height:100%;min-width:0}
-  .topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;align-items:center;gap:10px;justify-content:space-between}
+  button[disabled]{opacity:.55;filter:grayscale(.2)}
+  main{display:flex;flex-direction:column;min-width:0}
+  .topbar{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 12px;display:flex;gap:8px;align-items:center;justify-content:space-between}
   .hamb{width:40px;height:40px;border-radius:12px;background:#f0f4ff;border:1px solid var(--border);display:grid;place-items:center}
   .hamb span{width:18px;height:2px;background:var(--ink);position:relative;display:block}
   .hamb span::before,.hamb span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:var(--ink)}
   .hamb span::before{top:-6px}.hamb span::after{top:6px}
-  .id-chip{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+  .id-chip{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:54vw}
   .status{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#fff}
-  .status.on{border-color:#c7f9d2;background:#eeffef;color:#0a7a2a}
-  .status.off{border-color:#ffd1d1;background:#fff3f3;color:#a11}
+  .on{border-color:#c7f9d2;background:#eeffef;color:#0a7a2a}
   .warn{padding:8px 12px;background:#fff7ed;color:#92400e;border:1px solid #fed7aa;border-left-width:4px;border-radius:10px;margin:8px 12px}
+  .connect{padding:10px;border-top:1px dashed var(--border);background:#fbfcff}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  input[type="text"]{flex:1;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px;background:#fff}
   .messages{flex:1;overflow:auto;padding:12px;background:linear-gradient(#f8fbff,#f7f7fb)}
   .bubble{max-width:80%;padding:10px 12px;border-radius:14px;margin:6px 0;word-wrap:break-word;background:#fff;border:1px solid var(--border)}
   .me{margin-left:auto;background:var(--accent);color:#fff;border-color:transparent}
@@ -42,39 +41,42 @@
   .composer{padding:10px;background:var(--panel);border-top:1px solid var(--border);display:flex;gap:8px}
   .composer input{flex:1;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px;background:#fff}
   .composer button{padding:12px 16px;border-radius:12px}
-  .connect{padding:10px;border-top:1px dashed var(--border);background:#fbfcff}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-  textarea{width:100%;min-height:92px;border:1px solid var(--border);border-radius:12px;padding:10px;background:#fff}
-  .hint{font-size:12px;color:var(--muted)}
-  .pill{font-size:12px;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#334155;display:inline-block}
-  .qr{display:none;margin-top:8px}
-  canvas.qr{display:block;margin:auto;background:#fff;padding:10px;border-radius:12px;border:1px solid var(--border)}
   @media (min-width:980px){.app{grid-template-columns:320px 1fr}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
-  <aside class="sidebar" id="sidebar">
+  <aside>
     <div class="side-header">
       <div>
         <div class="side-title">Conversaciones</div>
-        <div class="hint">Guardadas en este dispositivo</div>
+        <div style="font-size:12px;color:#6b7280">Guardadas en este dispositivo</div>
       </div>
-      <button class="btn-ghost" id="newConvBtn" type="button" title="Nueva conversación">＋</button>
+      <button class="btn-ghost" id="newConvBtn" type="button">＋</button>
     </div>
     <div class="conv-list" id="convList"></div>
   </aside>
 
-  <main class="main">
+  <main>
     <div class="topbar">
       <button class="hamb" id="hamb" type="button" aria-label="Abrir menú"><span></span></button>
       <div class="id-chip" id="myIdChip">ID: …</div>
-      <div class="status off" id="netStatus">Desconectado</div>
+      <div class="status" id="sigStatus">Señalización: off</div>
     </div>
 
     <div id="secureWarn" class="warn" style="display:none">
-      Para conectar por WebRTC abre este archivo desde <b>HTTPS</b> o <b>localhost</b>. En <code>file://</code> o HTTP no seguro, los botones de conexión estarán deshabilitados.
+      Abre en <b>HTTPS</b> o <b>localhost</b>. WebRTC puede fallar en HTTP/archivo local.
     </div>
+
+    <section class="connect">
+      <div class="row">
+        <input id="peerIdInput" type="text" placeholder="ID de tu contacto…" inputmode="latin" autocomplete="off">
+        <button id="connectBtn" type="button">Conectar</button>
+      </div>
+      <div class="row" style="margin-top:6px;font-size:12px;color:#6b7280">
+        Tu chat se conecta por **ID** (la señalización viaja por WebSocket; los mensajes, P2P).
+      </div>
+    </section>
 
     <div class="messages" id="messages"></div>
 
@@ -82,326 +84,201 @@
       <input id="msgInput" placeholder="Mensaje…" autocomplete="off" />
       <button id="sendBtn" type="button">Enviar</button>
     </div>
-
-    <section class="connect">
-      <div class="row" style="justify-content:space-between">
-        <div class="pill">Conectar con otro usuario (P2P)</div>
-        <div class="hint">Usa oferta/respuesta (copiar/pegar o QR)</div>
-      </div>
-
-      <div class="row" style="margin-top:8px">
-        <button id="createOfferBtn" type="button">Crear oferta</button>
-        <button id="createAnswerBtn" type="button">Responder oferta</button>
-        <button id="acceptAnswerBtn" type="button">Aceptar respuesta</button>
-        <button id="clearSigBtn" type="button" class="btn-ghost">Limpiar</button>
-      </div>
-
-      <div style="margin-top:8px">
-        <textarea id="sigBox" placeholder="Aquí aparecerá tu OFERTA / pega la OFERTA del otro / pega la RESPUESTA para aceptarla…"></textarea>
-        <canvas id="qrCanvas" class="qr" width="256" height="256"></canvas>
-      </div>
-
-      <div class="hint" style="margin-top:6px">
-        <b>Cómo usar:</b> Móvil A: “Crear oferta” ⇒ comparte texto/QR a B.  
-        Móvil B: “Responder oferta” (pegando la oferta) ⇒ devuelve la <i>respuesta</i> a A.  
-        Móvil A: pega la <i>respuesta</i> y pulsa “Aceptar respuesta”.
-      </div>
-    </section>
   </main>
 </div>
 
 <script>
-/* ===== Utils ===== */
+/* ===== Configura tu servidor de señalización ===== */
+const SIGNAL_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+  ? 'ws://localhost:8080'
+  : 'wss://TU-DOMINIO-O-APP-WS'; // <-- CAMBIA ESTO al desplegar
+
+/* ===== Utilidades básicas ===== */
 const $ = s => document.querySelector(s);
-const app = $("#app");
-$("#hamb").addEventListener("click", ()=> app.classList.toggle("menu-open"));
+const app = $("#app"); $("#hamb").onclick = ()=> app.classList.toggle("menu-open");
+const secure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+if(!secure) $("#secureWarn").style.display = "block";
 
-function setBtnBusy(btn, busy){
-  if(!btn) return;
-  btn.disabled = !!busy;
-  if(busy){ btn.dataset._label = btn.textContent; btn.textContent = "•••"; }
-  else if(btn.dataset._label){ btn.textContent = btn.dataset._label; delete btn.dataset._label; }
+function setSigStatus(on){
+  const el=$("#sigStatus");
+  el.className="status"+(on?" on":"");
+  el.textContent = "Señalización: " + (on?"on":"off");
 }
+function addBubble(direction, text, t){
+  const wrap=$("#messages");
+  const b=document.createElement("div");
+  b.className="bubble"+(direction==="out"?" me":"");
+  b.innerHTML = `${escapeHtml(text)}<span class="meta-time">${new Date(t).toLocaleString()}</span>`;
+  wrap.appendChild(b); wrap.scrollTop = wrap.scrollHeight;
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function busy(btn, b){ if(!btn) return; btn.disabled=!!b;}
 
-/* ===== Secure origin check ===== */
-const isSecureOrigin = location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1";
-(function secureInit(){
-  if(!isSecureOrigin){
-    $("#secureWarn").style.display = "block";
-    ["createOfferBtn","createAnswerBtn","acceptAnswerBtn"].forEach(id=> $("#"+id).disabled = true);
-  }
-})();
-
-/* ===== Fingerprint + ID persistente ===== */
-async function sha256(str){
-  const buf = new TextEncoder().encode(str);
-  const hash = await crypto.subtle.digest("SHA-256", buf);
-  return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-function getCanvasFP(){
-  try{
-    const c=document.createElement('canvas'); c.width=200; c.height=40;
-    const ctx=c.getContext('2d');
-    ctx.textBaseline='top'; ctx.font='16px Arial';
-    ctx.fillStyle='#f60'; ctx.fillRect(0,0,200,40);
-    ctx.fillStyle='#069'; ctx.fillText(navigator.userAgent, 2, 2);
-    return c.toDataURL();
-  }catch{ return 'nocanvas'; }
-}
+/* ===== ID persistente (fingerprint + salt local) ===== */
+async function sha256(x){ const buf=new TextEncoder().encode(x); const h=await crypto.subtle.digest("SHA-256",buf); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
+function getCanvasFP(){ try{ const c=document.createElement('canvas'); c.width=200;c.height=40; const ctx=c.getContext('2d'); ctx.textBaseline='top'; ctx.font='16px Arial'; ctx.fillStyle='#f60'; ctx.fillRect(0,0,200,40); ctx.fillStyle='#069'; ctx.fillText(navigator.userAgent,2,2); return c.toDataURL(); }catch{ return 'nocanvas'; } }
 async function computeDeviceId(){
   let salt = localStorage.getItem("p2p_salt");
   if(!salt){ salt = crypto.getRandomValues(new Uint32Array(4)).join("-"); localStorage.setItem("p2p_salt", salt); }
   const bits = [
-    navigator.userAgent||"", navigator.language||"",
-    Intl.DateTimeFormat().resolvedOptions().timeZone||"",
-    screen.width+"x"+screen.height+"x"+(screen.colorDepth||0),
-    (navigator.hardwareConcurrency||0)+"", (navigator.deviceMemory||0)+"", getCanvasFP(), salt
+    navigator.userAgent||"", navigator.language||"", Intl.DateTimeFormat().resolvedOptions().timeZone||"",
+    screen.width+"x"+screen.height+"x"+(screen.colorDepth||0), (navigator.hardwareConcurrency||0)+"", (navigator.deviceMemory||0)+"", getCanvasFP(), salt
   ].join("|");
   const id = await sha256(bits);
-  localStorage.setItem("p2p_myId", id);
-  return id;
+  localStorage.setItem("p2p_myId", id); return id;
 }
 
 /* ===== IndexedDB (conversaciones/mensajes) ===== */
-const DB_NAME="p2pchatdb", DB_VER=1;
-let db;
-function openDB(){
-  return new Promise((resolve,reject)=>{
-    const req = indexedDB.open(DB_NAME, DB_VER);
-    req.onupgradeneeded = e=>{
-      const db = e.target.result;
-      if(!db.objectStoreNames.contains("conversations")){
-        db.createObjectStore("conversations", {keyPath:"peerId"});
-      }
-      if(!db.objectStoreNames.contains("messages")){
-        const st = db.createObjectStore("messages", {keyPath:"id", autoIncrement:true});
-        st.createIndex("byPeer","peerId",{});
-      }
-    };
-    req.onsuccess = ()=>{ db=req.result; resolve(); };
-    req.onerror = ()=> reject(req.error);
-  });
-}
-function saveConversation(peerId, lastText=""){
-  return new Promise((res,rej)=>{
-    const tx = db.transaction("conversations","readwrite");
-    const store = tx.objectStore("conversations");
-    store.get(peerId).onsuccess = ev=>{
-      const now=Date.now();
-      const old=ev.target.result;
-      const rec = old ? {...old, lastAt:now, lastText} : {peerId, createdAt:now, lastAt:now, lastText};
-      store.put(rec).onsuccess = ()=> res(rec);
-    };
-    tx.onerror = ()=> rej(tx.error);
-  });
-}
-function listConversations(){
-  return new Promise((res,rej)=>{
-    const tx=db.transaction("conversations","readonly");
-    const st=tx.objectStore("conversations"); const arr=[];
-    st.openCursor().onsuccess = ev=>{
-      const cur=ev.target.result;
-      if(cur){ arr.push(cur.value); cur.continue(); }
-      else{ arr.sort((a,b)=>(b.lastAt||0)-(a.lastAt||0)); res(arr); }
-    };
-    tx.onerror = ()=> rej(tx.error);
-  });
-}
-function saveMessage(peerId, direction, text){
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(["messages","conversations"],"readwrite");
-    const m=tx.objectStore("messages"), c=tx.objectStore("conversations");
-    const msg={peerId, direction, text, at:Date.now()};
-    m.add(msg).onsuccess=()=>{
-      c.get(peerId).onsuccess=ev=>{
-        const old = ev.target.result||{peerId, createdAt:Date.now()};
-        old.lastAt=msg.at; old.lastText=text; c.put(old);
-      };
-      res(msg);
-    };
-    tx.onerror=()=> rej(tx.error);
-  });
-}
-function loadMessages(peerId){
-  return new Promise((res,rej)=>{
-    const tx=db.transaction("messages","readonly");
-    const st=tx.objectStore("messages"); const idx=st.index("byPeer");
-    const req=idx.getAll(peerId);
-    req.onsuccess=()=>{ const arr=req.result.sort((a,b)=>(a.at||0)-(b.at||0)); res(arr); };
-    req.onerror=()=> rej(req.error);
-  });
-}
-
-/* ===== UI ===== */
-let MY_ID=""; let currentPeer=null; let pc=null, dc=null;
-
-function setStatus(on){
-  const el=$("#netStatus");
-  if(on){ el.classList.remove("off"); el.classList.add("on"); el.textContent="Conectado"; }
-  else { el.classList.remove("on"); el.classList.add("off"); el.textContent="Desconectado"; }
-}
-function addBubble(direction, text, at){
-  const wrap=$("#messages");
-  const b=document.createElement("div");
-  b.className="bubble"+(direction==="out"?" me":"");
-  b.innerHTML=`${escapeHtml(text)}<span class="meta-time">${new Date(at).toLocaleString()}</span>`;
-  wrap.appendChild(b); wrap.scrollTop=wrap.scrollHeight;
-}
-function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-async function renderConversationList(){
-  const list=$("#convList"); list.innerHTML="";
-  const items=await listConversations();
-  for(const c of items){
-    const div=document.createElement("div");
-    div.className="conv"+(currentPeer===c.peerId?" active":"");
+const DB="p2pchatdb", VER=1; let db;
+function openDB(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB,VER);
+  r.onupgradeneeded=e=>{ const d=e.target.result;
+    if(!d.objectStoreNames.contains("conversations")) d.createObjectStore("conversations",{keyPath:"peerId"});
+    if(!d.objectStoreNames.contains("messages")){ const s=d.createObjectStore("messages",{keyPath:"id",autoIncrement:true}); s.createIndex("byPeer","peerId",{}); }
+  };
+  r.onsuccess=()=>{ db=r.result; res(); }; r.onerror=()=>rej(r.error);
+});}
+function saveConversation(peerId,lastText=""){ return new Promise((res,rej)=>{ const tx=db.transaction("conversations","readwrite"); const st=tx.objectStore("conversations");
+  st.get(peerId).onsuccess=ev=>{ const now=Date.now(); const old=ev.target.result;
+    const rec= old? {...old,lastAt:now,lastText} : {peerId,createdAt:now,lastAt:now,lastText};
+    st.put(rec).onsuccess=()=>res(rec);
+  }; tx.onerror=()=>rej(tx.error);
+});}
+function listConversations(){ return new Promise((res,rej)=>{ const tx=db.transaction("conversations","readonly"); const st=tx.objectStore("conversations"); const arr=[];
+  st.openCursor().onsuccess=ev=>{ const c=ev.target.result; if(c){arr.push(c.value); c.continue();} else { arr.sort((a,b)=>(b.lastAt||0)-(a.lastAt||0)); res(arr);} };
+  tx.onerror=()=>rej(tx.error);
+});}
+function saveMessage(peerId, dir, text){ return new Promise((res,rej)=>{ const tx=db.transaction(["messages","conversations"],"readwrite");
+  const m=tx.objectStore("messages"), c=tx.objectStore("conversations"); const msg={peerId,direction:dir,text,at:Date.now()};
+  m.add(msg).onsuccess=()=>{ c.get(peerId).onsuccess=ev=>{ const old=ev.target.result||{peerId,createdAt:Date.now()}; old.lastAt=msg.at; old.lastText=text; c.put(old); }; res(msg); };
+  tx.onerror=()=>rej(tx.error);
+});}
+function loadMessages(peerId){ return new Promise((res,rej)=>{ const tx=db.transaction("messages","readonly"); const st=tx.objectStore("messages"); const idx=st.index("byPeer"); const req=idx.getAll(peerId);
+  req.onsuccess=()=>{ const arr=req.result.sort((a,b)=>(a.at||0)-(b.at||0)); res(arr); }; req.onerror=()=>rej(req.error);
+});}
+async function renderConversationList(){ const list=$("#convList"); list.innerHTML=""; const items=await listConversations();
+  for(const c of items){ const div=document.createElement("div"); div.className="conv"+(currentPeer===c.peerId?" active":"");
     const name=document.createElement("div"); name.className="name"; name.textContent=c.peerId.slice(0,12);
     const meta=document.createElement("div"); meta.className="meta"; meta.textContent=(c.lastText||"").slice(0,24)||"—";
     div.appendChild(name); div.appendChild(meta);
-    div.addEventListener("click", async ()=>{
-      currentPeer=c.peerId; await openChat(currentPeer); app.classList.remove("menu-open");
-    });
+    div.onclick = async ()=>{ currentPeer=c.peerId; await openChat(currentPeer); app.classList.remove("menu-open"); };
     list.appendChild(div);
   }
 }
-async function openChat(peerId){
-  $("#messages").innerHTML="";
-  const msgs=await loadMessages(peerId);
-  msgs.forEach(m=> addBubble(m.direction==="out"?"out":"in", m.text, m.at));
-  await renderConversationList();
+async function openChat(peerId){ $("#messages").innerHTML=""; const msgs=await loadMessages(peerId); msgs.forEach(m=> addBubble(m.direction==="out"?"out":"in",m.text,m.at)); await renderConversationList(); }
+
+/* ===== WebSocket señalización ===== */
+let ws=null, MY_ID="", targetId=null;
+function wsConnect(){
+  if(ws && (ws.readyState===WebSocket.OPEN || ws.readyState===WebSocket.CONNECTING)) return;
+  ws = new WebSocket(SIGNAL_URL);
+  ws.onopen = ()=>{ setSigStatus(true); ws.send(JSON.stringify({type:'register', id:MY_ID})); };
+  ws.onclose = ()=>{ setSigStatus(false); setTimeout(wsConnect, 1500); };
+  ws.onmessage = async (ev)=>{
+    let m; try{ m=JSON.parse(ev.data); }catch{ return; }
+    if(m.type==='registered'){ /* ok */ return; }
+    if(m.type==='delivery_error'){ if(m.to===targetId) alert("La ID destino no está conectada."); return; }
+    if(m.type==='signal' && m.data){
+      await onSignal(m.from, m.data);
+    }
+  };
+}
+function sendSignal(to, data){
+  if(!ws || ws.readyState!==WebSocket.OPEN) return;
+  ws.send(JSON.stringify({type:'signal', to, data}));
 }
 
 /* ===== WebRTC ===== */
-const RTC_CFG={iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
-function newPC(){
+const RTC_CFG = { iceServers: [{urls:"stun:stun.l.google.com:19302"}] };
+let pc=null, dc=null, currentPeer=null;
+
+function resetPC(){
   if(pc) try{ pc.close(); }catch{}
-  pc=new RTCPeerConnection(RTC_CFG);
-  pc.oniceconnectionstatechange=()=>{ const st=pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
-  pc.ondatachannel=ev=>{ dc=ev.channel; hookDataChannel(); };
+  pc = new RTCPeerConnection(RTC_CFG);
+  pc.onicecandidate = (e)=>{ if(e.candidate && targetId) sendSignal(targetId, {kind:'candidate', candidate:e.candidate}); };
+  pc.oniceconnectionstatechange = ()=>{/* opcional UI */};
+  pc.ondatachannel = (ev)=>{ dc = ev.channel; bindDC(); };
 }
-function hookDataChannel(){
+function bindDC(){
   if(!dc) return;
-  dc.onopen=()=>{ setStatus(true); try{ dc.send(JSON.stringify({type:"hello", id:MY_ID})); }catch{} };
-  dc.onclose=()=> setStatus(false);
-  dc.onmessage=async (ev)=>{
-    const raw=String(ev.data||"");
-    // ¿es handshake?
+  dc.onopen = async ()=>{
+    try{ dc.send(JSON.stringify({type:'hello', id:MY_ID})); }catch{}
+  };
+  dc.onmessage = async (ev)=>{
+    const raw = String(ev.data||"");
     try{
-      const obj=JSON.parse(raw);
-      if(obj && obj.type==="hello" && obj.id){
-        currentPeer = obj.id;
+      const hello = JSON.parse(raw);
+      if(hello && hello.type==='hello' && hello.id){
+        currentPeer = hello.id;
         await saveConversation(currentPeer, "¡Conectado!");
         await renderConversationList();
         return;
       }
     }catch{}
-    // mensaje normal
-    const pid=currentPeer || "desconocido";
+    const pid = currentPeer || (targetId || "desconocido");
     await saveConversation(pid, raw);
     await saveMessage(pid,"in",raw);
     addBubble("in",raw,Date.now());
     renderConversationList();
   };
+  dc.onclose = ()=>{};
 }
-function waitForGathering(){
-  return new Promise(res=>{
-    if(pc.iceGatheringState==="complete") return res();
-    pc.onicegatheringstatechange=()=>{ if(pc.iceGatheringState==="complete") res(); };
-  });
-}
-async function createOffer(){
-  newPC();
-  dc=pc.createDataChannel("chat");
-  hookDataChannel();
-  const offer=await pc.createOffer();
+
+async function startCall(toId){
+  targetId = toId;
+  resetPC();
+  dc = pc.createDataChannel("chat");
+  bindDC();
+  const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
-  await waitForGathering();
-  return JSON.stringify({type:"offer", sdp:pc.localDescription});
+  sendSignal(targetId, {kind:'offer', sdp: pc.localDescription});
 }
-async function answerOffer(remoteStr){
-  newPC();
-  const remote=JSON.parse(remoteStr);
-  if(remote.type!=="offer") throw new Error("El texto pegado no es una OFERTA válida.");
-  await pc.setRemoteDescription(new RTCSessionDescription(remote.sdp));
-  const answer=await pc.createAnswer();
-  await pc.setLocalDescription(answer);
-  await waitForGathering();
-  return JSON.stringify({type:"answer", sdp:pc.localDescription});
-}
-async function acceptAnswer(remoteStr){
-  const remote=JSON.parse(remoteStr);
-  if(remote.type!=="answer") throw new Error("El texto pegado no es una RESPUESTA válida.");
-  await pc.setRemoteDescription(new RTCSessionDescription(remote.sdp));
+async function onSignal(fromId, payload){
+  // Aprendemos el peer a partir de la primera señal que llega
+  if(!targetId) targetId = fromId;
+
+  if(payload.kind==='offer'){
+    resetPC();
+    await pc.setRemoteDescription(payload.sdp);
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+    sendSignal(fromId, {kind:'answer', sdp: pc.localDescription});
+    return;
+  }
+  if(payload.kind==='answer'){
+    await pc.setRemoteDescription(payload.sdp);
+    return;
+  }
+  if(payload.kind==='candidate' && payload.candidate){
+    try{ await pc.addIceCandidate(payload.candidate); }catch(e){}
+  }
 }
 
-/* ===== Pseudo-QR simple (opcional) ===== */
-function drawPseudoQR(canvas, text){
-  const ctx=canvas.getContext("2d");
-  const N=25, size=canvas.width, cell=Math.floor(size/N);
-  ctx.clearRect(0,0,size,size);
-  ctx.fillStyle="#000"; ctx.fillRect(0,0,size,size);
-  ctx.fillStyle="#fff"; ctx.fillRect(4,4,size-8,size-8);
-  (async ()=>{
-    const h=await sha256(text); let bits="";
-    for(let i=0;i<h.length;i++){ const v=parseInt(h[i],16); bits+=v.toString(2).padStart(4,"0"); }
-    let k=0; ctx.fillStyle="#000";
-    for(let y=6;y<N-6;y++){ for(let x=6;x<N-6;x++){ if(bits[k%bits.length]==="1"){ ctx.fillRect(x*cell,y*cell,cell-1,cell-1);} k++; } }
-  })();
-}
-
-/* ===== Eventos ===== */
-$("#createOfferBtn").addEventListener("click", async (ev)=>{
-  const btn=ev.currentTarget; setBtnBusy(btn,true);
-  try{
-    const offer=await createOffer();
-    $("#sigBox").value=offer;
-    const q=$("#qrCanvas"); q.style.display="block"; drawPseudoQR(q, offer);
-  }catch(e){ alert("Error creando oferta: "+(e?.message||e)); }
-  finally{ setBtnBusy(btn,false); }
-});
-$("#createAnswerBtn").addEventListener("click", async (ev)=>{
-  const btn=ev.currentTarget; setBtnBusy(btn,true);
-  const txt=$("#sigBox").value.trim();
-  if(!txt){ setBtnBusy(btn,false); return alert("Pega primero la OFERTA del otro móvil y vuelve a pulsar."); }
-  try{
-    const ans=await answerOffer(txt);
-    $("#sigBox").value=ans;
-    const q=$("#qrCanvas"); q.style.display="block"; drawPseudoQR(q, ans);
-  }catch(e){ alert("Error respondiendo oferta: "+(e?.message||e)); }
-  finally{ setBtnBusy(btn,false); }
-});
-$("#acceptAnswerBtn").addEventListener("click", async (ev)=>{
-  const btn=ev.currentTarget; setBtnBusy(btn,true);
-  const txt=$("#sigBox").value.trim();
-  if(!txt){ setBtnBusy(btn,false); return alert("Pega aquí la RESPUESTA recibida y pulsa de nuevo."); }
-  try{
-    await acceptAnswer(txt);
-  }catch(e){ alert("Error al aceptar la respuesta: "+(e?.message||e)); }
-  finally{ setBtnBusy(btn,false); }
-});
-$("#clearSigBtn").addEventListener("click", ()=>{
-  $("#sigBox").value=""; $("#qrCanvas").style.display="none";
-});
-$("#sendBtn").addEventListener("click", async ()=>{
+/* ===== UI eventos ===== */
+$("#connectBtn").onclick = async ()=>{
+  const pid = $("#peerIdInput").value.trim();
+  if(!pid){ alert("Escribe la ID destino."); return; }
+  if(!ws || ws.readyState!==WebSocket.OPEN){ alert("Señalización no conectada todavía."); return; }
+  await startCall(pid);
+};
+$("#sendBtn").onclick = async ()=>{
   const inp=$("#msgInput"); const text=inp.value.trim();
   if(!text) return;
-  if(!dc || dc.readyState!=="open"){ return alert("No hay canal de datos abierto. Conecta primero."); }
+  if(!dc || dc.readyState!=='open'){ return alert("Canal de datos aún no está abierto."); }
   try{
     dc.send(text);
-    const pid=currentPeer||"desconocido";
-    await saveConversation(pid,text);
+    const pid = currentPeer || targetId || "desconocido";
+    await saveConversation(pid, text);
     await saveMessage(pid,"out",text);
     addBubble("out",text,Date.now());
     inp.value="";
     renderConversationList();
   }catch(e){ alert("Error enviando: "+(e?.message||e)); }
-});
-$("#newConvBtn").addEventListener("click", ()=>{
+};
+$("#newConvBtn").onclick = ()=>{
   app.classList.remove("menu-open");
-  document.querySelector(".connect").scrollIntoView({behavior:"smooth"});
-});
-$("#msgInput").addEventListener("keydown", (e)=>{
-  if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); $("#sendBtn").click(); }
-});
+  $("#peerIdInput").focus();
+};
+$("#msgInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); $("#sendBtn").click(); }});
 
 /* ===== Init ===== */
 (async ()=>{
@@ -409,7 +286,7 @@ $("#msgInput").addEventListener("keydown", (e)=>{
   MY_ID = await computeDeviceId();
   $("#myIdChip").textContent = "ID: "+MY_ID.slice(0,16);
   await renderConversationList();
-  setStatus(false);
+  if(secure) wsConnect();
 })();
 </script>
 </body>
