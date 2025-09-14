@@ -55,6 +55,10 @@
   .switch{background:#1f2937;color:#fff;border:1px solid #374151;border-radius:10px;padding:8px 12px}
   .errbar{position:fixed;top:0;left:0;right:0;padding:10px;background:#fee2e2;color:#7f1d1d;border-bottom:1px solid #fecaca;font-size:12px;display:none;z-index:9999}
 </style>
+
+<!-- Dependencias ligeras (CDN) para mantener 1 solo HTML y QR robusto -->
+<script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 </head>
 <body>
 <div class="errbar" id="errbar"></div>
@@ -128,7 +132,7 @@ const showErr = (msg)=>{ errbar.innerHTML='⚠️ '+msg; errbar.style.display='b
 window.addEventListener('error', e=> showErr((e.message||'Error')+' @ '+(e.filename||'')+':'+(e.lineno||'')));
 window.addEventListener('unhandledrejection', e=> showErr('Promise rechazada: '+(e.reason?.message||e.reason||'')));
 
-/* ========= Utilidad corta ========= */
+/* ========= Utiles ========= */
 const $ = s => document.querySelector(s);
 const app = $("#app");
 $("#hamb").onclick = ()=> app.classList.toggle("menu-open");
@@ -144,7 +148,7 @@ function addBubble(direction, text, at){
   wrap.appendChild(b); wrap.scrollTop=wrap.scrollHeight;
 }
 
-/* ========= Mensaje sobre contexto ========= */
+/* ========= Aviso contexto ========= */
 (function(){
   const warn=$("#secureWarn"); const notes=[];
   if(!secure) notes.push("Abre en <b>HTTPS</b> o <b>localhost</b> (cámara/WebRTC requieren contexto seguro).");
@@ -203,10 +207,8 @@ async function openChat(peerId){
   await renderConversationList();
 }
 
-/* ========= Estado global encapsulado ========= */
-const state = {
-  pc:null, dc:null, currentPeer:null, MY_ID:""
-};
+/* ========= Estado ========= */
+const state = { pc:null, dc:null, currentPeer:null, MY_ID:"" };
 
 /* ========= WebRTC ========= */
 const RTC_CFG = { iceServers:[{urls:"stun:stun.l.google.com:19302"}] };
@@ -248,50 +250,31 @@ async function acceptAnswer(ansObj){
   await state.pc.setRemoteDescription(ansObj.sdp);
 }
 
-/* ========= QR GENERATOR (canvas, mini) ========= */
-!function(){function QR8bitByte(t){this.mode=4;this.data=t}
-QR8bitByte.prototype={getLength:function(){return this.data.length},write:function(b){for(var i=0;i<this.data.length;i++)b.put(this.data.charCodeAt(i),8)}};
-function QRBitBuffer(){this.buffer=[];this.length=0}
-QRBitBuffer.prototype={put:function(n,l){for(var i=0;i<l;i++)this.putBit(((n>>(l-i-1))&1)==1)},putBit:function(b){this.buffer.push(b?1:0);this.length++}};
-var QRErrorCorrectLevel={L:1,M:0,Q:3,H:2};
-function QRPolynomial(num,shift){var offset=0;while(offset<num.length&&num[offset]==0)offset++;this.num=new Array(num.length-offset+shift);for(var i=0;i<num.length-offset;i++)this.num[i]=num[i+offset]}
-QRPolynomial.prototype={get:function(i){return this.num[i]},getLength:function(){return this.num.length},multiply:function(e){var n=new Array(this.getLength()+e.getLength()-1);for(var i=0;i<this.getLength();i++)for(var j=0;j<e.getLength();j++)n[i+j]^=QRMath.gexp(QRMath.glog(this.get(i))+QRMath.glog(e.get(j)));return new QRPolynomial(n,0)},mod:function(e){if(this.getLength()-e.getLength()<0)return this;var ratio=QRMath.glog(this.get(0))-QRMath.glog(e.get(0)),n=new Array(this.getLength());for(var i=0;i<this.getLength();i++)n[i]=this.get(i);for(i=0;i<e.getLength();i++)n[i]^=QRMath.gexp(QRMath.glog(e.get(i))+ratio);return new QRPolynomial(n,0).mod(e)}};
-function QRMath(){};QRMath.glog=function(n){if(n<1)throw new Error("glog");return LOG_TABLE[n]};QRMath.gexp=function(n){for(;n<0;)n+=255;for(;n>=256;)n-=255;return EXP_TABLE[n]};
-var EXP_TABLE=new Array(256),LOG_TABLE=new Array(256);for(var i=0;i<8;i++)EXP_TABLE[i]=1<<i;for(i=8;i<256;i++)EXP_TABLE[i]=EXP_TABLE[i-4]^EXP_TABLE[i-5]^EXP_TABLE[i-6]^EXP_TABLE[i-8];for(i=0;i<255;i++)LOG_TABLE[EXP_TABLE[i]]=i;
-function QRRSBlock(totalCount,dataCount){this.totalCount=totalCount;this.dataCount=dataCount}
-QRRSBlock.getRSBlocks=function(t,ec){return [new QRRSBlock(26,19)]}; /* simplificado */
-function QRCodeModel(typeNumber,ec){this.typeNumber=typeNumber;this.errorCorrectLevel=ec;this.modules=null;this.moduleCount=0;this.dataList=[]}
-QRCodeModel.prototype={addData:function(d){this.dataList.push(d)},isDark:function(r,c){return this.modules[r][c]},getModuleCount:function(){return this.moduleCount},
-make:function(){var type=1;for(;type<=10;type++){try{this.typeNumber=type;this._makeImpl();return}catch(e){}}
-this.typeNumber=10;this._makeImpl()},
-_makeImpl:function(){this.moduleCount=this.typeNumber*4+17;this.modules=Array.from({length:this.moduleCount},()=>Array(this.moduleCount).fill(null));
-this._pos(0,0);this._pos(this.moduleCount-7,0);this._pos(0,this.moduleCount-7);for(var i=8;i<this.moduleCount-8;i++){this.modules[i][6]=i%2==0;this.modules[6][i]=i%2==0}
-this._dataCache=this._createData();this._map(this._dataCache)},
-_pos:function(x,y){for(var r=-1;r<=7;r++)for(var c=-1;c<=7;c++){var xx=x+c,yy=y+r;if(xx<=-1||this.moduleCount<=xx||yy<=-1||this.moduleCount<=yy)continue;this.modules[yy][xx]=(0<=c&&c<=6&&(r==0||r==6))||(0<=r&&0<=6&&(c==0||c==6))||(2<=r&&r<=4&&2<=c&&c<=4)}},
-_createData:function(){var buf=new QRBitBuffer();for(var d of this.dataList){buf.put(4,4);buf.put(d.getLength(),8);d.write(buf)}var rs=QRRSBlock.getRSBlocks(this.typeNumber,this.errorCorrectLevel),dc=rs[0].dataCount,tc=rs[0].totalCount;
-var data=[];for(var i=0;i<dc && i<buf.length;i+=8){var v=0;for(var j=0;j<8&&i+j<buf.length;j++) if(buf.buffer[i+j]) v|=(1<<(7-j)); data.push(v)}while(data.length<dc)data.push(0xEC^(data.length&1?0xEC:0x11));return data.slice(0,tc)},
-_map:function(data){var inc=-1,row=this.moduleCount-1,bit=0,byte=0;for(var col=this.moduleCount-1;col>0;col-=2){if(col==6)col--;for(;;){for(var c=0;c<2;c++){var x=col-c,y=row;if(this.modules[y][x]!==null)continue;var dark=false;if(byte<data.length){dark=((data[byte]>>(7-bit))&1)==1;bit++;if(bit==8){byte++;bit=0}}this.modules[y][x]=dark}row+=inc;if(row<0||this.moduleCount<=row){row-=inc;inc=-inc;break}}}}};
-function drawQR(canvas, text){
-  const enc=new TextEncoder().encode(text);
-  const b64=btoa(String.fromCharCode(...enc)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-  const qr=new QRCodeModel(-1,0); qr.addData(new QR8bitByte(b64)); qr.make();
-  const m=qr.getModuleCount(), size=canvas.width, cell=Math.floor(size/m), pad=Math.floor((size-cell*m)/2), ctx=canvas.getContext('2d');
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size); ctx.fillStyle='#000';
-  for(let r=0;r<m;r++) for(let c=0;c<m;c++) if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell,pad+r*cell,cell,cell);
-}
-window._drawQR = drawQR;
-window._qrDecodeB64 = (b64)=>{ try{ const bin=atob(b64.replace(/-/g,'+').replace(/_/g,'/')); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); return new TextDecoder().decode(arr);}catch{return "";} };
-}();
+/* ========= QR: compresión + generador robusto ========= */
+function pack(str){ return LZString.compressToEncodedURIComponent(str); }
+function unpack(packed){ return LZString.decompressFromEncodedURIComponent(packed||"") || ""; }
 
-/* ========= Lector QR (BarcodeDetector) ========= */
+/* Dibuja en <canvas id="qrCanvas"> usando qrcode-generator (auto versión 1..40) */
+const qrCanvas = document.getElementById('qrCanvas');
+function drawPackedToCanvas(packed){
+  const qr = qrcode(0, 'M'); // 0 => auto versión
+  qr.addData(packed);
+  qr.make();
+  const ctx = qrCanvas.getContext('2d'), size = qrCanvas.width;
+  const count = qr.getModuleCount(), cell = Math.floor(size/count), pad = Math.floor((size-cell*count)/2);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size); ctx.fillStyle='#000';
+  for(let r=0;r<count;r++) for(let c=0;c<count;c++){
+    if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell, pad+r*cell, cell, cell);
+  }
+}
+/* API usada por el resto del código (no cambia llamadas) */
+function drawQRPayload(text){ drawPackedToCanvas(pack(text)); }
+function parseQRString(raw){ const txt = unpack(raw) || raw; try{ return JSON.parse(txt); }catch{ return null; } }
+
+/* ========= Lector con BarcodeDetector ========= */
 const hasBD = 'BarcodeDetector' in window; let bd=null;
 if(hasBD){ try{ bd=new BarcodeDetector({formats:['qr_code']}); }catch{} }
 
-const qrCanvas=document.getElementById('qrCanvas');
-function drawQRPayload(text){ try{ _drawQR(qrCanvas, text); }catch(e){ showErr('QR demasiado largo para el generador mini'); } }
-function parseQRString(raw){ const txt=_qrDecodeB64(raw)||raw; try{ return JSON.parse(txt); }catch{ return null; } }
-
-/* ========= Cámara ========= */
 const scanModal=$("#scanModal"), video=$("#video"), closeScan=$("#closeScan"), switchCam=$("#switchCam");
 let stream=null, useBack=true, rafId=null;
 
@@ -330,7 +313,7 @@ async function tickScan(){
 async function handleScannedObject(obj){
   if(obj.kind==="offer"){
     const ans=await acceptOffer(obj);
-    drawQRPayload(JSON.stringify(ans)); // mostrar respuesta para que el otro la escanee
+    drawQRPayload(JSON.stringify(ans)); // mostramos respuesta comprimida
     return;
   }
   if(obj.kind==="answer"){
