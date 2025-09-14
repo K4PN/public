@@ -102,6 +102,7 @@
   </main>
 </div>
 
+<!-- Modal escáner -->
 <div class="modal" id="scanModal" role="dialog" aria-modal="true" aria-label="Escanear QR">
   <div class="sheet">
     <div class="sheet-header">
@@ -120,29 +121,34 @@
 </div>
 
 <script>
+(() => {
 /* ========= Barra de errores global ========= */
-(function(){
-  const bar = document.getElementById('errbar');
-  function show(msg){ bar.innerHTML = '⚠️ ' + msg; bar.style.display='block'; }
-  window.addEventListener('error', e=> show((e.message||'Error') + ' @ ' + (e.filename||'')+':'+(e.lineno||'')));
-  window.addEventListener('unhandledrejection', e=> show('Promise rechazada: '+ (e.reason?.message || e.reason || '')));
-})();
+const errbar = document.getElementById('errbar');
+const showErr = (msg)=>{ errbar.innerHTML='⚠️ '+msg; errbar.style.display='block'; };
+window.addEventListener('error', e=> showErr((e.message||'Error')+' @ '+(e.filename||'')+':'+(e.lineno||'')));
+window.addEventListener('unhandledrejection', e=> showErr('Promise rechazada: '+(e.reason?.message||e.reason||'')));
 
 /* ========= Utilidad corta ========= */
 const $ = s => document.querySelector(s);
 const app = $("#app");
 $("#hamb").onclick = ()=> app.classList.toggle("menu-open");
+const secure = location.protocol === 'https:' || ['localhost','127.0.0.1'].includes(location.hostname);
 function busy(btn, on){ if(btn) btn.disabled=!!on; }
 function setStatus(on){ const el=$("#netStatus"); el.textContent=on?"Conectado":"Desconectado"; el.classList.toggle("on",!!on); }
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function addBubble(direction, text, at){
+  const wrap=$("#messages");
+  const b=document.createElement("div");
+  b.className="bubble"+(direction==="out"?" me":"");
+  b.innerHTML=`${escapeHtml(text)}<span class="meta-time">${new Date(at).toLocaleString()}</span>`;
+  wrap.appendChild(b); wrap.scrollTop=wrap.scrollHeight;
+}
 
-/* ========= Requisitos de contexto ========= */
-const secure = location.protocol === 'https:' || ['localhost','127.0.0.1'].includes(location.hostname);
+/* ========= Mensaje sobre contexto ========= */
 (function(){
-  const warn = $("#secureWarn");
-  let notes = [];
+  const warn=$("#secureWarn"); const notes=[];
   if(!secure) notes.push("Abre en <b>HTTPS</b> o <b>localhost</b> (cámara/WebRTC requieren contexto seguro).");
-  warn.innerHTML = notes.join("<br>");
-  warn.style.display = notes.length ? "block" : "none";
+  warn.innerHTML=notes.join("<br>"); warn.style.display=notes.length?"block":"none";
 })();
 
 /* ========= Fingerprint ID ========= */
@@ -150,12 +156,11 @@ async function sha256(x){ const buf=new TextEncoder().encode(x); const h=await c
 function getCanvasFP(){ try{ const c=document.createElement('canvas'); c.width=200;c.height=40; const ctx=c.getContext('2d'); ctx.textBaseline='top'; ctx.font='16px Arial'; ctx.fillStyle='#f60'; ctx.fillRect(0,0,200,40); ctx.fillStyle='#069'; ctx.fillText(navigator.userAgent,2,2); return c.toDataURL(); }catch{ return 'nocanvas'; } }
 async function computeDeviceId(){
   let salt=localStorage.getItem("p2p_salt"); if(!salt){ salt=crypto.getRandomValues(new Uint32Array(4)).join("-"); localStorage.setItem("p2p_salt",salt); }
-  const bits=[navigator.userAgent||"",navigator.language||"",Intl.DateTimeFormat().resolvedOptions().timeZone||"",
-    screen.width+"x"+screen.height+"x"+(screen.colorDepth||0),(navigator.hardwareConcurrency||0)+"",(navigator.deviceMemory||0)+"",getCanvasFP(),salt].join("|");
-  const id = await sha256(bits); localStorage.setItem("p2p_myId", id); return id;
+  const bits=[navigator.userAgent||"",navigator.language||"",Intl.DateTimeFormat().resolvedOptions().timeZone||"",screen.width+"x"+screen.height+"x"+(screen.colorDepth||0),(navigator.hardwareConcurrency||0)+"",(navigator.deviceMemory||0)+"",getCanvasFP(),salt].join("|");
+  const id=await sha256(bits); localStorage.setItem("p2p_myId",id); return id;
 }
 
-/* ========= IndexedDB (conversaciones/mensajes) ========= */
+/* ========= IndexedDB ========= */
 const DB="p2pchatdb", VER=1; let db;
 function openDB(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB,VER);
   r.onupgradeneeded=e=>{ const d=e.target.result;
@@ -183,11 +188,11 @@ function loadMessages(peerId){ return new Promise((res,rej)=>{ const tx=db.trans
 async function renderConversationList(){
   const list=$("#convList"); list.innerHTML=""; const items=await listConversations();
   for(const c of items){
-    const div=document.createElement("div"); div.className="conv"+(currentPeer===c.peerId?" active":"");
+    const div=document.createElement("div"); div.className="conv"+(state.currentPeer===c.peerId?" active":"");
     const name=document.createElement("div"); name.className="name"; name.textContent=c.peerId.slice(0,12);
     const meta=document.createElement("div"); meta.className="meta"; meta.textContent=(c.lastText||"").slice(0,24)||"—";
     div.appendChild(name); div.appendChild(meta);
-    div.onclick=async()=>{ currentPeer=c.peerId; await openChat(currentPeer); app.classList.remove("menu-open"); };
+    div.onclick=async()=>{ state.currentPeer=c.peerId; await openChat(state.currentPeer); app.classList.remove("menu-open"); };
     list.appendChild(div);
   }
 }
@@ -198,49 +203,52 @@ async function openChat(peerId){
   await renderConversationList();
 }
 
+/* ========= Estado global encapsulado ========= */
+const state = {
+  pc:null, dc:null, currentPeer:null, MY_ID:""
+};
+
 /* ========= WebRTC ========= */
 const RTC_CFG = { iceServers:[{urls:"stun:stun.l.google.com:19302"}] };
-let pc=null, dc=null, currentPeer=null, MY_ID="";
 function resetPC(){
-  if(pc) try{ pc.close(); }catch{}
-  pc=new RTCPeerConnection(RTC_CFG);
-  pc.oniceconnectionstatechange=()=>{ const st=pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
-  pc.ondatachannel=(ev)=>{ dc=ev.channel; bindDC(); };
+  if(state.pc) try{ state.pc.close(); }catch{}
+  state.pc=new RTCPeerConnection(RTC_CFG);
+  state.pc.oniceconnectionstatechange=()=>{ const st=state.pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
+  state.pc.ondatachannel=(ev)=>{ state.dc=ev.channel; bindDC(); };
 }
 function bindDC(){
-  if(!dc) return;
-  dc.onopen=()=>{ try{ dc.send(JSON.stringify({type:"hello", id:MY_ID})); }catch{} };
-  dc.onmessage=async ev=>{
+  if(!state.dc) return;
+  state.dc.onopen=()=>{ try{ state.dc.send(JSON.stringify({type:"hello", id:state.MY_ID})); }catch{} };
+  state.dc.onmessage=async ev=>{
     const raw=String(ev.data||"");
     try{
       const hello=JSON.parse(raw);
       if(hello && hello.type==="hello" && hello.id){
-        currentPeer=hello.id; await saveConversation(currentPeer,"¡Conectado!"); await renderConversationList(); return;
+        state.currentPeer=hello.id; await saveConversation(state.currentPeer,"¡Conectado!"); await renderConversationList(); return;
       }
     }catch{}
-    const pid=currentPeer||"peer"; await saveConversation(pid,raw); await saveMessage(pid,"in",raw); addBubble("in",raw,Date.now()); renderConversationList();
+    const pid=state.currentPeer||"peer"; await saveConversation(pid,raw); await saveMessage(pid,"in",raw); addBubble("in",raw,Date.now()); renderConversationList();
   };
 }
-function waitGathering(){ return new Promise(res=>{ if(pc.iceGatheringState==="complete") return res(); pc.onicegatheringstatechange=()=>{ if(pc.iceGatheringState==="complete") res(); }; }); }
+function waitGathering(){ return new Promise(res=>{ if(state.pc.iceGatheringState==="complete") return res(); state.pc.onicegatheringstatechange=()=>{ if(state.pc.iceGatheringState==="complete") res(); }; }); }
 async function createOffer(){
   resetPC();
-  dc=pc.createDataChannel("chat"); bindDC();
-  const offer=await pc.createOffer(); await pc.setLocalDescription(offer); await waitGathering();
-  return {kind:"offer", sdp: pc.localDescription};
+  state.dc=state.pc.createDataChannel("chat"); bindDC();
+  const offer=await state.pc.createOffer(); await state.pc.setLocalDescription(offer); await waitGathering();
+  return {kind:"offer", sdp: state.pc.localDescription};
 }
 async function acceptOffer(offerObj){
   resetPC();
-  await pc.setRemoteDescription(offerObj.sdp);
-  const answer=await pc.createAnswer(); await pc.setLocalDescription(answer); await waitGathering();
-  return {kind:"answer", sdp: pc.localDescription};
+  await state.pc.setRemoteDescription(offerObj.sdp);
+  const answer=await state.pc.createAnswer(); await state.pc.setLocalDescription(answer); await waitGathering();
+  return {kind:"answer", sdp: state.pc.localDescription};
 }
 async function acceptAnswer(ansObj){
-  if(!pc) throw new Error("Crea primero una oferta en este dispositivo.");
-  await pc.setRemoteDescription(ansObj.sdp);
+  if(!state.pc) throw new Error("Crea primero una oferta en este dispositivo.");
+  await state.pc.setRemoteDescription(ansObj.sdp);
 }
 
-/* ========= QR GENERATOR (qrcode-generator mini) ========= */
-/* Fuente: https://github.com/kazuhikoarase/qrcode-generator (MIT) – build canvas minimizado */
+/* ========= QR GENERATOR (canvas, mini) ========= */
 !function(){function QR8bitByte(t){this.mode=4;this.data=t}
 QR8bitByte.prototype={getLength:function(){return this.data.length},write:function(b){for(var i=0;i<this.data.length;i++)b.put(this.data.charCodeAt(i),8)}};
 function QRBitBuffer(){this.buffer=[];this.length=0}
@@ -251,7 +259,7 @@ QRPolynomial.prototype={get:function(i){return this.num[i]},getLength:function()
 function QRMath(){};QRMath.glog=function(n){if(n<1)throw new Error("glog");return LOG_TABLE[n]};QRMath.gexp=function(n){for(;n<0;)n+=255;for(;n>=256;)n-=255;return EXP_TABLE[n]};
 var EXP_TABLE=new Array(256),LOG_TABLE=new Array(256);for(var i=0;i<8;i++)EXP_TABLE[i]=1<<i;for(i=8;i<256;i++)EXP_TABLE[i]=EXP_TABLE[i-4]^EXP_TABLE[i-5]^EXP_TABLE[i-6]^EXP_TABLE[i-8];for(i=0;i<255;i++)LOG_TABLE[EXP_TABLE[i]]=i;
 function QRRSBlock(totalCount,dataCount){this.totalCount=totalCount;this.dataCount=dataCount}
-QRRSBlock.getRSBlocks=function(typeNumber,ec){return [new QRRSBlock(26,19)]}; /* simplificado */
+QRRSBlock.getRSBlocks=function(t,ec){return [new QRRSBlock(26,19)]}; /* simplificado */
 function QRCodeModel(typeNumber,ec){this.typeNumber=typeNumber;this.errorCorrectLevel=ec;this.modules=null;this.moduleCount=0;this.dataList=[]}
 QRCodeModel.prototype={addData:function(d){this.dataList.push(d)},isDark:function(r,c){return this.modules[r][c]},getModuleCount:function(){return this.moduleCount},
 make:function(){var type=1;for(;type<=10;type++){try{this.typeNumber=type;this._makeImpl();return}catch(e){}}
@@ -259,50 +267,41 @@ this.typeNumber=10;this._makeImpl()},
 _makeImpl:function(){this.moduleCount=this.typeNumber*4+17;this.modules=Array.from({length:this.moduleCount},()=>Array(this.moduleCount).fill(null));
 this._pos(0,0);this._pos(this.moduleCount-7,0);this._pos(0,this.moduleCount-7);for(var i=8;i<this.moduleCount-8;i++){this.modules[i][6]=i%2==0;this.modules[6][i]=i%2==0}
 this._dataCache=this._createData();this._map(this._dataCache)},
-_pos:function(x,y){for(var r=-1;r<=7;r++)for(var c=-1;c<=7;c++){var xx=x+c,yy=y+r;if(xx<=-1||this.moduleCount<=xx||yy<=-1||this.moduleCount<=yy)continue;
-this.modules[yy][xx]=(0<=c&&c<=6&&(r==0||r==6))||(0<=r&&r<=6&&(c==0||c==6))||(2<=r&&r<=4&&2<=c&&c<=4)}},
+_pos:function(x,y){for(var r=-1;r<=7;r++)for(var c=-1;c<=7;c++){var xx=x+c,yy=y+r;if(xx<=-1||this.moduleCount<=xx||yy<=-1||this.moduleCount<=yy)continue;this.modules[yy][xx]=(0<=c&&c<=6&&(r==0||r==6))||(0<=r&&0<=6&&(c==0||c==6))||(2<=r&&r<=4&&2<=c&&c<=4)}},
 _createData:function(){var buf=new QRBitBuffer();for(var d of this.dataList){buf.put(4,4);buf.put(d.getLength(),8);d.write(buf)}var rs=QRRSBlock.getRSBlocks(this.typeNumber,this.errorCorrectLevel),dc=rs[0].dataCount,tc=rs[0].totalCount;
-var data=[];for(var i=0;i<dc && i<buf.length;i+=8){var v=0;for(var j=0;j<8&&i+j<buf.length;j++) if(buf.buffer[i+j]) v|=(1<<(7-j)); data.push(v)}while(data.length<dc)data.push(0xEC^(data.length&1?0xEC:0x11));
-var raw=data.slice(0,tc);return raw},
+var data=[];for(var i=0;i<dc && i<buf.length;i+=8){var v=0;for(var j=0;j<8&&i+j<buf.length;j++) if(buf.buffer[i+j]) v|=(1<<(7-j)); data.push(v)}while(data.length<dc)data.push(0xEC^(data.length&1?0xEC:0x11));return data.slice(0,tc)},
 _map:function(data){var inc=-1,row=this.moduleCount-1,bit=0,byte=0;for(var col=this.moduleCount-1;col>0;col-=2){if(col==6)col--;for(;;){for(var c=0;c<2;c++){var x=col-c,y=row;if(this.modules[y][x]!==null)continue;var dark=false;if(byte<data.length){dark=((data[byte]>>(7-bit))&1)==1;bit++;if(bit==8){byte++;bit=0}}this.modules[y][x]=dark}row+=inc;if(row<0||this.moduleCount<=row){row-=inc;inc=-inc;break}}}}};
-function drawQR(canvas, text){ const enc = new TextEncoder().encode(text); const b64 = btoa(String.fromCharCode(...enc)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); const qr = new QRCodeModel(-1,QRErrorCorrectLevel.M); qr.addData(new QR8bitByte(b64)); qr.make(); const m=qr.getModuleCount(); const size=canvas.width; const cell=Math.floor(size/m); const pad=Math.floor((size-cell*m)/2); const ctx=canvas.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size); ctx.fillStyle='#000'; for(let r=0;r<m;r++)for(let c=0;c<m;c++){ if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell,pad+r*cell,cell,cell); } }
-window._drawQR = drawQR; window._qrDecodeB64 = (b64)=>{ try{ const bin=atob(b64.replace(/-/g,'+').replace(/_/g,'/')); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); return new TextDecoder().decode(arr);}catch{return "";} };
+function drawQR(canvas, text){
+  const enc=new TextEncoder().encode(text);
+  const b64=btoa(String.fromCharCode(...enc)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  const qr=new QRCodeModel(-1,0); qr.addData(new QR8bitByte(b64)); qr.make();
+  const m=qr.getModuleCount(), size=canvas.width, cell=Math.floor(size/m), pad=Math.floor((size-cell*m)/2), ctx=canvas.getContext('2d');
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size); ctx.fillStyle='#000';
+  for(let r=0;r<m;r++) for(let c=0;c<m;c++) if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell,pad+r*cell,cell,cell);
+}
+window._drawQR = drawQR;
+window._qrDecodeB64 = (b64)=>{ try{ const bin=atob(b64.replace(/-/g,'+').replace(/_/g,'/')); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); return new TextDecoder().decode(arr);}catch{return "";} };
 }();
 
-/* ========= jsQR (decodificador) embebido mínimo ========= */
-/* Nota: si existe BarcodeDetector lo usamos; si no, intentamos jsQR en canvas */
-</script>
-<script>
-/*! jsQR MIT (muy recortado) */
-function jsQR(d,w,h){/* implementación mínima – intenta localizar y decodificar: si no puede, devuelve null */
-  try{
-    // Fallback simplificado: NO es tan robusto como jsQR completo, pero nos da lectura en la mayoría de móviles modernos si no hay detector nativo.
-    return null; // si quieres robustez total, sustituye por la lib completa jsQR.
-  }catch{return null;}
-}
-</script>
-<script>
-/* ========= Escáner por cámara ========= */
-const qrCanvas = document.getElementById('qrCanvas');
-function drawQRPayload(text){ try{ _drawQR(qrCanvas, text); }catch(e){ document.getElementById('errbar').innerHTML='⚠️ QR demasiado largo para el generador mini.'; document.getElementById('errbar').style.display='block'; } }
-function parseQRString(raw){ // raw puede venir b64-url
-  const txt = _qrDecodeB64(raw) || raw;
-  try{ return JSON.parse(txt); }catch{ return null; }
-}
+/* ========= Lector QR (BarcodeDetector) ========= */
+const hasBD = 'BarcodeDetector' in window; let bd=null;
+if(hasBD){ try{ bd=new BarcodeDetector({formats:['qr_code']}); }catch{} }
 
+const qrCanvas=document.getElementById('qrCanvas');
+function drawQRPayload(text){ try{ _drawQR(qrCanvas, text); }catch(e){ showErr('QR demasiado largo para el generador mini'); } }
+function parseQRString(raw){ const txt=_qrDecodeB64(raw)||raw; try{ return JSON.parse(txt); }catch{ return null; } }
+
+/* ========= Cámara ========= */
 const scanModal=$("#scanModal"), video=$("#video"), closeScan=$("#closeScan"), switchCam=$("#switchCam");
-let stream=null, useBack=true, rafId=null, barcodeDetector=null;
-const hasBD = 'BarcodeDetector' in window;
-if(hasBD){ try{ barcodeDetector = new BarcodeDetector({formats:['qr_code']}); }catch{} }
+let stream=null, useBack=true, rafId=null;
 
 async function startScan(){
   if(!secure) return alert("Cámara requiere HTTPS/localhost.");
+  if(!bd) return alert("Tu navegador no soporta lector QR nativo (BarcodeDetector).");
   try{
     stopScan();
-    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode: useBack? {ideal:'environment'} : 'user'}, audio:false});
-    video.srcObject=stream; await video.play();
-    scanModal.classList.add("open");
-    tickScan();
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode: useBack?{ideal:'environment'}:'user'}, audio:false});
+    video.srcObject=stream; await video.play(); scanModal.classList.add("open"); tickScan();
   }catch(e){ alert("No se pudo abrir la cámara: "+(e?.message||e)); }
 }
 function stopScan(){
@@ -315,77 +314,23 @@ closeScan.onclick = ()=> stopScan();
 
 async function tickScan(){
   try{
-    if(barcodeDetector){
-      const codes = await barcodeDetector.detect(video);
-      if(codes && codes.length){
-        stopScan();
-        const obj = parseQRString(codes[0].rawValue||"");
-        if(!obj) return alert("QR leído, pero no se pudo decodificar.");
-        await handleScannedObject(obj);
-        return;
-      }
-    }else{
-      // Fallback: capturamos un frame y tratamos de leer con jsQR (muy básico)
-      const c=document.createElement('canvas'), ctx=c.getContext('2d');
-      c.width=video.videoWidth; c.height=video.videoHeight;
-      ctx.drawImage(video,0,0,c.width,c.height);
-      const id=ctx.getImageData(0,0,c.width,c.height);
-      const res = jsQR(id.data,c.width,c.height);
-      if(res && res.data){
-        stopScan();
-        const obj = parseQRString(res.data);
-        if(!obj) return alert("QR leído, pero no se pudo decodificar.");
-        await handleScannedObject(obj);
-        return;
-      }
+    const codes = await bd.detect(video);
+    if(codes && codes.length){
+      stopScan();
+      const obj = parseQRString(codes[0].rawValue||"");
+      if(!obj) return alert("QR leído, pero no se pudo decodificar.");
+      await handleScannedObject(obj);
+      return;
     }
-  }catch(e){ /* seguimos intentando */ }
+  }catch(e){ /* seguimos */ }
   rafId = requestAnimationFrame(tickScan);
 }
 
-/* ========= Lógica QR ↔ WebRTC ========= */
-let pc=null, dc=null, currentPeer=null, MY_ID="";
-async function createOffer(){
-  if(pc) try{ pc.close(); }catch{}
-  pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-  pc.oniceconnectionstatechange=()=>{ const st=pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
-  dc=pc.createDataChannel("chat"); bindDC();
-  const offer=await pc.createOffer(); await pc.setLocalDescription(offer); await waitGathering();
-  return {kind:"offer", sdp: pc.localDescription};
-}
-async function acceptOffer(offerObj){
-  if(pc) try{ pc.close(); }catch{}
-  pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
-  pc.oniceconnectionstatechange=()=>{ const st=pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
-  pc.ondatachannel=(ev)=>{ dc=ev.channel; bindDC(); };
-  await pc.setRemoteDescription(offerObj.sdp);
-  const answer=await pc.createAnswer(); await pc.setLocalDescription(answer); await waitGathering();
-  return {kind:"answer", sdp: pc.localDescription};
-}
-async function acceptAnswer(ansObj){
-  if(!pc) throw new Error("Crea primero una oferta en este dispositivo.");
-  await pc.setRemoteDescription(ansObj.sdp);
-}
-function bindDC(){
-  if(!dc) return;
-  dc.onopen=()=>{ try{ dc.send(JSON.stringify({type:"hello", id:MY_ID})); }catch{} };
-  dc.onmessage=async ev=>{
-    const raw=String(ev.data||"");
-    try{
-      const hello=JSON.parse(raw);
-      if(hello && hello.type==="hello" && hello.id){
-        currentPeer=hello.id; await saveConversation(currentPeer,"¡Conectado!"); await renderConversationList(); return;
-      }
-    }catch{}
-    const pid=currentPeer||"peer"; await saveConversation(pid,raw); await saveMessage(pid,"in",raw); addBubble("in",raw,Date.now()); renderConversationList();
-  };
-}
-function waitGathering(){ return new Promise(res=>{ if(pc.iceGatheringState==="complete") return res(); pc.onicegatheringstatechange=()=>{ if(pc.iceGatheringState==="complete") res(); }; }); }
-
+/* ========= Handshake QR ↔ WebRTC ========= */
 async function handleScannedObject(obj){
   if(obj.kind==="offer"){
-    const ans = await acceptOffer(obj);
-    drawQRPayload(JSON.stringify(ans)); // mostremos respuesta
+    const ans=await acceptOffer(obj);
+    drawQRPayload(JSON.stringify(ans)); // mostrar respuesta para que el otro la escanee
     return;
   }
   if(obj.kind==="answer"){
@@ -398,7 +343,8 @@ async function handleScannedObject(obj){
 /* ========= Botones ========= */
 document.getElementById('offerBtn').addEventListener('click', async ()=>{
   busy(document.getElementById('offerBtn'), true);
-  try{ const offer = await createOffer(); drawQRPayload(JSON.stringify(offer)); }catch(e){ alert("Error creando oferta: "+(e?.message||e)); }
+  try{ const offer=await createOffer(); drawQRPayload(JSON.stringify(offer)); }
+  catch(e){ alert("Error creando oferta: "+(e?.message||e)); }
   finally{ busy(document.getElementById('offerBtn'), false); }
 });
 document.getElementById('scanBtn').addEventListener('click', ()=> startScan());
@@ -410,20 +356,22 @@ document.getElementById('newConvBtn').addEventListener('click', ()=>{
 });
 document.getElementById('sendBtn').addEventListener('click', async ()=>{
   const inp=$("#msgInput"), text=inp.value.trim(); if(!text) return;
-  if(!dc || dc.readyState!=="open") return alert("No hay canal abierto aún.");
-  try{ dc.send(text); const pid=currentPeer||"peer"; await saveConversation(pid,text); await saveMessage(pid,"out",text); addBubble("out",text,Date.now()); inp.value=""; renderConversationList(); }
-  catch(e){ alert("Error enviando: "+(e?.message||e)); }
+  if(!state.dc || state.dc.readyState!=="open") return alert("No hay canal abierto aún.");
+  try{
+    state.dc.send(text);
+    const pid=state.currentPeer||"peer";
+    await saveConversation(pid,text); await saveMessage(pid,"out",text); addBubble("out",text,Date.now()); inp.value=""; renderConversationList();
+  }catch(e){ alert("Error enviando: "+(e?.message||e)); }
 });
 
 /* ========= Init ========= */
-let currentPeer=null;
 (async ()=>{
   await openDB();
-  const myId = await computeDeviceId();
-  document.getElementById('myIdChip').textContent = 'ID: '+myId.slice(0,16);
+  state.MY_ID = await computeDeviceId();
+  document.getElementById('myIdChip').textContent = 'ID: '+state.MY_ID.slice(0,16);
   await renderConversationList();
   setStatus(false);
 })();
-</script>
+})();</script>
 </body>
 </html>
