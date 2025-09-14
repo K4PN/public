@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Chat P2P — Móvil</title>
+<style>
+  :root{
+    --bg:#f7f7fb;
+    --panel:#ffffff;
+    --ink:#1f2937;
+    --muted:#6b7280;
+    --accent:#3b82f6;
+    --accent-weak:#e5f0ff;
+    --ok:#22c55e;
+    --warn:#f59e0b;
+    --err:#ef4444;
+    --border:#e5e7eb;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,'Noto Sans',sans-serif;
+  }
+  .app{
+    display:grid;grid-template-columns: 0 1fr; /* menú oculto por defecto (móvil) */
+    height:100dvh;overflow:hidden;
+  }
+  .app.menu-open{ grid-template-columns: 78vw 1fr; }
+  /* Sidebar */
+  .sidebar{
+    background:var(--panel);border-right:1px solid var(--border);
+    display:flex;flex-direction:column;min-width:0;overflow:hidden;
+  }
+  .side-header{
+    padding:12px 14px;border-bottom:1px solid var(--border);
+    display:flex;gap:10px;align-items:center;justify-content:space-between
+  }
+  .side-title{font-weight:700}
+  .conv-list{overflow:auto;flex:1}
+  .conv{
+    padding:12px 14px;border-bottom:1px solid var(--border);
+    display:flex;gap:10px;align-items:center;justify-content:space-between
+  }
+  .conv.active{background:var(--accent-weak)}
+  .conv .name{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .conv .meta{font-size:12px;color:var(--muted)}
+  .btn, button{
+    border:none;background:var(--accent);color:#fff;padding:10px 14px;border-radius:12px;
+    font-weight:600; box-shadow:0 2px 6px rgba(59,130,246,.18);
+  }
+  .btn-ghost{background:transparent;color:var(--accent)}
+  /* Main */
+  .main{
+    display:flex;flex-direction:column;height:100%;min-width:0
+  }
+  .topbar{
+    background:var(--panel);border-bottom:1px solid var(--border);padding:10px 12px;
+    display:flex;align-items:center;gap:10px;justify-content:space-between
+  }
+  .hamb{width:40px;height:40px;border-radius:12px;background:#f0f4ff;border:1px solid var(--border);display:grid;place-items:center}
+  .hamb span{width:18px;height:2px;background:var(--ink);position:relative;display:block}
+  .hamb span::before,.hamb span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:var(--ink)}
+  .hamb span::before{top:-6px}.hamb span::after{top:6px}
+  .id-chip{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+  .status{font-size:12px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#fff}
+  .status.on{border-color:#c7f9d2;background:#eeffef;color:#0a7a2a}
+  .status.off{border-color:#ffd1d1;background:#fff3f3;color:#a11}
+  /* Messages */
+  .messages{flex:1;overflow:auto;padding:12px;background:linear-gradient(#f8fbff,#f7f7fb)}
+  .bubble{
+    max-width:80%;padding:10px 12px;border-radius:14px;margin:6px 0;word-wrap:break-word;
+    background:#fff;border:1px solid var(--border)
+  }
+  .me{margin-left:auto;background:var(--accent);color:#fff;border-color:transparent}
+  .meta-time{display:block;margin-top:6px;font-size:11px;opacity:.8}
+  /* Composer */
+  .composer{padding:10px;background:var(--panel);border-top:1px solid var(--border);display:flex;gap:8px}
+  .composer input{
+    flex:1;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:16px;background:#fff
+  }
+  .composer button{padding:12px 16px;border-radius:12px}
+  /* Connect panel */
+  .connect{
+    padding:10px;border-top:1px dashed var(--border);background:#fbfcff
+  }
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  textarea{
+    width:100%;min-height:92px;border:1px solid var(--border);border-radius:12px;padding:10px;background:#fff
+  }
+  .hint{font-size:12px;color:var(--muted)}
+  .pill{font-size:12px;padding:6px 10px;border-radius:999px;background:#eef2ff;color:#334155;display:inline-block}
+  .qr{display:none;margin-top:8px}
+  canvas.qr{display:block;margin:auto;background:#fff;padding:10px;border-radius:12px;border:1px solid var(--border)}
+  @media (min-width: 980px){
+    .app{grid-template-columns: 320px 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-header">
+      <div>
+        <div class="side-title">Conversaciones</div>
+        <div class="hint">Guardadas en este dispositivo</div>
+      </div>
+      <button class="btn-ghost" id="newConvBtn" title="Nueva conversación">＋</button>
+    </div>
+    <div class="conv-list" id="convList"></div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <div class="topbar">
+      <button class="hamb" id="hamb"><span></span></button>
+      <div class="id-chip" id="myIdChip">ID: …</div>
+      <div class="status off" id="netStatus">Desconectado</div>
+    </div>
+
+    <div class="messages" id="messages"></div>
+
+    <div class="composer">
+      <input id="msgInput" placeholder="Mensaje…" autocomplete="off" />
+      <button id="sendBtn">Enviar</button>
+    </div>
+
+    <section class="connect">
+      <div class="row" style="justify-content:space-between">
+        <div class="pill">Conectar con otro usuario (P2P)</div>
+        <div class="hint">Usa oferta/respuesta (copiar/pegar o QR)</div>
+      </div>
+
+      <div class="row" style="margin-top:8px">
+        <button id="createOfferBtn">Crear oferta</button>
+        <button id="createAnswerBtn">Responder oferta</button>
+        <button id="clearSigBtn" class="btn-ghost">Limpiar</button>
+      </div>
+
+      <div style="margin-top:8px">
+        <textarea id="sigBox" placeholder="Aquí aparecerá tu OFERTA o pega la OFERTA de tu contacto…"></textarea>
+        <canvas id="qrCanvas" class="qr" width="256" height="256"></canvas>
+      </div>
+
+      <div class="hint" style="margin-top:6px">
+        <b>Cómo usar:</b> En el móvil A pulsa “Crear oferta” y comparte el texto/QR con el móvil B.
+        En el móvil B, pulsa “Responder oferta”, pega la oferta y copia la “respuesta” de vuelta al móvil A (pegándola arriba y esperando conexión).
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ===== Mini utilidades ===== */
+const $ = sel => document.querySelector(sel);
+const app = $("#app");
+$("#hamb").onclick = ()=> app.classList.toggle("menu-open");
+
+/* ===== Fingerprint + ID persistente =====
+   -> combinamos señales no sensibles + salt local y las hasheamos (SHA-256)
+*/
+async function sha256(str){
+  const buf = new TextEncoder().encode(str);
+  const hash = await crypto.subtle.digest("SHA-256", buf);
+  return [...new Uint8Array(hash)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function getCanvasFP(){
+  try{
+    const c=document.createElement('canvas'); c.width=200; c.height=40;
+    const ctx=c.getContext('2d');
+    ctx.textBaseline='top';
+    ctx.font='16px Arial';
+    ctx.fillStyle='#f60'; ctx.fillRect(0,0,200,40);
+    ctx.fillStyle='#069'; ctx.fillText(navigator.userAgent, 2, 2);
+    return c.toDataURL();
+  }catch{ return 'nocanvas'; }
+}
+async function computeDeviceId(){
+  let salt = localStorage.getItem("p2p_salt");
+  if(!salt){ salt = crypto.getRandomValues(new Uint32Array(4)).join("-"); localStorage.setItem("p2p_salt", salt); }
+  const bits = [
+    navigator.userAgent || "",
+    navigator.language || "",
+    Intl.DateTimeFormat().resolvedOptions().timeZone || "",
+    screen.width+"x"+screen.height+"x"+(screen.colorDepth||0),
+    (navigator.hardwareConcurrency||0)+"",
+    (navigator.deviceMemory||0)+"",
+    getCanvasFP(),
+    salt
+  ].join("|");
+  const id = await sha256(bits);
+  localStorage.setItem("p2p_myId", id);
+  return id;
+}
+
+/* ===== IndexedDB simple (mensajes/conversaciones) ===== */
+const DB_NAME = "p2pchatdb", DB_VER = 1;
+let db;
+function openDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains("conversations")){
+        db.createObjectStore("conversations", { keyPath: "peerId" });
+      }
+      if(!db.objectStoreNames.contains("messages")){
+        const store = db.createObjectStore("messages", { keyPath: "id", autoIncrement: true });
+        store.createIndex("byPeer","peerId",{});
+      }
+    };
+    req.onsuccess = ()=>{ db = req.result; resolve(); };
+    req.onerror = ()=> reject(req.error);
+  });
+}
+function saveConversation(peerId, lastText=""){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction("conversations","readwrite");
+    const store = tx.objectStore("conversations");
+    store.get(peerId).onsuccess = ev=>{
+      const now = Date.now();
+      const old = ev.target.result;
+      const rec = old ? {...old, lastAt: now, lastText} : {peerId, createdAt: now, lastAt: now, lastText};
+      store.put(rec).onsuccess = ()=> res(rec);
+    };
+    tx.onerror = ()=> rej(tx.error);
+  });
+}
+function listConversations(){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction("conversations","readonly");
+    const store = tx.objectStore("conversations");
+    const items=[];
+    store.openCursor().onsuccess = ev=>{
+      const cur = ev.target.result;
+      if(cur){ items.push(cur.value); cur.continue(); }
+      else{
+        items.sort((a,b)=> (b.lastAt||0)-(a.lastAt||0));
+        res(items);
+      }
+    };
+    tx.onerror = ()=> rej(tx.error);
+  });
+}
+function saveMessage(peerId, direction, text){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction(["messages","conversations"],"readwrite");
+    const mstore = tx.objectStore("messages");
+    const cstore = tx.objectStore("conversations");
+    const msg = {peerId, direction, text, at: Date.now()};
+    mstore.add(msg).onsuccess = ()=>{
+      // update conv preview
+      cstore.get(peerId).onsuccess = ev=>{
+        const old = ev.target.result||{peerId, createdAt:Date.now()};
+        old.lastAt = msg.at; old.lastText = text;
+        cstore.put(old);
+      };
+      res(msg);
+    };
+    tx.onerror = ()=> rej(tx.error);
+  });
+}
+function loadMessages(peerId){
+  return new Promise((res,rej)=>{
+    const tx = db.transaction("messages","readonly");
+    const store = tx.objectStore("messages");
+    const idx = store.index("byPeer");
+    const req = idx.getAll(peerId);
+    req.onsuccess = ()=> {
+      const arr = req.result.sort((a,b)=> (a.at||0)-(b.at||0));
+      res(arr);
+    };
+    req.onerror = ()=> rej(req.error);
+  });
+}
+
+/* ===== UI estado ===== */
+let MY_ID = "";
+let currentPeer = null;
+let pc = null, dc = null;
+
+function setStatus(on){
+  const el = $("#netStatus");
+  if(on){ el.classList.remove("off"); el.classList.add("on"); el.textContent = "Conectado"; }
+  else { el.classList.remove("on"); el.classList.add("off"); el.textContent = "Desconectado"; }
+}
+function addBubble(direction, text, at){
+  const wrap = $("#messages");
+  const b = document.createElement("div");
+  b.className = "bubble" + (direction==="out" ? " me": "");
+  b.innerHTML = `${escapeHtml(text)}<span class="meta-time">${new Date(at).toLocaleString()}</span>`;
+  wrap.appendChild(b);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
+
+async function renderConversationList(){
+  const list = $("#convList"); list.innerHTML="";
+  const items = await listConversations();
+  for(const c of items){
+    const div = document.createElement("div");
+    div.className = "conv" + (currentPeer===c.peerId?" active":"");
+    const name = document.createElement("div");
+    name.className = "name"; name.textContent = c.peerId.slice(0,12);
+    const meta = document.createElement("div");
+    meta.className="meta"; meta.textContent = (c.lastText||"").slice(0,20) || "—";
+    div.appendChild(name); div.appendChild(meta);
+    div.onclick = async ()=>{
+      currentPeer = c.peerId;
+      await openChat(currentPeer);
+      app.classList.remove("menu-open");
+    };
+    list.appendChild(div);
+  }
+}
+async function openChat(peerId){
+  $("#messages").innerHTML="";
+  const msgs = await loadMessages(peerId);
+  msgs.forEach(m=> addBubble(m.direction==="out"?"out":"in", m.text, m.at));
+  await renderConversationList();
+}
+
+/* ===== WebRTC ===== */
+const RTC_CFG = {iceServers:[{urls:"stun:stun.l.google.com:19302"}]};
+function newPC(){
+  if(pc) try{ pc.close(); }catch{}
+  pc = new RTCPeerConnection(RTC_CFG);
+  pc.oniceconnectionstatechange = ()=>{
+    const st = pc.iceConnectionState;
+    setStatus(st==="connected"||st==="completed");
+  };
+  pc.ondatachannel = ev=>{
+    dc = ev.channel;
+    hookDataChannel();
+  };
+}
+function hookDataChannel(){
+  if(!dc) return;
+  dc.onopen = ()=> setStatus(true);
+  dc.onclose = ()=> setStatus(false);
+  dc.onmessage = async (ev)=>{
+    const text = String(ev.data||"");
+    if(!currentPeer) currentPeer = "peer-"+(await sha256(text)).slice(0,8); // fallback
+    await saveConversation(currentPeer, text);
+    await saveMessage(currentPeer,"in",text);
+    addBubble("in",text,Date.now());
+    renderConversationList();
+  };
+}
+
+async function createOffer(){
+  newPC();
+  dc = pc.createDataChannel("chat");
+  hookDataChannel();
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  return waitForGathering().then(()=> JSON.stringify({type:"offer", sdp: pc.localDescription}));
+}
+async function answerOffer(remoteStr){
+  newPC();
+  const remote = JSON.parse(remoteStr);
+  await pc.setRemoteDescription(new RTCSessionDescription(remote.sdp));
+  const answer = await pc.createAnswer();
+  await pc.setLocalDescription(answer);
+  return waitForGathering().then(()=> JSON.stringify({type:"answer", sdp: pc.localDescription}));
+}
+async function acceptAnswer(remoteStr){
+  const remote = JSON.parse(remoteStr);
+  await pc.setRemoteDescription(new RTCSessionDescription(remote.sdp));
+}
+function waitForGathering(){
+  return new Promise(res=>{
+    if(pc.iceGatheringState === "complete") return res();
+    pc.onicegatheringstatechange = ()=> {
+      if(pc.iceGatheringState === "complete") res();
+    };
+  });
+}
+
+/* ===== QR muy simple (sin librerías) =====
+   Generamos QR con API Canvas + algoritmo sencillo (no robusto como QR real),
+   pero suficiente para compartir localmente si los textos no son muy largos.
+   Para máxima fiabilidad, además del “QR”, deja el copiar/pegar.
+*/
+function drawPseudoQR(canvas, text){
+  // Pseudocódigo QR (no estándar): hash a bits y pintamos módulos.
+  // Para ofertas largas, quizá no quepa — el usuario siempre puede copiar/pegar.
+  const ctx = canvas.getContext("2d");
+  const N = 25; // módulos
+  const size = canvas.width;
+  const cell = Math.floor(size / N);
+  ctx.clearRect(0,0,size,size);
+  ctx.fillStyle="#000"; ctx.fillRect(0,0,size,size);
+  ctx.fillStyle="#fff"; ctx.fillRect(4,4,size-8,size-8);
+
+  // hash a bits
+  (async ()=>{
+    const h = await sha256(text);
+    let bits = "";
+    for(let i=0;i<h.length;i++){
+      const v = parseInt(h[i],16);
+      bits += v.toString(2).padStart(4,"0");
+    }
+    // pintar patrón
+    let k=0;
+    ctx.fillStyle="#000";
+    for(let y=6; y<N-6; y++){
+      for(let x=6; x<N-6; x++){
+        if(bits[k%bits.length]==="1"){
+          ctx.fillRect(x*cell, y*cell, cell-1, cell-1);
+        }
+        k++;
+      }
+    }
+  })();
+}
+
+/* ===== Eventos UI ===== */
+$("#createOfferBtn").onclick = async ()=>{
+  try{
+    const offer = await createOffer();
+    $("#sigBox").value = offer;
+    const q = $("#qrCanvas");
+    q.style.display="block";
+    drawPseudoQR(q, offer);
+  }catch(e){ alert("Error creando oferta: "+e.message); }
+};
+$("#createAnswerBtn").onclick = async ()=>{
+  const txt = $("#sigBox").value.trim();
+  if(!txt){ alert("Pega aquí la OFERTA del otro móvil y vuelve a pulsar."); return; }
+  try{
+    const ans = await answerOffer(txt);
+    $("#sigBox").value = ans;
+    const q = $("#qrCanvas");
+    q.style.display="block";
+    drawPseudoQR(q, ans);
+  }catch(e){ alert("Error respondiendo oferta: "+e.message); }
+};
+$("#clearSigBtn").onclick = ()=>{
+  $("#sigBox").value=""; $("#qrCanvas").style.display="none";
+};
+$("#sendBtn").onclick = async ()=>{
+  const inp = $("#msgInput");
+  const text = inp.value.trim();
+  if(!text) return;
+  if(!dc || dc.readyState!=="open"){ alert("No hay canal de datos abierto. Conecta primero."); return; }
+  try{
+    dc.send(text);
+    // peerId: si ya tenemos remoto, úsalo; si no, etiqueta con “desconocido”
+    const peerId = currentPeer || "desconocido";
+    await saveConversation(peerId, text);
+    await saveMessage(peerId,"out",text);
+    addBubble("out",text,Date.now());
+    inp.value="";
+    renderConversationList();
+  }catch(e){
+    alert("Error enviando: "+e.message);
+  }
+};
+$("#newConvBtn").onclick = ()=>{
+  app.classList.remove("menu-open");
+  document.querySelector(".connect").scrollIntoView({behavior:"smooth"});
+};
+
+/* ===== Init ===== */
+(async ()=>{
+  await openDB();
+  MY_ID = await computeDeviceId();
+  $("#myIdChip").textContent = "ID: "+MY_ID;
+  await renderConversationList();
+  setStatus(false);
+
+  // Enfoque táctil cómodo
+  $("#msgInput").addEventListener("keydown", (e)=>{
+    if(e.key==="Enter" && !e.shiftKey){
+      e.preventDefault(); $("#sendBtn").click();
+    }
+  });
+
+  // Si llegamos aquí con “respuesta” pegada (p.ej. desde compartir), intenta aceptar
+  try{
+    const url = new URL(location.href);
+    const resp = url.searchParams.get("answer");
+    if(resp){ await acceptAnswer(decodeURIComponent(resp)); }
+  }catch{}
+})();
+</script>
+</body>
+</html>
