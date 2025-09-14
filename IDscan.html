@@ -3,237 +3,132 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Cam + Overlay DNI (con captura)</title>
-<meta name="theme-color" content="#0b0b0c"/>
+<title>Captura solo documento</title>
 <style>
-  :root{
-    --ui-bg:#0b0b0c; --ui-fg:#f4f4f5; --accent:#4ade80;
-  }
-  html,body{height:100%; margin:0; background:var(--ui-bg); color:var(--ui-fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
-  .app{position:fixed; inset:0; display:flex; flex-direction:column;}
-  .stage{position:relative; flex:1; background:#000; overflow:hidden;}
-  video{
-    position:absolute; inset:0; width:100%; height:100%;
-    object-fit:cover; transform:scaleX(-1);
-  }
-  .overlay{
-    position:absolute; inset:0; display:grid; place-items:center; pointer-events:none;
-  }
+  body,html{margin:0;height:100%;background:#000;color:#fff;font-family:sans-serif}
+  .app{display:flex;flex-direction:column;height:100%}
+  .stage{flex:1;position:relative;overflow:hidden}
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  .overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
   .id-frame{
-    width:min(88vw, 88vh * 1.585);
-    aspect-ratio:1.585 / 1;
-    border-radius:12px;
-    box-shadow:0 0 0 3px rgba(255,255,255,.9), 0 0 0 8px rgba(255,255,255,.15);
-    position:relative;
-    overflow:hidden;
-  }
-  .id-frame::before{
-    content:""; position:absolute; inset:0; border-radius:12px; pointer-events:none;
-    background:
-      linear-gradient(to right, rgba(255,255,255,.12) 1px, transparent 1px) 0 0/8% 100%,
-      linear-gradient(to bottom, rgba(255,255,255,.12) 1px, transparent 1px) 0 0/100% 10%;
-  }
-  .id-frame::after{
-    content:""; position:absolute; width:28%; aspect-ratio:1/1; border-radius:999px; left:6%; top:18%;
-    box-shadow:0 0 0 3px rgba(255,255,255,.7); pointer-events:none;
+    width:min(88vw,88vh*1.585);aspect-ratio:1.585/1;border-radius:12px;
+    box-shadow:0 0 0 3px rgba(255,255,255,.9),0 0 0 8px rgba(255,255,255,.15);
+    position:relative;overflow:hidden;
   }
   .wm-tile{
-    position:absolute; inset:0; pointer-events:none; opacity:.4;
-    transform: rotate(var(--wm-angle, -15deg));
-    background-size: var(--wm-step, 220px) var(--wm-step, 180px);
-    background-position:center;
-    background-repeat: repeat;
+    position:absolute;inset:0;opacity:.35;transform:rotate(var(--wm-angle,-15deg));
+    background-size:var(--wm-step,220px) var(--wm-step,180px);
+    background-repeat:repeat;background-position:center
   }
-  .controls{
-    background:linear-gradient(0deg, rgba(11,11,12,1) 60%, rgba(11,11,12,.0));
-    padding: max(12px, env(safe-area-inset-bottom));
-    display:grid; gap:10px;
-  }
-  .row{display:flex; gap:8px; align-items:center;}
-  .row.wrap{flex-wrap:wrap}
-  input[type="text"]{
-    flex:1; padding:12px 14px; border-radius:12px; border:1px solid #262626; background:#121214; color:var(--ui-fg);
-    font-size:16px; outline:none;
-  }
-  .btn{
-    appearance:none; border:0; border-radius:12px; padding:12px 14px; font-weight:700;
-    background:var(--accent); color:#062d12; cursor:pointer;
-  }
-  .btn.secondary{ background:#1f2937; color:#e5e7eb; }
-  label{font-size:13px; color:#c9c9ce; min-width:6.5em}
-  input[type="range"]{width:100%}
-  .status{font-size:13px; color:#a1a1aa; min-height:1.2em}
-  .hint{font-size:12px; color:#8a8a90}
-  .caps{font-variant: all-small-caps; letter-spacing:.04em; opacity:.9}
-  .pill{
-    font-size:12px; padding:6px 10px; border-radius:999px; background:#17171a; border:1px solid #262626; color:#c9c9ce
-  }
+  .controls{padding:10px;background:#111;display:flex;gap:10px}
+  .btn{flex:1;padding:12px;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
+  .primary{background:#4ade80;color:#062d12}
+  .secondary{background:#333;color:#eee}
+  input[type=text]{flex:2;padding:10px;border-radius:8px;border:1px solid #444;background:#222;color:#fff}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="stage" id="stage">
-    <video id="video" playsinline autoplay muted></video>
+    <video id="video" autoplay playsinline muted></video>
     <div class="overlay">
       <div class="id-frame" id="idFrame">
-        <div class="wm-tile" id="wmTile" aria-hidden="true"></div>
+        <div class="wm-tile" id="wmTile"></div>
       </div>
     </div>
   </div>
-
   <div class="controls">
-    <div class="row">
-      <button class="btn" id="startBtn">Iniciar cámara</button>
-      <button class="btn secondary" id="shotBtn" disabled>Tomar foto</button>
-      <span class="pill caps" id="camState">sin iniciar</span>
-    </div>
-
-    <div class="row">
-      <input id="wmText" type="text" placeholder="Texto de marca de agua (p. ej., 'MUESTRA • CARLOS')" />
-    </div>
-
-    <div class="row wrap">
-      <label for="sizeRange">Tamaño</label>
-      <input type="range" id="sizeRange" min="14" max="64" value="28" />
-      <label for="opacityRange">Opacidad</label>
-      <input type="range" id="opacityRange" min="0.1" max="1" step="0.05" value="0.35" />
-    </div>
-
-    <div class="row wrap">
-      <label for="angleRange">Ángulo</label>
-      <input type="range" id="angleRange" min="-45" max="45" value="-15" />
-      <label for="mirrorChk">Espejo</label>
-      <input type="checkbox" id="mirrorChk" checked />
-    </div>
-
-    <div class="status" id="status"></div>
-    <div class="hint">Al capturar, se guarda la imagen del documento con la marca de agua repetida. Esta app no sube nada.</div>
+    <button class="btn primary" id="startBtn">Iniciar cámara</button>
+    <button class="btn secondary" id="shotBtn" disabled>Capturar</button>
+  </div>
+  <div class="controls">
+    <input id="wmText" type="text" placeholder="Marca de agua" />
   </div>
 </div>
 
 <script>
-  const startBtn = document.getElementById('startBtn');
-  const shotBtn = document.getElementById('shotBtn');
-  const camState = document.getElementById('camState');
-  const statusEl = document.getElementById('status');
-  const video = document.getElementById('video');
-  const wmTile = document.getElementById('wmTile');
-  const idFrame = document.getElementById('idFrame');
-  const wmText = document.getElementById('wmText');
-  const sizeRange = document.getElementById('sizeRange');
-  const opacityRange = document.getElementById('opacityRange');
-  const angleRange = document.getElementById('angleRange');
-  const mirrorChk = document.getElementById('mirrorChk');
-  const stage = document.getElementById('stage');
+const video=document.getElementById("video");
+const startBtn=document.getElementById("startBtn");
+const shotBtn=document.getElementById("shotBtn");
+const wmText=document.getElementById("wmText");
+const wmTile=document.getElementById("wmTile");
+const idFrame=document.getElementById("idFrame");
 
-  let stream;
+let stream;
 
-  function setStatus(msg){ statusEl.textContent = msg || ""; }
-  function setCamState(text){ camState.textContent = text; }
+function svgBgDataURI(text,fontPx,opacity){
+  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  const fill=`rgba(255,255,255,${opacity})`;
+  const stepX=Math.round(fontPx*8), stepY=Math.round(fontPx*6.5);
+  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='${stepX}' height='${stepY}'>
+    <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
+      font-family='system-ui,sans-serif' font-size='${fontPx}' font-weight='800' fill='${fill}'>
+      ${esc(text)}
+    </text></svg>`;
+  return "url(\"data:image/svg+xml,"+encodeURIComponent(svg)+"\")";
+}
+function applyWatermark(){
+  const t=(wmText.value.trim()||"MUESTRA").toUpperCase();
+  const fontPx=24, opacity=0.35, angle=-15;
+  wmTile.style.setProperty("--wm-angle",angle+"deg");
+  wmTile.style.setProperty("--wm-step",Math.round(fontPx*8)+"px");
+  wmTile.style.backgroundImage=svgBgDataURI(t,fontPx,opacity);
+}
+wmText.addEventListener("input",applyWatermark);
 
-  function svgBgDataURI(text, fontPx, opacity){
-    const esc = s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    const fill = `rgba(255,255,255,${opacity})`;
-    const stepX = Math.round(fontPx * 8);
-    const stepY = Math.round(fontPx * 6.5);
-    const svg = `
-      <svg xmlns='http://www.w3.org/2000/svg' width='${stepX}' height='${stepY}' viewBox='0 0 ${stepX} ${stepY}'>
-        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
-          font-family='system-ui, sans-serif' font-size='${fontPx}' font-weight='800' fill='${fill}'>${esc(text)}</text>
-      </svg>`;
-    return "url(\"data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg) + "\")";
-  }
+async function startCamera(){
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    video.srcObject=stream;
+    await video.play();
+    shotBtn.disabled=false;
+  }catch(e){alert("Error cámara: "+e.message);}
+}
+startBtn.addEventListener("click",startCamera);
 
-  function applyWatermarkLive(){
-    const t = (wmText.value.trim() || 'MUESTRA · NO VÁLIDO').toUpperCase();
-    const fontPx = parseInt(sizeRange.value,10);
-    const opacity = parseFloat(opacityRange.value);
-    const angle = parseInt(angleRange.value,10) || -15;
-    wmTile.style.setProperty('--wm-angle', angle + 'deg');
-    wmTile.style.setProperty('--wm-step', Math.round(fontPx*8) + 'px');
-    wmTile.style.backgroundImage = svgBgDataURI(t, fontPx, opacity);
-  }
+function capture(){
+  if(!video.videoWidth){alert("Cámara no lista");return;}
+  // tamaño del recuadro documento
+  const rect=idFrame.getBoundingClientRect();
+  const stageRect=document.getElementById("stage").getBoundingClientRect();
+  const W=rect.width,H=rect.height;
+  const canvas=document.createElement("canvas");
+  canvas.width=W*devicePixelRatio;
+  canvas.height=H*devicePixelRatio;
+  const ctx=canvas.getContext("2d");
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  // recorte del vídeo correspondiente al documento
+  const scale=video.videoWidth/stageRect.width;
+  const sx=(rect.left-stageRect.left)*scale;
+  const sy=(rect.top-stageRect.top)*scale;
+  const sw=rect.width*scale;
+  const sh=rect.height*scale;
+  ctx.drawImage(video,sx,sy,sw,sh,0,0,W,H);
+  // aplicar marca de agua en mosaico
+  const fontPx=24,opacity=0.35,angle=-15;
+  const tileW=fontPx*8,tileH=fontPx*6.5;
+  const pCan=document.createElement("canvas");pCan.width=tileW;pCan.height=tileH;
+  const pCtx=pCan.getContext("2d");
+  pCtx.font=`800 ${fontPx}px system-ui,sans-serif`;
+  pCtx.textAlign="center";pCtx.textBaseline="middle";
+  pCtx.fillStyle=`rgba(255,255,255,${opacity})`;
+  pCtx.fillText((wmText.value.trim()||"MUESTRA").toUpperCase(),tileW/2,tileH/2);
+  const pattern=ctx.createPattern(pCan,"repeat");
+  ctx.save();
+  ctx.translate(W/2,H/2);
+  ctx.rotate(angle*Math.PI/180);
+  ctx.translate(-W/2,-H/2);
+  ctx.fillStyle=pattern;
+  ctx.fillRect(0,0,W,H);
+  ctx.restore();
+  // descargar
+  const a=document.createElement("a");
+  a.href=canvas.toDataURL("image/png");
+  a.download="documento.png";a.click();
+}
+shotBtn.addEventListener("click",capture);
 
-  function applyMirror(){
-    video.style.transform = mirrorChk.checked ? 'scaleX(-1)' : 'none';
-  }
-
-  wmText.addEventListener('input', applyWatermarkLive);
-  sizeRange.addEventListener('input', applyWatermarkLive);
-  opacityRange.addEventListener('input', applyWatermarkLive);
-  angleRange.addEventListener('input', applyWatermarkLive);
-  mirrorChk.addEventListener('change', applyMirror);
-
-  async function startCamera(){
-    setStatus('Solicitando permisos…');
-    setCamState('solicitando…');
-    startBtn.disabled = true;
-    const constraints = { video:{ facingMode:'environment', width:{ideal:1920}, height:{ideal:1080} } };
-    try{
-      stream = await navigator.mediaDevices.getUserMedia(constraints);
-      video.srcObject = stream;
-      await video.play();
-      setStatus('Cámara activa.');
-      setCamState('activa');
-      startBtn.textContent = 'Reiniciar cámara';
-      startBtn.disabled = false;
-      shotBtn.disabled = false;
-    }catch(e){
-      setStatus('Error cámara: '+e.message);
-      setCamState('error');
-      startBtn.disabled = false;
-    }
-  }
-  startBtn.addEventListener('click', ()=>{ if(stream){stream.getTracks().forEach(t=>t.stop());} startCamera(); });
-
-  // === Captura ===
-  function drawVideoCover(ctx, video, W, H){
-    const vW=video.videoWidth, vH=video.videoHeight;
-    const cR=W/H, vR=vW/vH;
-    let sx,sy,sw,sh;
-    if(vR>cR){ sh=vH; sw=sh*cR; sx=(vW-sw)/2; sy=0; }
-    else { sw=vW; sh=sw/cR; sx=0; sy=(vH-sh)/2; }
-    ctx.drawImage(video,sx,sy,sw,sh,0,0,W,H);
-  }
-
-  function capture(){
-    if(!video.videoWidth){ setStatus('Cámara no lista'); return; }
-    const rectStage=stage.getBoundingClientRect();
-    const canvas=document.createElement('canvas');
-    canvas.width=rectStage.width*devicePixelRatio;
-    canvas.height=rectStage.height*devicePixelRatio;
-    const ctx=canvas.getContext('2d');
-    ctx.scale(devicePixelRatio,devicePixelRatio);
-    drawVideoCover(ctx,video,rectStage.width,rectStage.height);
-
-    const rectDoc=idFrame.getBoundingClientRect();
-    const x=rectDoc.left-rectStage.left, y=rectDoc.top-rectStage.top, w=rectDoc.width, h=rectDoc.height;
-    const fontPx=parseInt(sizeRange.value,10), opacity=parseFloat(opacityRange.value), angle=parseInt(angleRange.value)||-15;
-    const tileW=Math.round(fontPx*8), tileH=Math.round(fontPx*6.5);
-    const pCan=document.createElement('canvas'); pCan.width=tileW; pCan.height=tileH;
-    const pCtx=pCan.getContext('2d');
-    pCtx.font=`800 ${fontPx}px system-ui, sans-serif`; pCtx.textAlign='center'; pCtx.textBaseline='middle';
-    pCtx.fillStyle=`rgba(255,255,255,${opacity})`;
-    pCtx.fillText((wmText.value.trim()||'MUESTRA · NO VÁLIDO').toUpperCase(), tileW/2, tileH/2);
-    const pattern=ctx.createPattern(pCan,'repeat');
-    ctx.save();
-    ctx.beginPath();
-    ctx.roundRect(x,y,w,h,12);
-    ctx.clip();
-    ctx.translate(x+w/2,y+h/2);
-    ctx.rotate(angle*Math.PI/180);
-    ctx.translate(-w/2,-h/2);
-    ctx.fillStyle=pattern;
-    ctx.fillRect(0,0,w,h);
-    ctx.restore();
-    const a=document.createElement('a');
-    a.download='captura.png'; a.href=canvas.toDataURL('image/png');
-    a.click();
-    setStatus('Imagen guardada.');
-  }
-  shotBtn.addEventListener('click',capture);
-
-  applyWatermarkLive(); applyMirror();
+applyWatermark();
 </script>
 </body>
 </html>
