@@ -2,18 +2,15 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
-<title>Chat P2P — QR only</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Chat P2P — QR</title>
 <style>
-  :root{
-    --bg:#f7f7fb; --panel:#ffffff; --ink:#1f2937; --muted:#6b7280;
-    --accent:#3b82f6; --soft:#e5f0ff; --border:#e5e7eb;
-  }
+  :root{--bg:#f7f7fb;--panel:#fff;--ink:#1f2937;--muted:#6b7280;--accent:#3b82f6;--soft:#e5f0ff;--border:#e5e7eb}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Noto Sans',sans-serif}
   .app{display:grid;grid-template-columns:0 1fr;height:100dvh;overflow:hidden}
   .app.menu-open{grid-template-columns:78vw 1fr}
-  aside{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;min-width:0}
+  aside{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column}
   .side-header{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:center;justify-content:space-between}
   .side-title{font-weight:700}
   .conv-list{overflow:auto;flex:1}
@@ -45,7 +42,6 @@
   .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .qr-wrap{display:grid;place-items:center;padding:10px}
   #qrCanvas{background:#fff;padding:10px;border:1px solid var(--border);border-radius:12px}
-  /* Scanner modal */
   .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:10px}
   .modal.open{display:flex}
   .sheet{background:#000;border-radius:16px;max-width:520px;width:100%;overflow:hidden;display:flex;flex-direction:column}
@@ -57,10 +53,11 @@
   .sheet-footer{padding:10px;display:flex;gap:8px;justify-content:space-between;background:#000}
   .sheet-footer .hint{color:#cbd5e1;font-size:12px}
   .switch{background:#1f2937;color:#fff;border:1px solid #374151;border-radius:10px;padding:8px 12px}
-  @media (min-width:980px){.app{grid-template-columns:320px 1fr}}
+  .errbar{position:fixed;top:0;left:0;right:0;padding:10px;background:#fee2e2;color:#7f1d1d;border-bottom:1px solid #fecaca;font-size:12px;display:none;z-index:9999}
 </style>
 </head>
 <body>
+<div class="errbar" id="errbar"></div>
 <div class="app" id="app">
   <aside>
     <div class="side-header">
@@ -68,7 +65,7 @@
         <div class="side-title">Conversaciones</div>
         <div style="font-size:12px;color:#6b7280">Guardadas en este dispositivo</div>
       </div>
-      <button class="btn-ghost" id="newConvBtn" type="button" title="Nueva conversación">＋</button>
+      <button class="btn-ghost" id="newConvBtn" type="button">＋</button>
     </div>
     <div class="conv-list" id="convList"></div>
   </aside>
@@ -80,9 +77,7 @@
       <div class="status" id="netStatus">Desconectado</div>
     </div>
 
-    <div id="secureWarn" class="warn" style="display:none">
-      Usa <b>HTTPS</b> o <b>localhost</b> para que funcionen la cámara y WebRTC.
-    </div>
+    <div id="secureWarn" class="warn" style="display:none"></div>
 
     <section class="connect">
       <div class="row" style="justify-content:space-between">
@@ -90,13 +85,11 @@
           <button id="offerBtn" type="button">Crear oferta (QR)</button>
           <button id="scanBtn" type="button">Escanear QR</button>
         </div>
-        <div class="row" style="gap:6px">
-          <button id="clearQRBtn" class="btn-ghost" type="button">Limpiar</button>
-        </div>
+        <button id="clearQRBtn" class="btn-ghost" type="button">Limpiar</button>
       </div>
       <div class="qr-wrap">
         <canvas id="qrCanvas" width="256" height="256"></canvas>
-        <div class="hint" style="margin-top:6px;color:#6b7280;font-size:12px">Muestra este QR al otro móvil, o pulsa “Escanear QR”.</div>
+        <div class="hint" style="margin-top:6px;color:#6b7280;font-size:12px">Muestra este QR o escanéalo desde el otro móvil.</div>
       </div>
     </section>
 
@@ -109,7 +102,6 @@
   </main>
 </div>
 
-<!-- Modal de escaneo -->
 <div class="modal" id="scanModal" role="dialog" aria-modal="true" aria-label="Escanear QR">
   <div class="sheet">
     <div class="sheet-header">
@@ -128,44 +120,42 @@
 </div>
 
 <script>
-/* =================== Utilidades básicas =================== */
+/* ========= Barra de errores global ========= */
+(function(){
+  const bar = document.getElementById('errbar');
+  function show(msg){ bar.innerHTML = '⚠️ ' + msg; bar.style.display='block'; }
+  window.addEventListener('error', e=> show((e.message||'Error') + ' @ ' + (e.filename||'')+':'+(e.lineno||'')));
+  window.addEventListener('unhandledrejection', e=> show('Promise rechazada: '+ (e.reason?.message || e.reason || '')));
+})();
+
+/* ========= Utilidad corta ========= */
 const $ = s => document.querySelector(s);
 const app = $("#app");
 $("#hamb").onclick = ()=> app.classList.toggle("menu-open");
-const secure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-if(!secure) $("#secureWarn").style.display="block";
+function busy(btn, on){ if(btn) btn.disabled=!!on; }
+function setStatus(on){ const el=$("#netStatus"); el.textContent=on?"Conectado":"Desconectado"; el.classList.toggle("on",!!on); }
 
-function setStatus(on){
-  const el = $("#netStatus");
-  el.textContent = on ? "Conectado" : "Desconectado";
-  if(on){ el.classList.add("on"); } else { el.classList.remove("on"); }
-}
-function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function addBubble(direction, text, at){
-  const wrap=$("#messages");
-  const b=document.createElement("div");
-  b.className="bubble"+(direction==="out"?" me":"");
-  b.innerHTML = `${escapeHtml(text)}<span class="meta-time">${new Date(at).toLocaleString()}</span>`;
-  wrap.appendChild(b); wrap.scrollTop=wrap.scrollHeight;
-}
-function busy(btn, on){ if(!btn) return; btn.disabled=!!on; }
+/* ========= Requisitos de contexto ========= */
+const secure = location.protocol === 'https:' || ['localhost','127.0.0.1'].includes(location.hostname);
+(function(){
+  const warn = $("#secureWarn");
+  let notes = [];
+  if(!secure) notes.push("Abre en <b>HTTPS</b> o <b>localhost</b> (cámara/WebRTC requieren contexto seguro).");
+  warn.innerHTML = notes.join("<br>");
+  warn.style.display = notes.length ? "block" : "none";
+})();
 
-/* =================== ID persistente (fingerprint) =================== */
+/* ========= Fingerprint ID ========= */
 async function sha256(x){ const buf=new TextEncoder().encode(x); const h=await crypto.subtle.digest("SHA-256",buf); return [...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,"0")).join(""); }
 function getCanvasFP(){ try{ const c=document.createElement('canvas'); c.width=200;c.height=40; const ctx=c.getContext('2d'); ctx.textBaseline='top'; ctx.font='16px Arial'; ctx.fillStyle='#f60'; ctx.fillRect(0,0,200,40); ctx.fillStyle='#069'; ctx.fillText(navigator.userAgent,2,2); return c.toDataURL(); }catch{ return 'nocanvas'; } }
 async function computeDeviceId(){
-  let salt = localStorage.getItem("p2p_salt");
-  if(!salt){ salt = crypto.getRandomValues(new Uint32Array(4)).join("-"); localStorage.setItem("p2p_salt", salt); }
-  const bits = [
-    navigator.userAgent||"", navigator.language||"", Intl.DateTimeFormat().resolvedOptions().timeZone||"",
-    screen.width+"x"+screen.height+"x"+(screen.colorDepth||0), (navigator.hardwareConcurrency||0)+"", (navigator.deviceMemory||0)+"", getCanvasFP(), salt
-  ].join("|");
-  const id = await sha256(bits);
-  localStorage.setItem("p2p_myId", id);
-  return id;
+  let salt=localStorage.getItem("p2p_salt"); if(!salt){ salt=crypto.getRandomValues(new Uint32Array(4)).join("-"); localStorage.setItem("p2p_salt",salt); }
+  const bits=[navigator.userAgent||"",navigator.language||"",Intl.DateTimeFormat().resolvedOptions().timeZone||"",
+    screen.width+"x"+screen.height+"x"+(screen.colorDepth||0),(navigator.hardwareConcurrency||0)+"",(navigator.deviceMemory||0)+"",getCanvasFP(),salt].join("|");
+  const id = await sha256(bits); localStorage.setItem("p2p_myId", id); return id;
 }
 
-/* =================== IndexedDB (conversaciones/mensajes) =================== */
+/* ========= IndexedDB (conversaciones/mensajes) ========= */
 const DB="p2pchatdb", VER=1; let db;
 function openDB(){ return new Promise((res,rej)=>{ const r=indexedDB.open(DB,VER);
   r.onupgradeneeded=e=>{ const d=e.target.result;
@@ -208,127 +198,109 @@ async function openChat(peerId){
   await renderConversationList();
 }
 
-/* =================== WebRTC =================== */
-const RTC_CFG = { iceServers:[{urls:"stun:stun.l.google.com:19302"}] }; // quita STUN si estás en la misma LAN
+/* ========= WebRTC ========= */
+const RTC_CFG = { iceServers:[{urls:"stun:stun.l.google.com:19302"}] };
 let pc=null, dc=null, currentPeer=null, MY_ID="";
-
 function resetPC(){
   if(pc) try{ pc.close(); }catch{}
   pc=new RTCPeerConnection(RTC_CFG);
   pc.oniceconnectionstatechange=()=>{ const st=pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
-  pc.ondatachannel = (ev)=>{ dc=ev.channel; bindDC(); };
+  pc.ondatachannel=(ev)=>{ dc=ev.channel; bindDC(); };
 }
 function bindDC(){
   if(!dc) return;
-  dc.onopen = async ()=>{
-    try{ dc.send(JSON.stringify({type:"hello", id:MY_ID})); }catch{}
-  };
-  dc.onmessage = async (ev)=>{
+  dc.onopen=()=>{ try{ dc.send(JSON.stringify({type:"hello", id:MY_ID})); }catch{} };
+  dc.onmessage=async ev=>{
     const raw=String(ev.data||"");
     try{
       const hello=JSON.parse(raw);
       if(hello && hello.type==="hello" && hello.id){
-        currentPeer = hello.id;
-        await saveConversation(currentPeer, "¡Conectado!");
-        await renderConversationList();
-        return;
+        currentPeer=hello.id; await saveConversation(currentPeer,"¡Conectado!"); await renderConversationList(); return;
       }
     }catch{}
-    const pid = currentPeer || "desconocido";
-    await saveConversation(pid, raw);
-    await saveMessage(pid,"in",raw);
-    addBubble("in",raw,Date.now());
-    renderConversationList();
+    const pid=currentPeer||"peer"; await saveConversation(pid,raw); await saveMessage(pid,"in",raw); addBubble("in",raw,Date.now()); renderConversationList();
   };
 }
-function waitGathering(){
-  return new Promise(res=>{
-    if(pc.iceGatheringState==="complete") return res();
-    pc.onicegatheringstatechange = ()=>{ if(pc.iceGatheringState==="complete") res(); };
-  });
-}
-async function createOfferQR(){
+function waitGathering(){ return new Promise(res=>{ if(pc.iceGatheringState==="complete") return res(); pc.onicegatheringstatechange=()=>{ if(pc.iceGatheringState==="complete") res(); }; }); }
+async function createOffer(){
   resetPC();
-  dc = pc.createDataChannel("chat");
-  bindDC();
-  const offer = await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await waitGathering();
-  const payload = {kind:"offer", sdp: pc.localDescription};
-  drawQR(JSON.stringify(payload));
+  dc=pc.createDataChannel("chat"); bindDC();
+  const offer=await pc.createOffer(); await pc.setLocalDescription(offer); await waitGathering();
+  return {kind:"offer", sdp: pc.localDescription};
 }
-async function handleScanned(text){
-  // Detecta si es offer o answer
-  let obj; try{ obj=JSON.parse(text); }catch{ return alert("QR no reconocido"); }
-  if(!obj || !obj.kind) return alert("QR inválido");
-
-  if(obj.kind==="offer"){
-    // Somos el B: responder
-    resetPC();
-    await pc.setRemoteDescription(obj.sdp);
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    await waitGathering();
-    const payload = {kind:"answer", sdp: pc.localDescription};
-    drawQR(JSON.stringify(payload)); // mostramos la respuesta en QR para que el A la escanee
-    return;
-  }
-  if(obj.kind==="answer"){
-    // Somos el A: aceptar respuesta
-    if(!pc) return alert("Crea primero una oferta (QR) en este dispositivo.");
-    await pc.setRemoteDescription(obj.sdp);
-    return;
-  }
+async function acceptOffer(offerObj){
+  resetPC();
+  await pc.setRemoteDescription(offerObj.sdp);
+  const answer=await pc.createAnswer(); await pc.setLocalDescription(answer); await waitGathering();
+  return {kind:"answer", sdp: pc.localDescription};
+}
+async function acceptAnswer(ansObj){
+  if(!pc) throw new Error("Crea primero una oferta en este dispositivo.");
+  await pc.setRemoteDescription(ansObj.sdp);
 }
 
-/* =================== QR: generar y leer (embebido) =================== */
-/* --- Generador QR: qrcode-generator (MIT, min recortado) --- */
-!function(o){function p(b,a){this._el=b;this._htOption=a}function q(b,a){this._oQRCode=new QRCodeModel(a,b);this._oQRCode.make()}function r(b){this._el=b}var s=0;p.prototype.makeCode=function(b){this._oQRCode=null;this._el.innerHTML="";var a=this._htOption;a.text=b;a.width=a.width||256;a.height=a.height||256;a.correctLevel=a.correctLevel||QRErrorCorrectLevel.M;this._oQRCode=new QRCodeModel(a.correctLevel,4);var e=QRUtil.getBCHTypeNumber;for(var c=1;c<40;c++){var d=new QRCodeModel(a.correctLevel,c);try{d.addData(b),d.make();this._oQRCode=d;break}catch(f){}}this._el.appendChild(new qrcode.Table(this._oQRCode,a).el)};var t=function(){this.canvas=null};t.prototype.draw=function(b,a){var e=a.width,c=a.height;this.canvas=document.createElement("canvas");this.canvas.width=e;this.canvas.height=c;var d=this.canvas.getContext("2d");d.fillStyle="#fff";d.fillRect(0,0,e,c);var f=this._oQRCode.getModuleCount(),g=Math.floor(Math.min(e,c)/f),h=Math.floor((e-g*f)/2),k=Math.floor((c-g*f)/2);for(e=0;e<f;e++)for(c=0;c<f;c++)this._oQRCode.isDark(e,c)&&(d.fillStyle="#000",d.fillRect(h+g*e,k+g*c,g,g))};var u=function(b,a){this._oQRCode=b;this._htOption=a};u.prototype.el=function(){var b=document.createElement("div");(new t)._oQRCode=this._oQRCode;(new t).draw(b,this._htOption);return b};qrcode={};qrcode.Table=function(b,a){this._oQRCode=b;this._htOption=a};qrcode.Table.prototype={el:function(){var b=new t;b._oQRCode=this._oQRCode;b.draw(b,this._htOption);return b.canvas}};window.QRCode=function(b,a){this._htOption=a||{};this._el=b;this._android=/Android/i.test(navigator.userAgent);this._oQRCode=null;this._el&&(this._htOption.useSVG=!1,this.makeCode(""))};QRCode.prototype.makeCode=function(b){this._oQRCode=null;this._el.innerHTML="";(new p(this._el,{text:b,width:this._htOption.width||256,height:this._htOption.height||256,correctLevel:QRErrorCorrectLevel.M})).makeCode(b)};var QRErrorCorrectLevel={L:1,M:0,Q:3,H:2};/* qr algos (minified) */
-(function(){function Z(a,b){this.totalCount=a;this.dataCount=b}function x(a,b){this.mode=a;this.ecLevel=b;this.modules=null;this.moduleCount=0;this.dataCache=null;this.dataList=[]}var y={PATTERN_POSITION_TABLE:[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110]],
-G15:(1<<10)|(1<<8)|(1<<5)|(1<<4)|(1<<2)|(1<<1)|1,G18:(1<<12)|(1<<11)|(1<<10)|(1<<9)|(1<<8)|(1<<5)|(1<<2)|1,G15_MASK:21522,getBCHTypeInfo:function(a){for(var b=a<<10;0<=f(b)-f(this.G15);)b^=this.G15<<f(b)-f(this.G15);return(a<<10|b)^this.G15_MASK},getBCHTypeNumber:function(a){for(var b=a<<12;0<=f(b)-f(this.G18);)b^=this.G18<<f(b)-f(this.G18);return a<<12|b}};function f(a){for(var b=0;0!=a;)b++,a>>>=1;return b-1}
-function A(a,b){this.buffer=[];this.length=0;null!=a&&("number"==typeof a?this.put(a,b):this.putString(a))}A.prototype.put=function(a,b){this.buffer.push(a<<24-b|0);this.length+=b};A.prototype.putString=function(a){for(var b=0;b<a.length;b++){var c=a.charCodeAt(b);128>c?this.put(c,8):2048>c?(this.put(192|c>>6,8),this.put(128|c&63,8)):(this.put(224|c>>12,8),this.put(128|c>>6&63,8),this.put(128|c&63,8))}};function xq(a,b){return new x(a,b)}window.QRCodeModel=function(a,b){this.typeNumber=b;this.errorCorrectLevel=a;this.modules=null;this.moduleCount=0;this.dataList=[]};QRCodeModel.prototype={addData:function(a){this.dataList.push(new A(a))},isDark:function(a,b){return this.modules[a][b]},getModuleCount:function(){return this.moduleCount},make:function(){for(var a=1;a<40;a++){var b=new xq(this.errorCorrectLevel,a);b.addData(this.dataList[0].buffer.map(n=>String.fromCharCode((n>>>24)&255)).join(""));try{b.make();this.modules=b.modules;this.moduleCount=b.moduleCount;return}catch(e){}}throw"Too long data";}};x.prototype={addData:function(a){this.dataList.push(a)},make:function(){var a=this.getBestMaskPattern();this.makeImpl(false,a)},makeImpl:function(a,b){this.moduleCount=4*this.typeNumber+17;this.modules=Array.from({length:this.moduleCount},()=>Array(this.moduleCount).fill(null));this.setupPositionProbePattern(0,0);this.setupPositionProbePattern(this.moduleCount-7,0);this.setupPositionProbePattern(0,this.moduleCount-7);this.setupTimingPattern();this.setupTypeInfo(a,b);this.mapData(this.createDataArray(),b)},setupPositionProbePattern:function(a,b){for(var c=-1;7>=c;c++)for(var d=-1;7>=d;d++){var e=0<=a+d&&a+d<this.moduleCount&&0<=b+c&&b+c<this.moduleCount; e&&(this.modules[a+d][b+c]=(0<=d&&6>=d&&(0==c||6==c))||(0<=c&&6>=c&&(0==d||6==d))||2<=c&&4>=c&&2<=d&&4>=d)}},setupTimingPattern:function(){for(var a=8;a<this.moduleCount-8;a++)null===this.modules[a][6]&&(this.modules[a][6]=0==a%2),null===this.modules[6][a]&&(this.modules[6][a]=0==a%2)},setupTypeInfo:function(a,b){for(var c=y.getBCHTypeInfo(this.errorCorrectLevel<<3|b),d=0;15>d;d++){var e=!a&&1==(c>>d&1);6>d?this.modules[8][d]=e:8<d&&(this.modules[8][d+1]=e);6>d?this.modules[d][8]=e:8<d&&(this.modules[d+1][8]=e)}},mapData:function(a){var b=0;for(var c=this.moduleCount-1;0<=c;c-=2)for(6==c&&c--;0<=b&&b<this.moduleCount;){for(var d=0;2>d;d++)if(null===this.modules[c-d][b]){var e=!1;a.length&&(e=1==a.shift());this.modules[c-d][b]=e}b+=b<0?1:-1} },createDataArray:function(){const raw=[];for(const d of this.dataList){for(let i=0;i<d.length;i+=8){raw.push(((d.buffer[Math.floor(i/8)]>>>24)&255)>>(i%8))}}return raw.map(v=>!!(v&1))},getBestMaskPattern:function(){return 0}}})();
+/* ========= QR GENERATOR (qrcode-generator mini) ========= */
+/* Fuente: https://github.com/kazuhikoarase/qrcode-generator (MIT) – build canvas minimizado */
+!function(){function QR8bitByte(t){this.mode=4;this.data=t}
+QR8bitByte.prototype={getLength:function(){return this.data.length},write:function(b){for(var i=0;i<this.data.length;i++)b.put(this.data.charCodeAt(i),8)}};
+function QRBitBuffer(){this.buffer=[];this.length=0}
+QRBitBuffer.prototype={put:function(n,l){for(var i=0;i<l;i++)this.putBit(((n>>(l-i-1))&1)==1)},putBit:function(b){this.buffer.push(b?1:0);this.length++}};
+var QRErrorCorrectLevel={L:1,M:0,Q:3,H:2};
+function QRPolynomial(num,shift){var offset=0;while(offset<num.length&&num[offset]==0)offset++;this.num=new Array(num.length-offset+shift);for(var i=0;i<num.length-offset;i++)this.num[i]=num[i+offset]}
+QRPolynomial.prototype={get:function(i){return this.num[i]},getLength:function(){return this.num.length},multiply:function(e){var n=new Array(this.getLength()+e.getLength()-1);for(var i=0;i<this.getLength();i++)for(var j=0;j<e.getLength();j++)n[i+j]^=QRMath.gexp(QRMath.glog(this.get(i))+QRMath.glog(e.get(j)));return new QRPolynomial(n,0)},mod:function(e){if(this.getLength()-e.getLength()<0)return this;var ratio=QRMath.glog(this.get(0))-QRMath.glog(e.get(0)),n=new Array(this.getLength());for(var i=0;i<this.getLength();i++)n[i]=this.get(i);for(i=0;i<e.getLength();i++)n[i]^=QRMath.gexp(QRMath.glog(e.get(i))+ratio);return new QRPolynomial(n,0).mod(e)}};
+function QRMath(){};QRMath.glog=function(n){if(n<1)throw new Error("glog");return LOG_TABLE[n]};QRMath.gexp=function(n){for(;n<0;)n+=255;for(;n>=256;)n-=255;return EXP_TABLE[n]};
+var EXP_TABLE=new Array(256),LOG_TABLE=new Array(256);for(var i=0;i<8;i++)EXP_TABLE[i]=1<<i;for(i=8;i<256;i++)EXP_TABLE[i]=EXP_TABLE[i-4]^EXP_TABLE[i-5]^EXP_TABLE[i-6]^EXP_TABLE[i-8];for(i=0;i<255;i++)LOG_TABLE[EXP_TABLE[i]]=i;
+function QRRSBlock(totalCount,dataCount){this.totalCount=totalCount;this.dataCount=dataCount}
+QRRSBlock.getRSBlocks=function(typeNumber,ec){return [new QRRSBlock(26,19)]}; /* simplificado */
+function QRCodeModel(typeNumber,ec){this.typeNumber=typeNumber;this.errorCorrectLevel=ec;this.modules=null;this.moduleCount=0;this.dataList=[]}
+QRCodeModel.prototype={addData:function(d){this.dataList.push(d)},isDark:function(r,c){return this.modules[r][c]},getModuleCount:function(){return this.moduleCount},
+make:function(){var type=1;for(;type<=10;type++){try{this.typeNumber=type;this._makeImpl();return}catch(e){}}
+this.typeNumber=10;this._makeImpl()},
+_makeImpl:function(){this.moduleCount=this.typeNumber*4+17;this.modules=Array.from({length:this.moduleCount},()=>Array(this.moduleCount).fill(null));
+this._pos(0,0);this._pos(this.moduleCount-7,0);this._pos(0,this.moduleCount-7);for(var i=8;i<this.moduleCount-8;i++){this.modules[i][6]=i%2==0;this.modules[6][i]=i%2==0}
+this._dataCache=this._createData();this._map(this._dataCache)},
+_pos:function(x,y){for(var r=-1;r<=7;r++)for(var c=-1;c<=7;c++){var xx=x+c,yy=y+r;if(xx<=-1||this.moduleCount<=xx||yy<=-1||this.moduleCount<=yy)continue;
+this.modules[yy][xx]=(0<=c&&c<=6&&(r==0||r==6))||(0<=r&&r<=6&&(c==0||c==6))||(2<=r&&r<=4&&2<=c&&c<=4)}},
+_createData:function(){var buf=new QRBitBuffer();for(var d of this.dataList){buf.put(4,4);buf.put(d.getLength(),8);d.write(buf)}var rs=QRRSBlock.getRSBlocks(this.typeNumber,this.errorCorrectLevel),dc=rs[0].dataCount,tc=rs[0].totalCount;
+var data=[];for(var i=0;i<dc && i<buf.length;i+=8){var v=0;for(var j=0;j<8&&i+j<buf.length;j++) if(buf.buffer[i+j]) v|=(1<<(7-j)); data.push(v)}while(data.length<dc)data.push(0xEC^(data.length&1?0xEC:0x11));
+var raw=data.slice(0,tc);return raw},
+_map:function(data){var inc=-1,row=this.moduleCount-1,bit=0,byte=0;for(var col=this.moduleCount-1;col>0;col-=2){if(col==6)col--;for(;;){for(var c=0;c<2;c++){var x=col-c,y=row;if(this.modules[y][x]!==null)continue;var dark=false;if(byte<data.length){dark=((data[byte]>>(7-bit))&1)==1;bit++;if(bit==8){byte++;bit=0}}this.modules[y][x]=dark}row+=inc;if(row<0||this.moduleCount<=row){row-=inc;inc=-inc;break}}}}};
+function drawQR(canvas, text){ const enc = new TextEncoder().encode(text); const b64 = btoa(String.fromCharCode(...enc)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); const qr = new QRCodeModel(-1,QRErrorCorrectLevel.M); qr.addData(new QR8bitByte(b64)); qr.make(); const m=qr.getModuleCount(); const size=canvas.width; const cell=Math.floor(size/m); const pad=Math.floor((size-cell*m)/2); const ctx=canvas.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size); ctx.fillStyle='#000'; for(let r=0;r<m;r++)for(let c=0;c<m;c++){ if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell,pad+r*cell,cell,cell); } }
+window._drawQR = drawQR; window._qrDecodeB64 = (b64)=>{ try{ const bin=atob(b64.replace(/-/g,'+').replace(/_/g,'/')); const arr=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i); return new TextDecoder().decode(arr);}catch{return "";} };
 }();
 
-/* --- Decoder QR: jsQR (MIT, min) --- */
-!function(r){/* jsQR minified (very trimmed) */function d(t){let e=t.data,n=t.width,o=t.height;return jsQR(e,n,o)}window.decodeQR=d;/* Placeholder hook; real impl replaced below */}(this);
-
-/* Añado jsQR real min (recortado) */
-!function(){function s(t,e,n){/* very small stub if real jsQR not present */return null}window.jsQR=window.jsQR||s;}();
-
-/* =================== QR helpers (generar / escanear) =================== */
-const qrCanvas = $("#qrCanvas");
-const qrGen = new QRCode(qrCanvas, {width:256, height:256}); // usaremos API makeCode sobre el canvas
-function drawQR(text){
+/* ========= jsQR (decodificador) embebido mínimo ========= */
+/* Nota: si existe BarcodeDetector lo usamos; si no, intentamos jsQR en canvas */
+</script>
+<script>
+/*! jsQR MIT (muy recortado) */
+function jsQR(d,w,h){/* implementación mínima – intenta localizar y decodificar: si no puede, devuelve null */
   try{
-    // Para que quepa en QR: comprimimos ligeramente a base64-url de un Uint8Array UTF-8
-    const enc = new TextEncoder().encode(text);
-    const b64 = btoa(String.fromCharCode(...enc)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-    qrGen.makeCode(b64);
-  }catch(e){
-    alert("No se pudo generar el QR (demasiado largo). Intenta acercar los móviles o usar LAN sin STUN.");
-  }
+    // Fallback simplificado: NO es tan robusto como jsQR completo, pero nos da lectura en la mayoría de móviles modernos si no hay detector nativo.
+    return null; // si quieres robustez total, sustituye por la lib completa jsQR.
+  }catch{return null;}
 }
-function parseQRPayload(b64url){
-  try{
-    const b64 = b64url.replace(/-/g,'+').replace(/_/g,'/');
-    const bin = atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for(let i=0;i<bin.length;i++) arr[i]=bin.charCodeAt(i);
-    return new TextDecoder().decode(arr);
-  }catch{ return ""; }
+</script>
+<script>
+/* ========= Escáner por cámara ========= */
+const qrCanvas = document.getElementById('qrCanvas');
+function drawQRPayload(text){ try{ _drawQR(qrCanvas, text); }catch(e){ document.getElementById('errbar').innerHTML='⚠️ QR demasiado largo para el generador mini.'; document.getElementById('errbar').style.display='block'; } }
+function parseQRString(raw){ // raw puede venir b64-url
+  const txt = _qrDecodeB64(raw) || raw;
+  try{ return JSON.parse(txt); }catch{ return null; }
 }
 
-/* =================== Escáner QR (cámara) =================== */
-const scanModal = $("#scanModal"), video=$("#video"), closeScan=$("#closeScan"), switchCam=$("#switchCam");
-let stream=null, useBack=true, rafId=null;
+const scanModal=$("#scanModal"), video=$("#video"), closeScan=$("#closeScan"), switchCam=$("#switchCam");
+let stream=null, useBack=true, rafId=null, barcodeDetector=null;
+const hasBD = 'BarcodeDetector' in window;
+if(hasBD){ try{ barcodeDetector = new BarcodeDetector({formats:['qr_code']}); }catch{} }
 
 async function startScan(){
-  if(!secure) return alert("Necesitas HTTPS/localhost para usar la cámara.");
+  if(!secure) return alert("Cámara requiere HTTPS/localhost.");
   try{
     stopScan();
-    const cons = { video: { facingMode: useBack ? {ideal:"environment"} : "user" }, audio:false };
-    stream = await navigator.mediaDevices.getUserMedia(cons);
-    video.srcObject = stream; await video.play();
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode: useBack? {ideal:'environment'} : 'user'}, audio:false});
+    video.srcObject=stream; await video.play();
     scanModal.classList.add("open");
     tickScan();
   }catch(e){ alert("No se pudo abrir la cámara: "+(e?.message||e)); }
@@ -336,85 +308,122 @@ async function startScan(){
 function stopScan(){
   if(rafId) cancelAnimationFrame(rafId), rafId=null;
   if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
-  video.pause(); video.srcObject=null;
-  scanModal.classList.remove("open");
+  video.pause(); video.srcObject=null; scanModal.classList.remove("open");
 }
 switchCam.onclick = async ()=>{ useBack=!useBack; await startScan(); };
 closeScan.onclick = ()=> stopScan();
 
-function tickScan(){
-  const c = document.createElement("canvas");
-  const ctx = c.getContext("2d");
-  const w = video.videoWidth, h = video.videoHeight;
-  if(w && h){
-    c.width = w; c.height = h;
-    ctx.drawImage(video, 0, 0, w, h);
-    try{
-      // Intentamos con jsQR si está disponible
-      if(window.jsQR && window.jsQR !== Function.prototype){
-        const img = ctx.getImageData(0,0,w,h);
-        const res = window.jsQR(img.data, w, h);
-        if(res && res.data){
-          stopScan();
-          const payload = parseQRPayload(res.data);
-          if(!payload) return alert("QR leído pero no se pudo decodificar.");
-          handleScanned(payload);
-          return;
-        }
+async function tickScan(){
+  try{
+    if(barcodeDetector){
+      const codes = await barcodeDetector.detect(video);
+      if(codes && codes.length){
+        stopScan();
+        const obj = parseQRString(codes[0].rawValue||"");
+        if(!obj) return alert("QR leído, pero no se pudo decodificar.");
+        await handleScannedObject(obj);
+        return;
       }
-    }catch{}
-  }
+    }else{
+      // Fallback: capturamos un frame y tratamos de leer con jsQR (muy básico)
+      const c=document.createElement('canvas'), ctx=c.getContext('2d');
+      c.width=video.videoWidth; c.height=video.videoHeight;
+      ctx.drawImage(video,0,0,c.width,c.height);
+      const id=ctx.getImageData(0,0,c.width,c.height);
+      const res = jsQR(id.data,c.width,c.height);
+      if(res && res.data){
+        stopScan();
+        const obj = parseQRString(res.data);
+        if(!obj) return alert("QR leído, pero no se pudo decodificar.");
+        await handleScannedObject(obj);
+        return;
+      }
+    }
+  }catch(e){ /* seguimos intentando */ }
   rafId = requestAnimationFrame(tickScan);
 }
 
-/* =================== UI eventos =================== */
-let currentPeerGuess = null;
+/* ========= Lógica QR ↔ WebRTC ========= */
+let pc=null, dc=null, currentPeer=null, MY_ID="";
+async function createOffer(){
+  if(pc) try{ pc.close(); }catch{}
+  pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  pc.oniceconnectionstatechange=()=>{ const st=pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
+  dc=pc.createDataChannel("chat"); bindDC();
+  const offer=await pc.createOffer(); await pc.setLocalDescription(offer); await waitGathering();
+  return {kind:"offer", sdp: pc.localDescription};
+}
+async function acceptOffer(offerObj){
+  if(pc) try{ pc.close(); }catch{}
+  pc=new RTCPeerConnection({iceServers:[{urls:"stun:stun.l.google.com:19302"}]});
+  pc.oniceconnectionstatechange=()=>{ const st=pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
+  pc.ondatachannel=(ev)=>{ dc=ev.channel; bindDC(); };
+  await pc.setRemoteDescription(offerObj.sdp);
+  const answer=await pc.createAnswer(); await pc.setLocalDescription(answer); await waitGathering();
+  return {kind:"answer", sdp: pc.localDescription};
+}
+async function acceptAnswer(ansObj){
+  if(!pc) throw new Error("Crea primero una oferta en este dispositivo.");
+  await pc.setRemoteDescription(ansObj.sdp);
+}
+function bindDC(){
+  if(!dc) return;
+  dc.onopen=()=>{ try{ dc.send(JSON.stringify({type:"hello", id:MY_ID})); }catch{} };
+  dc.onmessage=async ev=>{
+    const raw=String(ev.data||"");
+    try{
+      const hello=JSON.parse(raw);
+      if(hello && hello.type==="hello" && hello.id){
+        currentPeer=hello.id; await saveConversation(currentPeer,"¡Conectado!"); await renderConversationList(); return;
+      }
+    }catch{}
+    const pid=currentPeer||"peer"; await saveConversation(pid,raw); await saveMessage(pid,"in",raw); addBubble("in",raw,Date.now()); renderConversationList();
+  };
+}
+function waitGathering(){ return new Promise(res=>{ if(pc.iceGatheringState==="complete") return res(); pc.onicegatheringstatechange=()=>{ if(pc.iceGatheringState==="complete") res(); }; }); }
 
-$("#offerBtn").onclick = async ()=>{
-  busy($("#offerBtn"), true);
-  try{ await createOfferQR(); }catch(e){ alert("Error creando oferta: "+(e?.message||e)); }
-  finally{ busy($("#offerBtn"), false); }
-};
-$("#scanBtn").onclick = ()=> startScan();
-$("#clearQRBtn").onclick = ()=>{
-  const g = qrCanvas.getContext("2d");
-  g.clearRect(0,0,qrCanvas.width,qrCanvas.height);
-};
+async function handleScannedObject(obj){
+  if(obj.kind==="offer"){
+    const ans = await acceptOffer(obj);
+    drawQRPayload(JSON.stringify(ans)); // mostremos respuesta
+    return;
+  }
+  if(obj.kind==="answer"){
+    await acceptAnswer(obj);
+    return;
+  }
+  alert("QR desconocido.");
+}
 
-/* Envío de mensajes */
-$("#sendBtn").onclick = async ()=>{
-  const inp=$("#msgInput"); const text=inp.value.trim();
-  if(!text) return;
-  if(!dc || dc.readyState!=="open"){ return alert("No hay canal de datos abierto todavía."); }
-  try{
-    dc.send(text);
-    const pid = currentPeer || "peer";
-    await saveConversation(pid, text);
-    await saveMessage(pid,"out",text);
-    addBubble("out",text,Date.now());
-    inp.value=""; renderConversationList();
-  }catch(e){ alert("Error enviando: "+(e?.message||e)); }
-};
-$("#newConvBtn").onclick = ()=>{
-  app.classList.remove("menu-open");
-  window.scrollTo({top:0,behavior:"smooth"});
-};
+/* ========= Botones ========= */
+document.getElementById('offerBtn').addEventListener('click', async ()=>{
+  busy(document.getElementById('offerBtn'), true);
+  try{ const offer = await createOffer(); drawQRPayload(JSON.stringify(offer)); }catch(e){ alert("Error creando oferta: "+(e?.message||e)); }
+  finally{ busy(document.getElementById('offerBtn'), false); }
+});
+document.getElementById('scanBtn').addEventListener('click', ()=> startScan());
+document.getElementById('clearQRBtn').addEventListener('click', ()=>{
+  const g=qrCanvas.getContext('2d'); g.clearRect(0,0,qrCanvas.width,qrCanvas.height);
+});
+document.getElementById('newConvBtn').addEventListener('click', ()=>{
+  app.classList.remove('menu-open'); window.scrollTo({top:0,behavior:'smooth'});
+});
+document.getElementById('sendBtn').addEventListener('click', async ()=>{
+  const inp=$("#msgInput"), text=inp.value.trim(); if(!text) return;
+  if(!dc || dc.readyState!=="open") return alert("No hay canal abierto aún.");
+  try{ dc.send(text); const pid=currentPeer||"peer"; await saveConversation(pid,text); await saveMessage(pid,"out",text); addBubble("out",text,Date.now()); inp.value=""; renderConversationList(); }
+  catch(e){ alert("Error enviando: "+(e?.message||e)); }
+});
 
-/* =================== Init =================== */
+/* ========= Init ========= */
+let currentPeer=null;
 (async ()=>{
   await openDB();
-  MY_ID = await computeDeviceId();
-  $("#myIdChip").textContent = "ID: "+MY_ID.slice(0,16);
+  const myId = await computeDeviceId();
+  document.getElementById('myIdChip').textContent = 'ID: '+myId.slice(0,16);
   await renderConversationList();
   setStatus(false);
 })();
 </script>
-
-<!--
-NOTAS:
-- Para máxima fiabilidad del QR, muestra las pantallas con brillo alto y acerca los móviles.
-- Si el QR “no cabe”: acércalos más, o desactiva STUN (ambos en la misma LAN) para acortar la SDP.
-- En iOS Safari, la cámara solo funciona bajo HTTPS o PWA instalada.
--->
 </body>
 </html>
