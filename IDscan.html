@@ -3,132 +3,266 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Captura solo documento</title>
+<title>Captura solo documento (forzada, sin espejo)</title>
+<meta name="theme-color" content="#0b0b0c"/>
 <style>
-  body,html{margin:0;height:100%;background:#000;color:#fff;font-family:sans-serif}
-  .app{display:flex;flex-direction:column;height:100%}
-  .stage{flex:1;position:relative;overflow:hidden}
-  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+  :root{ --ui-bg:#0b0b0c; --ui-fg:#f4f4f5; --accent:#4ade80; }
+  html,body{height:100%;margin:0;background:#000;color:var(--ui-fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif}
+  .app{display:flex;flex-direction:column;min-height:100%}
+
+  /* Escena de cámara */
+  .stage{position:relative;flex:1;overflow:hidden;background:#000}
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;} /* SIN espejo */
+
+  /* Vignette para centrar la atención en el recuadro */
+  .vignette{position:absolute;inset:0;background:radial-gradient(transparent 55%, rgba(0,0,0,.55));pointer-events:none}
+
+  /* Marco ID-1 (85.6×54mm ≈ 1.585) */
   .overlay{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
   .id-frame{
-    width:min(88vw,88vh*1.585);aspect-ratio:1.585/1;border-radius:12px;
-    box-shadow:0 0 0 3px rgba(255,255,255,.9),0 0 0 8px rgba(255,255,255,.15);
-    position:relative;overflow:hidden;
+    width:min(88vw,88vh * 1.585);
+    aspect-ratio:1.585/1;
+    border-radius:12px;
+    box-shadow:0 0 0 3px rgba(255,255,255,.9), 0 0 0 8px rgba(255,255,255,.15);
+    position:relative; overflow:hidden;
   }
+
+  /* Marca de agua en mosaico: el tamaño del “azulejo” se ajusta desde JS
+     para evitar solapamiento del texto */
   .wm-tile{
-    position:absolute;inset:0;opacity:.35;transform:rotate(var(--wm-angle,-15deg));
-    background-size:var(--wm-step,220px) var(--wm-step,180px);
-    background-repeat:repeat;background-position:center
+    position:absolute; inset:0; pointer-events:none; opacity:.4;
+    transform: rotate(var(--wm-angle, -18deg));
+    background-image: var(--wm-img, none);
+    background-size: var(--wm-step-x, 240px) var(--wm-step-y, 120px);
+    background-position:center;
+    background-repeat: repeat;
   }
-  .controls{padding:10px;background:#111;display:flex;gap:10px}
-  .btn{flex:1;padding:12px;font-weight:bold;border:none;border-radius:8px;cursor:pointer}
-  .primary{background:#4ade80;color:#062d12}
-  .secondary{background:#333;color:#eee}
-  input[type=text]{flex:2;padding:10px;border-radius:8px;border:1px solid #444;background:#222;color:#fff}
+
+  .controls{
+    background:linear-gradient(0deg, rgba(11,11,12,1) 60%, rgba(11,11,12,0));
+    padding: max(12px, env(safe-area-inset-bottom));
+    display:grid; gap:10px;
+  }
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#062d12}
+  .btn.secondary{background:#1f2937;color:#e5e7eb}
+  input[type="text"]{flex:1;min-width:180px;padding:12px 14px;border-radius:12px;border:1px solid #262626;background:#121214;color:var(--ui-fg)}
+  label{font-size:13px;color:#c9c9ce;min-width:6.5em}
+  input[type="range"]{width:160px}
+  .pill{font-size:12px;padding:6px 10px;border-radius:999px;background:#17171a;border:1px solid #262626;color:#c9c9ce}
+  .status{font-size:13px;color:#a1a1aa;min-height:1.2em}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="stage" id="stage">
     <video id="video" autoplay playsinline muted></video>
+    <div class="vignette" aria-hidden="true"></div>
     <div class="overlay">
       <div class="id-frame" id="idFrame">
         <div class="wm-tile" id="wmTile"></div>
       </div>
     </div>
   </div>
+
   <div class="controls">
-    <button class="btn primary" id="startBtn">Iniciar cámara</button>
-    <button class="btn secondary" id="shotBtn" disabled>Capturar</button>
-  </div>
-  <div class="controls">
-    <input id="wmText" type="text" placeholder="Marca de agua" />
+    <div class="row">
+      <button class="btn primary" id="startBtn">Iniciar cámara</button>
+      <button class="btn secondary" id="shotBtn" disabled>Capturar</button>
+      <span class="pill" id="camState">sin iniciar</span>
+    </div>
+
+    <div class="row">
+      <input id="wmText" type="text" placeholder="Texto marca de agua (p. ej., 'MUESTRA • CARLOS')" />
+    </div>
+
+    <div class="row">
+      <label for="sizeRange">Tamaño</label>
+      <input type="range" id="sizeRange" min="16" max="56" value="26" />
+      <label for="opacityRange">Opacidad</label>
+      <input type="range" id="opacityRange" min="0.15" max="0.8" step="0.05" value="0.35" />
+      <label for="angleRange">Ángulo</label>
+      <input type="range" id="angleRange" min="-35" max="35" value="-18" />
+      <label for="densityRange">Densidad</label>
+      <input type="range" id="densityRange" min="1" max="3" step="0.1" value="1.2" />
+    </div>
+
+    <div class="status" id="status"></div>
   </div>
 </div>
 
 <script>
-const video=document.getElementById("video");
-const startBtn=document.getElementById("startBtn");
-const shotBtn=document.getElementById("shotBtn");
-const wmText=document.getElementById("wmText");
-const wmTile=document.getElementById("wmTile");
-const idFrame=document.getElementById("idFrame");
+  const startBtn = document.getElementById('startBtn');
+  const shotBtn = document.getElementById('shotBtn');
+  const camState = document.getElementById('camState');
+  const statusEl = document.getElementById('status');
+  const video = document.getElementById('video');
+  const stage = document.getElementById('stage');
+  const idFrame = document.getElementById('idFrame');
+  const wmTile = document.getElementById('wmTile');
+  const wmText = document.getElementById('wmText');
+  const sizeRange = document.getElementById('sizeRange');
+  const opacityRange = document.getElementById('opacityRange');
+  const angleRange = document.getElementById('angleRange');
+  const densityRange = document.getElementById('densityRange');
 
-let stream;
+  let stream;
 
-function svgBgDataURI(text,fontPx,opacity){
-  const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-  const fill=`rgba(255,255,255,${opacity})`;
-  const stepX=Math.round(fontPx*8), stepY=Math.round(fontPx*6.5);
-  const svg=`<svg xmlns='http://www.w3.org/2000/svg' width='${stepX}' height='${stepY}'>
-    <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
-      font-family='system-ui,sans-serif' font-size='${fontPx}' font-weight='800' fill='${fill}'>
-      ${esc(text)}
-    </text></svg>`;
-  return "url(\"data:image/svg+xml,"+encodeURIComponent(svg)+"\")";
-}
-function applyWatermark(){
-  const t=(wmText.value.trim()||"MUESTRA").toUpperCase();
-  const fontPx=24, opacity=0.35, angle=-15;
-  wmTile.style.setProperty("--wm-angle",angle+"deg");
-  wmTile.style.setProperty("--wm-step",Math.round(fontPx*8)+"px");
-  wmTile.style.backgroundImage=svgBgDataURI(t,fontPx,opacity);
-}
-wmText.addEventListener("input",applyWatermark);
+  function setStatus(t){ statusEl.textContent = t || ''; }
+  function setCamState(t){ camState.textContent = t; }
 
-async function startCamera(){
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
-    video.srcObject=stream;
-    await video.play();
-    shotBtn.disabled=false;
-  }catch(e){alert("Error cámara: "+e.message);}
-}
-startBtn.addEventListener("click",startCamera);
+  // Mide el ancho real del texto para ajustar el paso del mosaico (evita solapamiento)
+  function measureTextWidth(text, fontPx){
+    const c = document.createElement('canvas');
+    const ctx = c.getContext('2d');
+    ctx.font = `800 ${fontPx}px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif`;
+    return Math.ceil(ctx.measureText(text).width);
+  }
 
-function capture(){
-  if(!video.videoWidth){alert("Cámara no lista");return;}
-  // tamaño del recuadro documento
-  const rect=idFrame.getBoundingClientRect();
-  const stageRect=document.getElementById("stage").getBoundingClientRect();
-  const W=rect.width,H=rect.height;
-  const canvas=document.createElement("canvas");
-  canvas.width=W*devicePixelRatio;
-  canvas.height=H*devicePixelRatio;
-  const ctx=canvas.getContext("2d");
-  ctx.scale(devicePixelRatio,devicePixelRatio);
-  // recorte del vídeo correspondiente al documento
-  const scale=video.videoWidth/stageRect.width;
-  const sx=(rect.left-stageRect.left)*scale;
-  const sy=(rect.top-stageRect.top)*scale;
-  const sw=rect.width*scale;
-  const sh=rect.height*scale;
-  ctx.drawImage(video,sx,sy,sw,sh,0,0,W,H);
-  // aplicar marca de agua en mosaico
-  const fontPx=24,opacity=0.35,angle=-15;
-  const tileW=fontPx*8,tileH=fontPx*6.5;
-  const pCan=document.createElement("canvas");pCan.width=tileW;pCan.height=tileH;
-  const pCtx=pCan.getContext("2d");
-  pCtx.font=`800 ${fontPx}px system-ui,sans-serif`;
-  pCtx.textAlign="center";pCtx.textBaseline="middle";
-  pCtx.fillStyle=`rgba(255,255,255,${opacity})`;
-  pCtx.fillText((wmText.value.trim()||"MUESTRA").toUpperCase(),tileW/2,tileH/2);
-  const pattern=ctx.createPattern(pCan,"repeat");
-  ctx.save();
-  ctx.translate(W/2,H/2);
-  ctx.rotate(angle*Math.PI/180);
-  ctx.translate(-W/2,-H/2);
-  ctx.fillStyle=pattern;
-  ctx.fillRect(0,0,W,H);
-  ctx.restore();
-  // descargar
-  const a=document.createElement("a");
-  a.href=canvas.toDataURL("image/png");
-  a.download="documento.png";a.click();
-}
-shotBtn.addEventListener("click",capture);
+  // Genera SVG como fondo, con tamaño de celda calculado por texto + margen
+  function svgBg(text, fontPx, opacity, density){
+    const padX = Math.round(fontPx * (0.6 / density));   // más densidad = menos padding
+    const padY = Math.round(fontPx * (1.1 / density));
+    const textW = measureTextWidth(text, fontPx);
+    const stepX = textW + padX;
+    const stepY = fontPx + padY;
+    const fill = `rgba(255,255,255,${opacity})`;
+    const svg = `
+      <svg xmlns='http://www.w3.org/2000/svg' width='${stepX}' height='${stepY}' viewBox='0 0 ${stepX} ${stepY}'>
+        <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle'
+              font-family='system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif'
+              font-size='${fontPx}' font-weight='800' fill='${fill}'>${text}</text>
+      </svg>`;
+    return { uri: "url(\"data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg) + "\")", stepX, stepY };
+  }
 
-applyWatermark();
+  function updateWatermark(){
+    const text = (wmText.value.trim() || 'MUESTRA · NO VÁLIDO').toUpperCase();
+    const fontPx = parseInt(sizeRange.value,10);
+    const opacity = parseFloat(opacityRange.value);
+    const angle = parseInt(angleRange.value,10) || -18;
+    const density = parseFloat(densityRange.value);
+
+    const {uri, stepX, stepY} = svgBg(text, fontPx, opacity, density);
+    wmTile.style.setProperty('--wm-img', uri);
+    wmTile.style.setProperty('--wm-step-x', stepX + 'px');
+    wmTile.style.setProperty('--wm-step-y', stepY + 'px');
+    wmTile.style.setProperty('--wm-angle', angle + 'deg');
+  }
+
+  wmText.addEventListener('input', updateWatermark);
+  sizeRange.addEventListener('input', updateWatermark);
+  opacityRange.addEventListener('input', updateWatermark);
+  angleRange.addEventListener('input', updateWatermark);
+  densityRange.addEventListener('input', updateWatermark);
+
+  async function startCamera(){
+    setStatus('Solicitando permisos…'); setCamState('solicitando…'); startBtn.disabled = true;
+    const constraints = {
+      audio:false,
+      video:{
+        facingMode: { ideal:'environment' },
+        width: { ideal:1920 }, height: { ideal:1080 }  // buena base; el recorte lo fuerza el marco
+      }
+    };
+    try{
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      video.srcObject = stream;
+      await video.play();
+      setStatus('Cámara activa.'); setCamState('activa');
+      shotBtn.disabled = false; startBtn.textContent = 'Reiniciar cámara'; startBtn.disabled = false;
+    }catch(e){
+      console.error(e);
+      setStatus('No se pudo acceder a la cámara: ' + (e.message || e.name)); setCamState('error');
+      startBtn.disabled = false; shotBtn.disabled = true;
+    }
+  }
+
+  startBtn.addEventListener('click', async ()=>{
+    if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+    await startCamera();
+  });
+
+  // Dibuja el vídeo de forma "cover" en un lienzo de tamaño W×H
+  function drawVideoCover(ctx, video, W, H){
+    const vW = video.videoWidth, vH = video.videoHeight;
+    if(!vW || !vH) return;
+    const cR = W/H, vR = vW/vH;
+    let sx,sy,sw,sh;
+    if(vR > cR){ sh = vH; sw = sh * cR; sx = (vW - sw)/2; sy = 0; }
+    else{ sw = vW; sh = sw / cR; sx = 0; sy = (vH - sh)/2; }
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, W, H);
+  }
+
+  // Captura SOLO el recuadro del documento
+  function capture(){
+    if(!video.videoWidth){ setStatus('Cámara no lista'); return; }
+
+    const rectStage = stage.getBoundingClientRect();
+    const rectDoc = idFrame.getBoundingClientRect();
+    const W = Math.floor(rectDoc.width * devicePixelRatio);
+    const H = Math.floor(rectDoc.height * devicePixelRatio);
+
+    // Lienzo final = solo documento
+    const out = document.createElement('canvas');
+    out.width = W; out.height = H;
+    const ctx = out.getContext('2d');
+    ctx.imageSmoothingQuality = 'high';
+
+    // 1) Crear un buffer con el vídeo ajustado al área visible del stage (en CSS está cover)
+    const buf = document.createElement('canvas');
+    buf.width = Math.floor(rectStage.width * devicePixelRatio);
+    buf.height = Math.floor(rectStage.height * devicePixelRatio);
+    const bctx = buf.getContext('2d');
+    bctx.scale(devicePixelRatio, devicePixelRatio);
+    drawVideoCover(bctx, video, rectStage.width, rectStage.height);
+
+    // 2) Recortar del buffer la región del documento y volcar al lienzo final
+    const sx = Math.floor((rectDoc.left - rectStage.left) * devicePixelRatio);
+    const sy = Math.floor((rectDoc.top  - rectStage.top ) * devicePixelRatio);
+    ctx.drawImage(buf, sx, sy, W, H, 0, 0, W, H);
+
+    // 3) Pintar marca de agua en mosaico (sin solapamiento)
+    const text = (wmText.value.trim() || 'MUESTRA · NO VÁLIDO').toUpperCase();
+    const fontPx = parseInt(sizeRange.value,10) * devicePixelRatio;
+    const opacity = parseFloat(opacityRange.value);
+    const angle = (parseInt(angleRange.value,10) || -18) * Math.PI/180;
+    const density = parseFloat(densityRange.value);
+
+    const tileW = Math.ceil(measureTextWidth(text, fontPx) + fontPx * (0.6/density));
+    const tileH = Math.ceil(fontPx + fontPx * (1.1/density));
+
+    const p = document.createElement('canvas'); p.width = tileW; p.height = tileH;
+    const pctx = p.getContext('2d');
+    pctx.font = `800 ${fontPx}px system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif`;
+    pctx.textAlign = 'center'; pctx.textBaseline = 'middle';
+    pctx.fillStyle = `rgba(255,255,255,${opacity})`;
+    pctx.fillText(text, tileW/2, tileH/2);
+
+    const pattern = ctx.createPattern(p, 'repeat');
+    ctx.save();
+    ctx.translate(W/2, H/2);
+    ctx.rotate(angle);
+    ctx.translate(-W/2, -H/2);
+    ctx.fillStyle = pattern;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    // 4) Descargar
+    const a = document.createElement('a');
+    a.download = 'documento.png';
+    a.href = out.toDataURL('image/png');
+    a.click();
+
+    setStatus('Imagen guardada.');
+    setTimeout(()=>setStatus(''), 1800);
+  }
+
+  shotBtn.addEventListener('click', capture);
+
+  // Inicial
+  updateWatermark();
 </script>
 </body>
 </html>
