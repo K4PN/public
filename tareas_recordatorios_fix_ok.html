@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<title>Tareas & Recordatorios</title>
+<meta name="theme-color" content="#0ea5e9">
+<style>
+  :root{
+    --bg: #0b1220; --panel:#0f172a; --card:#111827; --muted:#a5b4fc; --text:#e5e7eb;
+    --accent:#0ea5e9; --good:#22c55e; --warn:#f59e0b; --danger:#ef4444; --border:#1f2937; --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:linear-gradient(180deg,#0b1220 0%, #0a0f1a 100%); color:var(--text);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Helvetica, Arial;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .app{ max-width:720px; margin:0 auto; min-height:100%;
+    display:flex; flex-direction:column;
+    padding: env(safe-area-inset-top) 12px calc(72px + env(safe-area-inset-bottom)); gap:12px; }
+  header{ position:sticky; top:0; z-index:10;
+    background: linear-gradient(to bottom, rgba(11,18,32,.98), rgba(11,18,32,.86));
+    backdrop-filter: blur(6px); padding:10px 4px 8px; }
+  .title{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  h1{ margin:0; letter-spacing:.3px; display:flex; align-items:center; gap:10px;
+    font-size: clamp(18px, 5.2vw, 22px); }
+  h1 .badge{font-size:.75rem; background:var(--card); color:var(--muted); padding:4px 8px; border-radius:999px; border:1px solid var(--border)}
+  .actions{display:flex; gap:8px}
+  .btn{ border:1px solid var(--border); background:linear-gradient(180deg,#111827,#0f172a);
+    padding:11px 12px; border-radius:14px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; color: var(--text); }
+  .btn.primary{ background: linear-gradient(180deg, #0ea5e9, #0284c7); border-color:#0369a1; color:white; }
+  .btn.warn{ background: linear-gradient(180deg, #f59e0b, #d97706); border-color:#b45309; color:#0b0b0b; }
+  .btn.good{ background: linear-gradient(180deg, #22c55e, #16a34a); border-color:#15803d; color:white; }
+  .btn.ghost{ background:transparent; color: var(--text); }
+  /* —— compact search row —— */
+  .searchRow{
+    display:grid; grid-template-columns: 28px 1fr minmax(112px, 38%);
+    gap:8px; align-items:center;
+    background:var(--card); border:1px solid var(--border); padding:6px 8px; border-radius:14px;
+  }
+  .searchRow .icon{ width:20px; height:20px }
+  #search{ border:none; outline:none; background:transparent; min-width:0; font-size:15px; line-height:1.2;
+    height: 36px; padding:6px 2px; color:var(--text); }
+  #sort{ width:100%; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:8px 10px; appearance:none; font-size:14px; color:var(--text); }
+  /* filter chips centered */
+  .filters{ display:flex; gap:8px; overflow:auto; padding:6px 4px 2px; justify-content:center; }
+  .chip{ padding:8px 12px; border-radius:999px; background:var(--card); border:1px solid var(--border); white-space:nowrap; cursor:pointer; color:var(--text); }
+  .chip.active{ outline:2px solid var(--accent) }
+  .card{ background:linear-gradient(180deg,#0f1627,#0c1220); border:1px solid var(--border); border-radius:var(--radius); padding:12px; display:flex; gap:10px; align-items:flex-start; }
+  .checkbox{ min-width:24px; height:24px; border-radius:8px; border:2px solid var(--accent); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .checkbox.done{ background:#0ea5e9 }
+  .task{ flex:1; display:flex; flex-direction:column; gap:6px }
+  .task h3{ margin:0; font-size:1rem; line-height:1.3 }
+  .meta{ display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:.85rem }
+  .meta .due{ padding:4px 8px; background:#0b1220; border:1px dashed var(--border); border-radius:999px }
+  .empty{ text-align:center; opacity:.7; padding:18px; border:1px dashed var(--border); border-radius:14px; }
+  footer.nav{ position:fixed; bottom:env(safe-area-inset-bottom); left:0; right:0; z-index:20;
+    background: linear-gradient(180deg, rgba(15,22,39,0.85), rgba(11,18,32,0.95)); backdrop-filter: blur(6px); border-top:1px solid var(--border); }
+  .nav-inner{ max-width:720px; margin:0 auto; padding:10px 12px; display:flex; gap:10px; }
+  .nav-inner .btn{ flex:1; justify-content:center }
+  dialog{ border:none; border-radius:18px; padding:0; max-width:680px; width:clamp(300px,92vw,680px);
+    background:linear-gradient(180deg,#0f172a,#0b1220); color:var(--text); border:1px solid var(--border); }
+  dialog::backdrop{ backdrop-filter: blur(2px); background: rgba(0,0,0,.5) }
+  .modal-head{ padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between }
+  .modal-body{ padding:14px 16px; display:grid; gap:10px }
+  .modal-foot{ padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end }
+  .input, textarea, select, input[type="datetime-local"]{ width:100%; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 12px; color:var(--text) }
+  textarea{ min-height:80px; resize:vertical }
+  .sr-only{ position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">
+      <h1>🗒️ Tareas & Recordatorios <span id="count" class="badge">0</span></h1>
+      <div class="actions">
+        <button class="btn ghost" id="exportBtn" type="button" title="Exportar JSON">⬇️ Exportar</button>
+        <button class="btn ghost" id="importBtn" type="button" title="Importar JSON">⬆️ Importar</button>
+        <input class="sr-only" type="file" id="importFile" accept="application/json">
+      </div>
+    </div>
+    <div class="searchRow" style="margin-top:8px">
+      <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm11 3-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="search" type="text" placeholder="Buscar tareas..." autocomplete="off" inputmode="search">
+      <select id="sort" aria-label="Ordenar">
+        <option value="dueAsc">Fecha ⬆️</option>
+        <option value="dueDesc">Fecha ⬇️</option>
+        <option value="newest">Más nuevas</option>
+        <option value="oldest">Más antiguas</option>
+        <option value="alpha">A–Z</option>
+      </select>
+    </div>
+    <div class="filters">
+      <div class="chip active" data-filter="all">Todas</div>
+      <div class="chip" data-filter="today">Hoy</div>
+      <div class="chip" data-filter="done">Hechas</div>
+      <div class="chip" data-filter="todo">Pendientes</div>
+    </div>
+  </header>
+
+  <main id="list" style="display:flex; flex-direction:column; gap:10px;"></main>
+
+  <div id="emptyState" class="empty" hidden>✨ Sin tareas aún. Pulsa “Nueva” para empezar.</div>
+</div>
+
+<footer class="nav">
+  <div class="nav-inner">
+    <button class="btn primary" id="newBtn" type="button">➕ Nueva</button>
+    <button class="btn" id="clearDoneBtn" type="button" title="Eliminar hechas">🧹 Limpiar hechas</button>
+    <button class="btn warn" id="notifBtn" type="button" title="Activar notificaciones">🔔 Avisos</button>
+  </div>
+</footer>
+
+<dialog id="taskDialog">
+  <form id="taskForm" method="dialog">
+    <div class="modal-head">
+      <strong id="dialogTitle">Nueva tarea</strong>
+      <button type="button" class="btn ghost" id="closeDialog">✖</button>
+    </div>
+    <div class="modal-body">
+      <input class="input" id="title" placeholder="Título *" required maxlength="160" />
+      <textarea id="notes" placeholder="Notas (opcional)" class="input"></textarea>
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <input id="due" class="input" type="datetime-local" />
+        <select id="repeat" class="input" title="Repetir">
+          <option value="none">Sin repetición</option>
+          <option value="daily">Diaria</option>
+          <option value="weekly">Semanal</option>
+          <option value="monthly">Mensual</option>
+        </select>
+      </div>
+      <label class="row muted" style="display:flex; align-items:center; gap:8px">
+        <input id="leadMins" type="number" min="0" step="5" value="0" class="input" style="max-width:140px" />
+        Minutos antes para avisar
+      </label>
+      <input type="hidden" id="taskId">
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn danger" id="deleteBtn" hidden>Eliminar</button>
+      <div style="flex:1"></div>
+      <button class="btn" type="reset" id="resetBtn">Limpiar</button>
+      <button class="btn good" type="submit" id="saveBtn">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const storeKey = "tasks.v1";
+  let tasks = loadTasks();
+  let currentFilter = "all";
+  let currentQuery = "";
+  let sortMode = "dueAsc";
+  let timers = new Map();
+
+  const list = $("#list");
+  const emptyState = $("#emptyState");
+  const search = $("#search");
+  const sort = $("#sort");
+  const newBtn = $("#newBtn");
+  const clearDoneBtn = $("#clearDoneBtn");
+  const notifBtn = $("#notifBtn");
+
+  const dialog = $("#taskDialog");
+  const form = $("#taskForm");
+  const title = $("#title");
+  const notes = $("#notes");
+  const due = $("#due");
+  const repeat = $("#repeat");
+  const leadMins = $("#leadMins");
+  const taskId = $("#taskId");
+  const deleteBtn = $("#deleteBtn");
+  const closeDialog = $("#closeDialog");
+  const exportBtn = $("#exportBtn");
+  const importBtn = $("#importBtn");
+  const importFile = $("#importFile");
+
+  function loadTasks(){
+    try{
+      const raw = localStorage.getItem(storeKey);
+      return raw ? JSON.parse(raw) : [];
+    }catch{ return [] }
+  }
+  function saveTasks(){
+    localStorage.setItem(storeKey, JSON.stringify(tasks));
+    scheduleAll();
+  }
+  function uid(){ return Math.random().toString(36).slice(2,9) + Date.now().toString(36) }
+
+  function fmtDate(iso){
+    if(!iso) return "Sin fecha";
+    const d = new Date(iso);
+    if (isNaN(d)) return "Fecha inválida";
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    const opts = { hour:'2-digit', minute:'2-digit' };
+    const time = d.toLocaleTimeString([], opts);
+    const date = d.toLocaleDateString();
+    return (sameDay ? "Hoy" : date) + " " + time;
+  }
+
+  function state(){
+    const total = tasks.length;
+    const open = tasks.filter(t => !t.done).length;
+    const countEl = $("#count");
+    if (countEl) countEl.textContent = open + "/" + total;
+    emptyState.hidden = total > 0;
+  }
+
+  function render(){
+    const q = currentQuery.trim().toLowerCase();
+    let filtered = tasks.filter(t=>{
+      const matchesText = !q || (t.title.toLowerCase().includes(q) || (t.notes||"").toLowerCase().includes(q));
+      let matchesFilter = true;
+      const now = new Date();
+      if(currentFilter==="today"){
+        if(!t.due) matchesFilter = false;
+        else {
+          const d = new Date(t.due);
+          const same = d.toDateString() === now.toDateString();
+          matchesFilter = same;
+        }
+      } else if(currentFilter==="done"){
+        matchesFilter = !!t.done;
+      } else if(currentFilter==="todo"){
+        matchesFilter = !t.done;
+      }
+      return matchesText && matchesFilter;
+    });
+
+    filtered.sort((a,b)=>{
+      const da = a.due ? new Date(a.due).getTime() : Infinity;
+      const db = b.due ? new Date(b.due).getTime() : Infinity;
+      if(sortMode==="dueAsc") return da - db;
+      if(sortMode==="dueDesc") return db - da;
+      if(sortMode==="newest") return b.created - a.created;
+      if(sortMode==="oldest") return a.created - b.created;
+      if(sortMode==="alpha") return a.title.localeCompare(b.title);
+      return 0;
+    });
+
+    list.innerHTML = "";
+    for(const t of filtered){
+      const item = document.createElement("div");
+      item.className = "card";
+      item.innerHTML = `
+        <div class="checkbox ${t.done?'done':''}" role="checkbox" aria-checked="${t.done}" data-id="${t.id}">${t.done?'✓':''}</div>
+        <div class="task">
+          <h3>${escapeHtml(t.title)}</h3>
+          <div class="meta">
+            <span class="due">${t.due? ('⏰ ' + fmtDate(t.due)) : '⏳ Sin fecha'}</span>
+            ${t.repeat!=='none'? `<span>🔁 ${labelRepeat(t.repeat)}</span>`:''}
+            ${t.done? `<span>✅ Hecha</span>`:''}
+          </div>
+          ${t.notes? `<p>${escapeHtml(t.notes)}</p>`:''}
+        </div>
+        <div class="right">
+          <button class="btn ghost" data-edit="${t.id}" type="button" title="Editar">✏️</button>
+          <button class="btn ghost" data-del="${t.id}" type="button" title="Eliminar">🗑️</button>
+        </div>`;
+      list.appendChild(item);
+    }
+    state();
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, function(m){
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'})[m];
+    });
+  }
+
+  function labelRepeat(v){
+    return v==='daily'?'Diaria': v==='weekly'?'Semanal': v==='monthly'?'Mensual':'Sin repetición';
+  }
+
+  function openDialog(task=null){
+    $("#dialogTitle").textContent = task? "Editar tarea" : "Nueva tarea";
+    deleteBtn.hidden = !task;
+    taskId.value = task? task.id : "";
+    title.value = task? task.title : "";
+    notes.value = task? (task.notes||"") : "";
+    due.value = task && task.due ? toLocalInputValue(new Date(task.due)) : "";
+    repeat.value = task? (task.repeat||"none") : "none";
+    leadMins.value = task? (task.leadMins||0) : 0;
+    dialog.showModal();
+    setTimeout(()=> title.focus(), 50);
+  }
+
+  function toLocalInputValue(d){
+    const pad = n => String(n).padStart(2,'0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth()+1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${mi}`;
+  }
+
+  function upsertTask(e){
+    e.preventDefault();
+    const id = taskId.value || uid();
+    const exists = tasks.find(t=>t.id===id);
+    const obj = {
+      id,
+      title: title.value.trim(),
+      notes: notes.value.trim(),
+      due: due.value ? new Date(due.value).toISOString() : null,
+      repeat: repeat.value,
+      leadMins: Math.max(0, parseInt(leadMins.value||"0",10)),
+      done: exists? exists.done : false,
+      created: exists? exists.created : Date.now()
+    };
+    if(!obj.title){ title.focus(); return; }
+    if(exists) Object.assign(exists, obj);
+    else tasks.push(obj);
+    saveTasks(); render(); dialog.close();
+  }
+
+  function deleteTask(id){
+    tasks = tasks.filter(t=>t.id!==id);
+    saveTasks(); render();
+  }
+
+  function toggleDone(id){
+    const t = tasks.find(x=>x.id===id);
+    if(!t) return;
+    t.done = !t.done;
+    saveTasks(); render();
+  }
+
+  function clearDone(){
+    const before = tasks.length;
+    tasks = tasks.filter(t=>!t.done);
+    if(tasks.length!==before){ saveTasks(); render(); }
+  }
+
+  function scheduleAll(){
+    // Clear old timers
+    for (const [id, h] of Array.from(timers.entries())) { clearTimeout(h); timers.delete(id); }
+    // Set up new ones
+    const now = Date.now();
+    for(const t of tasks){
+      if(!t.due || t.done) continue;
+      const remindAt = new Date(t.due).getTime() - (t.leadMins||0)*60000;
+      const delay = remindAt - now;
+      if (delay <= 0) continue;
+      const handle = setTimeout(()=> notifyTask(t.id), delay);
+      timers.set(t.id, handle);
+    }
+  }
+
+  function notifyTask(id){
+    const t = tasks.find(x=>x.id===id);
+    if(!t || t.done) return;
+    if(Notification && Notification.permission === "granted"){
+      const n = new Notification(`⏰ ${t.title}`, { body: t.notes || "Recordatorio" });
+      try{ navigator.vibrate && navigator.vibrate([80,40,80]); }catch{}
+      n.onclick = ()=>{ window.focus(); };
+    }else{
+      alert(`⏰ ${t.title}\n${t.notes||""}`);
+    }
+  }
+
+  async function ensureNotifPermission(){
+    if(!("Notification" in window)) { alert("Este navegador no soporta notificaciones."); return; }
+    if(Notification.permission === "default"){
+      try{ await Notification.requestPermission(); }
+      catch(e){ console.warn(e); }
+    }
+    if(Notification.permission === "granted"){
+      const n = new Notification("🔔 Notificaciones activadas",{ body:"Te avisaré según tus recordatorios." });
+      setTimeout(()=> n.close(), 1200);
+    }else{
+      alert("Permiso de notificaciones denegado o bloqueado.");
+    }
+  }
+
+  // Periodic checker (handles repeats & past-due)
+  setInterval(()=>{
+    const now = Date.now();
+    for(const t of tasks){
+      if(!t.due || t.done) continue;
+      const remindAt = new Date(t.due).getTime() - (t.leadMins||0)*60000;
+      if (now >= remindAt && now - remindAt < 59000){
+        notifyTask(t.id);
+        if(t.repeat && t.repeat!=="none"){
+          const d = new Date(t.due);
+          if(t.repeat==="daily") d.setDate(d.getDate()+1);
+          if(t.repeat==="weekly") d.setDate(d.getDate()+7);
+          if(t.repeat==="monthly") d.setMonth(d.getMonth()+1);
+          t.due = d.toISOString();
+          saveTasks();
+        }
+      }
+    }
+  }, 15000);
+
+  // Events
+  newBtn.addEventListener("click", ()=> openDialog());
+  clearDoneBtn.addEventListener("click", clearDone);
+  notifBtn.addEventListener("click", ensureNotifPermission);
+  closeDialog.addEventListener("click", ()=> dialog.close());
+  form.addEventListener("submit", upsertTask);
+  deleteBtn.addEventListener("click", ()=>{
+    const id = taskId.value;
+    if(id && confirm("¿Eliminar esta tarea?")){ deleteTask(id); dialog.close(); }
+  });
+
+  search.addEventListener("input", ()=>{ currentQuery = search.value; render(); });
+  sort.addEventListener("change", ()=>{ sortMode = sort.value; render(); });
+  $$(".chip").forEach(ch=> ch.addEventListener("click", ()=>{
+    $$(".chip").forEach(c=> c.classList.remove("active"));
+    ch.classList.add("active");
+    currentFilter = ch.dataset.filter;
+    render();
+  }));
+
+  list.addEventListener("click", (e)=>{
+    const cb = e.target.closest(".checkbox");
+    if(cb){ toggleDone(cb.dataset.id); return; }
+    const edit = e.target.closest("[data-edit]");
+    if(edit){
+      const t = tasks.find(x=>x.id===edit.dataset.edit);
+      if(t) openDialog(t);
+      return;
+    }
+    const del = e.target.closest("[data-del]");
+    if(del){
+      const id = del.dataset.del;
+      deleteTask(id);
+      return;
+    }
+  });
+
+  exportBtn.addEventListener("click", ()=>{
+    const blob = new Blob([JSON.stringify(tasks,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tareas.json";
+    a.click();
+    setTimeout(()=> URL.revokeObjectURL(url), 1000);
+  });
+
+  importBtn.addEventListener("click", ()=> importFile.click());
+  importFile.addEventListener("change", async ()=>{
+    const file = importFile.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if(Array.isArray(data)){
+        tasks = data.map(x=> ({
+          id: x.id || uid(),
+          title: String(x.title||"").slice(0,160),
+          notes: String(x.notes||""),
+          due: x.due || null,
+          repeat: x.repeat||"none",
+          leadMins: Number.isFinite(x.leadMins)? x.leadMins : 0,
+          done: !!x.done,
+          created: x.created || Date.now()
+        }));
+        saveTasks(); render();
+        alert("Importación completada.");
+      }else{
+        alert("Formato inválido.");
+      }
+    }catch(e){
+      alert("No se pudo importar: " + e.message);
+    }finally{
+      importFile.value = "";
+    }
+  });
+
+  // Prefill datetime to local now rounded to next 15 minutes
+  function roundToNext15(date){
+    const d = new Date(date);
+    d.setSeconds(0,0);
+    const minutes = d.getMinutes();
+    d.setMinutes(minutes + (15 - (minutes % 15 || 15)));
+    return d;
+  }
+  const nowRounded = roundToNext15(new Date());
+  due.value = toLocalInputValue(nowRounded);
+
+  // First render & schedule
+  render();
+  scheduleAll();
+})();
+</script>
+</body>
+</html>
