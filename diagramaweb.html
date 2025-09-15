@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Diagramas de Investigación — Editor</title>
+<style>
+  :root{
+    --bg:#f8fafc; --panel:#ffffff; --ink:#0f172a; --ink2:#475569;
+    --brand:#2563eb; --brand-weak:#93c5fd; --accent:#10b981; --danger:#ef4444;
+    --grid:#e2e8f0; --shadow:0 10px 30px rgba(2,6,23,.08);
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font:14px/1.25 system-ui,Segoe UI,Roboto,Arial;}
+  .app{
+    display:grid;
+    grid-template-rows:auto 1fr;
+    grid-template-columns:340px 1fr; /* ⬅️ Sidebar más ancho */
+    grid-template-areas:"toolbar toolbar" "sidebar stage";
+    height:100%;
+  }
+  header{grid-area:toolbar;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;background:var(--panel);padding:.6rem .8rem;border-bottom:1px solid var(--grid);position:sticky;top:0;z-index:10}
+  header .group{display:flex;gap:.4rem;align-items:center;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:.35rem .5rem}
+  header button, header label{background:white;border:1px solid #e2e8f0;border-radius:10px;padding:.4rem .6rem;cursor:pointer}
+  header button:hover{border-color:#cbd5e1}
+  header button.primary{background:var(--brand);color:white;border-color:var(--brand)}
+  header button.danger{background:var(--danger);color:white;border-color:var(--danger)}
+  header input[type="file"]{display:none}
+  #sidebar{
+    grid-area:sidebar;background:var(--panel);border-right:1px solid var(--grid);
+    padding:12px;overflow:auto;overflow-x:hidden; /* ⬅️ sin scroll horizontal */
+  }
+  #sidebar h3{margin:.2rem 0 .6rem 0}
+  #sidebar .field{display:grid;gap:.25rem;margin:.5rem 0;min-width:0} /* ⬅️ evitar desbordes */
+  #sidebar input[type="text"], #sidebar textarea, #sidebar input[type="number"]{
+    width:100%;box-sizing:border-box;padding:.45rem .6rem;border:1px solid #e2e8f0;border-radius:10px;background:#fff;min-width:0
+  }
+  #sidebar small{color:var(--ink2)}
+  #stageWrap{grid-area:stage;position:relative;overflow:auto;background:
+    linear-gradient(90deg, transparent 0 49px, var(--grid) 49px 50px, transparent 50px 100%),
+    linear-gradient(0deg,  transparent 0 49px, var(--grid) 49px 50px, transparent 50px 100%);
+    background-size:50px 50px; }
+  svg#stage{min-width:2000px;min-height:1400px;touch-action:none}
+  .node{filter: drop-shadow(0 2px 8px rgba(2,6,23,.08));}
+  .node rect, .node foreignObject{cursor:move}
+  .node .title{font-weight:600;fill:#0f172a}
+  .node .body{fill:#111827}
+  .node.selected rect{stroke:var(--brand);stroke-width:2.5}
+  .node.note rect{fill:#fff7ed}
+  .node.box rect{fill:white}
+  .node.image rect{fill:#ffffff}
+  .handle{fill:var(--brand);stroke:white;stroke-width:1}
+  .edge{stroke:#64748b;stroke-width:2;fill:none;marker-end:url(#arrow)}
+  .edge.selected{stroke:var(--brand)}
+  .temp-edge{stroke:var(--brand);stroke-dasharray:6 4}
+  .muted{opacity:.5}
+  .pill{display:inline-block;padding:.2rem .45rem;background:#e2e8f0;border-radius:999px;font-size:.75rem;color:#334155}
+  .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#111827;color:#fff;padding:.1rem .35rem;border-radius:6px;font-size:.75rem}
+  .footer{position:sticky;bottom:0;background:var(--panel);border-top:1px solid var(--grid);padding:.4rem .6rem;color:var(--ink2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="group" title="Añadir elementos">
+      <button id="addBox">+ Caja</button>
+      <button id="addNote">+ Nota</button>
+      <label><input id="addImage" type="file" accept="image/*">+ Foto</label>
+      <button id="connectMode">↗ Conectar</button>
+    </div>
+    <div class="group" title="Edición">
+      <button id="bringFront">↑ Frente</button>
+      <button id="sendBack">↓ Fondo</button>
+      <button id="duplicate">⎘ Duplicar</button>
+      <button id="delete" class="danger">🗑 Eliminar</button>
+    </div>
+    <div class="group" title="Proyecto">
+      <button id="save">💾 Guardar</button>
+      <button id="load">📂 Cargar</button>
+      <button id="exportPNG" class="primary">🖼 Exportar PNG</button>
+      <button id="exportSVG">🧩 Exportar SVG</button>
+    </div>
+    <div class="group" title="Ayuda">
+      <span class="pill">Selecciona y escribe para editar texto</span>
+      <span class="pill">Arrastra para mover</span>
+      <span class="pill">Doble clic: editar</span>
+    </div>
+  </header>
+
+  <aside id="sidebar">
+    <h3>Propiedades</h3>
+    <div id="noSelection"><small>Selecciona un elemento del lienzo para editar sus propiedades.</small></div>
+    <div id="props" style="display:none">
+      <div class="field"><label>ID</label><input id="prop-id" type="text" readonly></div>
+      <div class="field"><label>Tipo</label><input id="prop-type" type="text" readonly></div>
+      <div class="field"><label>Título</label><input id="prop-title" type="text" placeholder="Título"></div>
+      <div class="field"><label>Texto</label><textarea id="prop-text" rows="5" placeholder="Descripción o notas"></textarea></div>
+      <div class="field"><label>X / Y</label>
+        <div style="display:flex; gap:.4rem; min-width:0">
+          <input id="prop-x" type="number" step="1" style="min-width:0"><input id="prop-y" type="number" step="1" style="min-width:0">
+        </div>
+      </div>
+      <div class="field"><label>W / H</label>
+        <div style="display:flex; gap:.4rem; min-width:0">
+          <input id="prop-w" type="number" step="1" style="min-width:0"><input id="prop-h" type="number" step="1" style="min-width:0">
+        </div>
+      </div>
+      <div class="field"><button id="replaceImage">Reemplazar imagen</button><input id="hiddenReplace" type="file" accept="image/*" style="display:none"></div>
+    </div>
+    <div class="footer">
+      Atajos: <span class="kbd">Del</span> borrar • <span class="kbd">Ctrl</span>+<span class="kbd">S</span> guardar •
+      <span class="kbd">Ctrl</span>+<span class="kbd">E</span> PNG • <span class="kbd">Esc</span> salir de conectar
+    </div>
+  </aside>
+
+  <div id="stageWrap">
+    <svg id="stage">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5"
+                markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"></path>
+        </marker>
+      </defs>
+      <g id="edges"></g>
+      <g id="nodes"></g>
+    </svg>
+  </div>
+</div>
+
+<script>
+/* ---------- Modelo ---------- */
+let state = { nodes: [], edges: [], selection: null, mode: 'move', seq: 1, zoom: 1 };
+const stage = document.getElementById('stage');
+const gNodes = document.getElementById('nodes');
+const gEdges = document.getElementById('edges');
+const sidebar = {
+  wrap: document.getElementById('props'),
+  none: document.getElementById('noSelection'),
+  id: document.getElementById('prop-id'),
+  type: document.getElementById('prop-type'),
+  title: document.getElementById('prop-title'),
+  text: document.getElementById('prop-text'),
+  x: document.getElementById('prop-x'),
+  y: document.getElementById('prop-y'),
+  w: document.getElementById('prop-w'),
+  h: document.getElementById('prop-h'),
+  replaceBtn: document.getElementById('replaceImage'),
+  replaceInput: document.getElementById('hiddenReplace')
+};
+const UI = {
+  addBox: document.getElementById('addBox'),
+  addNote: document.getElementById('addNote'),
+  addImage: document.getElementById('addImage'),
+  connectMode: document.getElementById('connectMode'),
+  save: document.getElementById('save'),
+  load: document.getElementById('load'),
+  exportPNG: document.getElementById('exportPNG'),
+  exportSVG: document.getElementById('exportSVG'),
+  del: document.getElementById('delete'),
+  dup: document.getElementById('duplicate'),
+  front: document.getElementById('bringFront'),
+  back: document.getElementById('sendBack')
+};
+
+/* ---------- Utilidades ---------- */
+const $ = sel => document.querySelector(sel);
+const uuid = () => 'n'+(state.seq++);
+function download(filename, textOrBlob){
+  const a = document.createElement('a');
+  if (textOrBlob instanceof Blob){ a.href = URL.createObjectURL(textOrBlob); }
+  else { a.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(textOrBlob); }
+  a.download = filename; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+function getNodeById(id){ return state.nodes.find(n => n.id === id); }
+function getEdgeById(id){ return state.edges.find(e => e.id === id); }
+function bboxOf(node){ return {x:node.x, y:node.y, w:node.w, h:node.h}; }
+function centerOf(node){ return { cx: node.x + node.w/2, cy: node.y + node.h/2 }; }
+function linePath(a, b){
+  const p1 = centerOf(a), p2 = centerOf(b);
+  const dx = (p2.cx - p1.cx), dy = (p2.cy - p1.cy);
+  const mx = p1.cx + dx/2, my = p1.cy + dy/2;
+  return `M ${p1.cx} ${p1.cy} Q ${mx} ${my} ${p2.cx} ${p2.cy}`;
+}
+
+/* ---------- Render ---------- */
+function render(){
+  // edges first (paths)
+  gEdges.innerHTML = '';
+  for(const e of state.edges){
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', linePath(getNodeById(e.from), getNodeById(e.to)));
+    path.setAttribute('class', 'edge'+(state.selection===e.id?' selected':''));
+    path.dataset.id = e.id;
+    gEdges.appendChild(path);
+  }
+  // nodes
+  gNodes.innerHTML = '';
+  for(const n of state.nodes){
+    const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('class', `node ${n.type}`+(state.selection===n.id?' selected':'')); g.dataset.id = n.id;
+
+    // main rect
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x', n.x); rect.setAttribute('y', n.y);
+    rect.setAttribute('rx', 12); rect.setAttribute('ry', 12);
+    rect.setAttribute('width', n.w); rect.setAttribute('height', n.h);
+    rect.setAttribute('stroke', '#cbd5e1'); rect.setAttribute('fill-opacity', 1);
+    g.appendChild(rect);
+
+    // content
+    if(n.type === 'image' && n.img){
+      const img = document.createElementNS('http://www.w3.org/2000/svg','image');
+      img.setAttribute('href', n.img); img.setAttribute('x', n.x+10); img.setAttribute('y', n.y+10);
+      img.setAttribute('width', n.w-20); img.setAttribute('height', n.h-60);
+      img.setAttribute('preserveAspectRatio','xMidYMid slice');
+      g.appendChild(img);
+      const title = document.createElementNS('http://www.w3.org/2000/svg','text');
+      title.setAttribute('x', n.x+12); title.setAttribute('y', n.y+n.h-28);
+      title.setAttribute('class','title'); title.textContent = n.title||'Imagen';
+      g.appendChild(title);
+      const body = document.createElementNS('http://www.w3.org/2000/svg','text');
+      body.setAttribute('x', n.x+12); body.setAttribute('y', n.y+n.h-10);
+      body.setAttribute('class','body'); body.textContent = n.text||'';
+      body.setAttribute('style','font-size:12px; fill:#334155');
+      g.appendChild(body);
+    } else {
+      const title = document.createElementNS('http://www.w3.org/2000/svg','text');
+      title.setAttribute('x', n.x+12); title.setAttribute('y', n.y+22);
+      title.setAttribute('class','title'); title.textContent = n.title || (n.type==='note'?'Nota':'Caja');
+      g.appendChild(title);
+
+      // simple multi-line text
+      const lines = (n.text||'Doble clic para editar...').split('\n');
+      let yy = n.y+42;
+      for(const line of lines.slice(0, Math.max(1, Math.floor((n.h-50)/16)))){
+        const t = document.createElementNS('http://www.w3.org/2000/svg','text');
+        t.setAttribute('x', n.x+12); t.setAttribute('y', yy);
+        t.setAttribute('class','body'); t.setAttribute('style','font-size:13px; fill:#334155');
+        t.textContent = line;
+        g.appendChild(t); yy += 16;
+      }
+    }
+
+    // resize handle (bottom-right)
+    const h = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    h.setAttribute('x', n.x+n.w-10); h.setAttribute('y', n.y+n.h-10);
+    h.setAttribute('width', 10); h.setAttribute('height', 10); h.setAttribute('class','handle');
+    h.dataset.handle = 'resize'; g.appendChild(h);
+
+    gNodes.appendChild(g);
+  }
+  updateSidebar();
+  localStorage.setItem('investigacion-diagrama-autosave', JSON.stringify(state));
+}
+
+function updateSidebar(){
+  const id = state.selection;
+  if(!id){
+    sidebar.wrap.style.display='none'; sidebar.none.style.display='block'; return;
+  }
+  const node = state.nodes.find(n=>n.id===id);
+  const edge = state.edges.find(e=>e.id===id);
+  sidebar.none.style.display='none'; sidebar.wrap.style.display='block';
+
+  if(node){
+    sidebar.id.value = node.id; sidebar.type.value=node.type;
+    sidebar.title.value = node.title||''; sidebar.text.value = node.text||'';
+    sidebar.x.value = Math.round(node.x); sidebar.y.value = Math.round(node.y);
+    sidebar.w.value = Math.round(node.w); sidebar.h.value = Math.round(node.h);
+    sidebar.replaceBtn.style.display = node.type==='image' ? 'inline-block' : 'none';
+  } else if(edge){
+    sidebar.id.value = edge.id; sidebar.type.value='conexión';
+    sidebar.title.value = edge.label||''; sidebar.text.value = '';
+    sidebar.x.value = ''; sidebar.y.value = ''; sidebar.w.value=''; sidebar.h.value='';
+    sidebar.replaceBtn.style.display='none';
+  }
+}
+
+/* ---------- Interacciones de nodos ---------- */
+let drag = null, connectStart = null;
+
+gNodes.addEventListener('pointerdown', (ev)=>{
+  const target = ev.target;
+  const g = target.closest('.node');
+  const id = g ? g.dataset.id : null;
+  const node = id ? getNodeById(id) : null;
+
+  if(!node) return;
+
+  // ⬇️ Conectar más robusto: si ya hay inicio y haces click en otro nodo, crea la arista al instante
+  if(state.mode==='connect'){
+    if(connectStart && connectStart !== id){
+      addEdge(connectStart, id);
+      connectStart = null;
+      removeTempEdge();
+      setMode('move');
+      return;
+    }
+    // si no hay inicio todavía, márcalo y dibuja temporal
+    if(!connectStart){
+      connectStart = id;
+      drawTempEdge(ev.clientX, ev.clientY, node);
+      state.selection = id; render();
+      return;
+    }
+  }
+
+  state.selection = id; render();
+
+  const isHandle = target.dataset.handle === 'resize';
+  if(isHandle){
+    drag = { type:'resize', id, ox:ev.clientX, oy:ev.clientY, ow:node.w, oh:node.h };
+  } else if(state.mode==='move'){
+    drag = { type:'move', id, ox:ev.clientX, oy:ev.clientY, nx:node.x, ny:node.y };
+  }
+});
+
+stage.addEventListener('pointermove', (ev)=>{
+  if(drag){
+    const node = getNodeById(drag.id); if(!node) return;
+    if(drag.type==='move'){
+      const dx = (ev.clientX - drag.ox)/state.zoom, dy=(ev.clientY - drag.oy)/state.zoom;
+      node.x = drag.nx + dx; node.y = drag.ny + dy;
+    } else if(drag.type==='resize'){
+      const dx = (ev.clientX - drag.ox)/state.zoom, dy=(ev.clientY - drag.oy)/state.zoom;
+      node.w = Math.max(120, drag.ow + dx); node.h = Math.max(80, drag.oh + dy);
+    }
+    render();
+  } else if(connectStart){
+    updateTempEdge(ev);
+  }
+});
+window.addEventListener('pointerup', ()=>{
+  drag=null;
+  // No vaciamos connectStart aquí para permitir click en el segundo nodo
+});
+
+/* ---------- Selección y conexión (clic general) ---------- */
+stage.addEventListener('click', (ev)=>{
+  const nodeEl = ev.target.closest('.node');
+  const edgeEl = ev.target.closest('.edge');
+  if(nodeEl){
+    const id = nodeEl.dataset.id;
+    if(state.mode!=='connect'){
+      state.selection = id; render();
+    }
+  } else if(edgeEl){
+    state.selection = edgeEl.dataset.id; render();
+  } else {
+    state.selection = null; render();
+  }
+});
+
+function setMode(m){
+  state.mode = m;
+  UI.connectMode.classList.toggle('primary', m==='connect');
+  document.getElementById('stageWrap').classList.toggle('muted', m==='connect');
+}
+UI.connectMode.addEventListener('click', ()=>{
+  setMode(state.mode==='connect'?'move':'connect');
+  if(state.mode!=='connect'){ connectStart=null; removeTempEdge(); }
+});
+
+/* ---------- Doble clic: edición rápida ---------- */
+stage.addEventListener('dblclick', (ev)=>{
+  const nodeEl = ev.target.closest('.node');
+  if(!nodeEl) return;
+  const id = nodeEl.dataset.id; const n = getNodeById(id);
+  if(!n) return;
+  const title = prompt('Título', n.title || '');
+  if(title !== null) n.title = title;
+  const text = prompt('Texto/Notas (multi-línea)', n.text || '');
+  if(text !== null) n.text = text;
+  render();
+});
+
+/* ---------- Crear elementos ---------- */
+function addBoxNode(type){
+  const n = { id: uuid(), type, x: 80 + Math.random()*60, y: 80 + Math.random()*60, w: 240, h: type==='note'?140:160, title: type==='note'?'Nota':'Caja', text: type==='note'?'': 'Doble clic para editar...' };
+  state.nodes.push(n); state.selection = n.id; render();
+}
+UI.addBox.addEventListener('click', ()=>addBoxNode('box'));
+UI.addNote.addEventListener('click', ()=>addBoxNode('note'));
+UI.addImage.addEventListener('change', async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const data = await fileToDataURL(file);
+  const img = new Image(); img.src = data; await img.decode().catch(()=>{});
+  const w = 280, h = Math.max(180, Math.min(300, w * (img.height/img.width)));
+  const n = { id: uuid(), type:'image', x:100+Math.random()*60, y:120+Math.random()*60, w, h, img:data, title:'Imagen', text:'' };
+  state.nodes.push(n); state.selection=n.id; e.target.value=''; render();
+});
+async function fileToDataURL(file){ return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(file); }); }
+
+/* ---------- Conexiones ---------- */
+function addEdge(from, to){
+  const e = { id: uuid(), from, to, label:'' }; state.edges.push(e); state.selection = e.id; render();
+}
+let tempEdgeEl=null;
+function drawTempEdge(clientX, clientY, fromNode){
+  if(tempEdgeEl) tempEdgeEl.remove();
+  tempEdgeEl = document.createElementNS('http://www.w3.org/2000/svg','path');
+  tempEdgeEl.setAttribute('class','edge temp-edge');
+  gEdges.appendChild(tempEdgeEl);
+  updateTempEdge({clientX, clientY}, fromNode);
+}
+function updateTempEdge(ev, fromNodeOpt){
+  const fromNode = fromNodeOpt || getNodeById(connectStart);
+  const pt = screenToSvg(ev.clientX, ev.clientY);
+  const p1 = centerOf(fromNode);
+  tempEdgeEl.setAttribute('d', `M ${p1.cx} ${p1.cy} Q ${(p1.cx+pt.x)/2} ${(p1.cy+pt.y)/2} ${pt.x} ${pt.y}`);
+}
+function removeTempEdge(){ if(tempEdgeEl){ tempEdgeEl.remove(); tempEdgeEl=null; } }
+function screenToSvg(x,y){
+  const pt = stage.createSVGPoint(); pt.x=x; pt.y=y; return pt.matrixTransform(stage.getScreenCTM().inverse());
+}
+
+/* ---------- Propiedades (sidebar) ---------- */
+sidebar.title.addEventListener('input', ()=>{
+  const id = state.selection; if(!id) return;
+  const node = getNodeById(id) || getEdgeById(id);
+  if(!node) return; node.title = sidebar.title.value; if(node.label!==undefined) node.label = node.title; render();
+});
+sidebar.text.addEventListener('input', ()=>{
+  const id = state.selection; if(!id) return;
+  const node = getNodeById(id); if(!node) return; node.text = sidebar.text.value; render();
+});
+for(const key of ['x','y','w','h']){
+  sidebar[key].addEventListener('change', ()=>{
+    const n = getNodeById(state.selection); if(!n) return;
+    const val = Number(sidebar[key].value)||0; n[key]=val; render();
+  });
+}
+sidebar.replaceBtn.addEventListener('click', ()=> sidebar.replaceInput.click());
+sidebar.replaceInput.addEventListener('change', async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const n = getNodeById(state.selection); if(!n) return;
+  n.img = await fileToDataURL(file); e.target.value=''; render();
+});
+
+/* ---------- Orden y duplicado ---------- */
+UI.front.addEventListener('click', ()=>{
+  const id = state.selection; if(!id) return;
+  const idx = state.nodes.findIndex(n=>n.id===id); if(idx<0) return;
+  const [n] = state.nodes.splice(idx,1); state.nodes.push(n); render();
+});
+UI.back.addEventListener('click', ()=>{
+  const id = state.selection; if(!id) return;
+  const idx = state.nodes.findIndex(n=>n.id===id); if(idx<0) return;
+  const [n] = state.nodes.splice(idx,1); state.nodes.unshift(n); render();
+});
+UI.dup.addEventListener('click', ()=>{
+  const n = getNodeById(state.selection); if(!n) return;
+  const copy = JSON.parse(JSON.stringify(n));
+  copy.id = uuid(); copy.x += 20; copy.y += 20;
+  state.nodes.push(copy); state.selection = copy.id; render();
+});
+
+/* ---------- Borrado ---------- */
+function deleteSelection(){
+  const id = state.selection; if(!id) return;
+  const ni = state.nodes.findIndex(n=>n.id===id);
+  if(ni>=0){
+    state.nodes.splice(ni,1);
+    state.edges = state.edges.filter(e=>e.from!==id && e.to!==id);
+  } else {
+    const ei = state.edges.findIndex(e=>e.id===id);
+    if(ei>=0) state.edges.splice(ei,1);
+  }
+  state.selection = null; render();
+}
+UI.del.addEventListener('click', deleteSelection);
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='Delete'){ e.preventDefault(); deleteSelection(); }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); saveJSON(); }
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e'){ e.preventDefault(); exportPNG(); }
+  if(e.key==='Escape'){ setMode('move'); connectStart=null; removeTempEdge(); }
+});
+
+/* ---------- Guardar / Cargar ---------- */
+function saveJSON(){
+  const out = JSON.stringify({nodes:state.nodes, edges:state.edges}, null, 2);
+  download('diagrama-investigacion.flow.json', out);
+}
+UI.save.addEventListener('click', saveJSON);
+
+UI.load.addEventListener('click', async ()=>{
+  const input = document.createElement('input'); input.type='file'; input.accept='.json,application/json';
+  input.onchange = async () => {
+    const file = input.files[0]; if(!file) return;
+    const text = await file.text();
+    try{
+      const data = JSON.parse(text);
+      state.nodes = data.nodes||[]; state.edges = data.edges||[]; state.selection=null; render();
+    }catch(err){ alert('JSON inválido'); }
+  };
+  input.click();
+});
+
+/* ---------- Exportar ---------- */
+async function exportPNG(){
+  // Clonar SVG y rasterizarlo en canvas
+  const clone = stage.cloneNode(true);
+  clone.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  const bbox = stage.getBBox();
+  const pad = 40;
+  const w = Math.ceil(bbox.width + pad*2), h = Math.ceil(bbox.height + pad*2);
+  const wrap = document.createElement('svg');
+  wrap.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  wrap.setAttribute('width', w); wrap.setAttribute('height', h);
+  wrap.setAttribute('viewBox', `${bbox.x-pad} ${bbox.y-pad} ${w} ${h}`);
+  const style = document.createElement('style');
+  style.textContent = `.edge{stroke:#334155}.node rect{stroke:#cbd5e1}`;
+  wrap.appendChild(style);
+  wrap.appendChild(clone);
+  const svgData = new XMLSerializer().serializeToString(wrap);
+  const img = new Image();
+  const svgURL = 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgData);
+  await new Promise(res=>{ img.onload=()=>res(); img.src=svgURL; });
+  const canvas = document.createElement('canvas'); canvas.width=w; canvas.height=h;
+  const ctx = canvas.getContext('2d'); ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h);
+  ctx.drawImage(img,0,0);
+  canvas.toBlob(blob=>download('diagrama-investigacion.png', blob),'image/png',1);
+}
+UI.exportPNG.addEventListener('click', exportPNG);
+
+function exportSVG(){
+  const outer = stage.cloneNode(true);
+  outer.setAttribute('xmlns','http://www.w3.org/2000/svg');
+  const data = new XMLSerializer().serializeToString(outer);
+  download('diagrama-investigacion.svg', data);
+}
+UI.exportSVG.addEventListener('click', exportSVG);
+
+/* ---------- Cargar autosave si existe ---------- */
+(function init(){
+  const saved = localStorage.getItem('investigacion-diagrama-autosave');
+  if(saved){
+    try{ const parsed = JSON.parse(saved); state.nodes=parsed.nodes||[]; state.edges=parsed.edges||[]; }catch{}
+  }
+  // Si está vacío, crea un ejemplo
+  if(state.nodes.length===0){
+    addBoxNode('box'); const a = state.nodes[state.nodes.length-1]; a.title='Caso'; a.text='Victima: John Doe\nHecho: Phishing bancario';
+    addBoxNode('box'); const b = state.nodes[state.nodes.length-1]; b.title='Sospechoso'; b.text='Alias: kapn\nEmail: example@foo.tld';
+    addBoxNode('note'); const c = state.nodes[state.nodes.length-1]; c.title='Tareas'; c.text='1) Extraer metadatos\n2) Whois histórico\n3) DNS pasivo';
+    b.x=460; c.x=260; c.y=260;
+    addEdge(a.id, b.id); addEdge(a.id, c.id);
+    state.selection=null;
+  }
+  render();
+})();
+
+/* ---------- Zoom con rueda (Ctrl + wheel) ---------- */
+document.getElementById('stageWrap').addEventListener('wheel', (e)=>{
+  if(!e.ctrlKey) return;
+  e.preventDefault();
+  const delta = Math.sign(e.deltaY) * -0.1;
+  state.zoom = Math.min(2, Math.max(0.5, state.zoom + delta));
+  stage.style.transformOrigin = '0 0';
+  stage.style.transform = `scale(${state.zoom})`;
+}, {passive:false});
+</script>
+</body>
+</html>
