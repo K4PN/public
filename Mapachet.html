@@ -57,7 +57,6 @@
   .toggle{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;border-radius:12px;padding:6px 10px}
 </style>
 
-<!-- Dependencias para compresión + QR robusto -->
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 </head>
@@ -98,7 +97,6 @@
         <button id="clearQRBtn" class="btn-ghost" type="button">Limpiar</button>
       </div>
       <div class="qr-wrap">
-        <!-- 360 para módulos grandes -->
         <canvas id="qrCanvas" width="360" height="360"></canvas>
         <div class="hint" style="margin-top:6px;color:#6b7280;font-size:12px">Muestra este QR o escanéalo desde el otro móvil.</div>
       </div>
@@ -113,7 +111,6 @@
   </main>
 </div>
 
-<!-- Modal escáner -->
 <div class="modal" id="scanModal" role="dialog" aria-modal="true" aria-label="Escanear QR">
   <div class="sheet">
     <div class="sheet-header">
@@ -133,13 +130,13 @@
 
 <script>
 (() => {
-/* ===== barra de errores ===== */
+/* ===== errores ===== */
 const errbar = document.getElementById('errbar');
 const showErr = (m)=>{ errbar.innerHTML='⚠️ '+m; errbar.style.display='block'; };
 window.addEventListener('error', e=> showErr((e.message||'Error')+' @ '+(e.filename||'')+':'+(e.lineno||'')));
 window.addEventListener('unhandledrejection', e=> showErr('Promise rechazada: '+(e.reason?.message||e.reason||'')));
 
-/* ===== utilidades ===== */
+/* ===== util ===== */
 const $ = s => document.querySelector(s);
 const app = $("#app");
 $("#hamb").onclick = ()=> app.classList.toggle("menu-open");
@@ -148,8 +145,6 @@ function busy(b, on){ if(b) b.disabled=!!on; }
 function setStatus(on){ const el=$("#netStatus"); el.textContent=on?"Conectado":"Desconectado"; el.classList.toggle("on",!!on); }
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function addBubble(dir, txt, at){ const w=$("#messages"); const b=document.createElement("div"); b.className="bubble"+(dir==="out"?" me":""); b.innerHTML=`${escapeHtml(txt)}<span class="meta-time">${new Date(at).toLocaleString()}</span>`; w.appendChild(b); w.scrollTop=w.scrollHeight; }
-
-/* ===== contexto ===== */
 (function(){ const warn=$("#secureWarn"), notes=[]; if(!secure) notes.push("Abre en <b>HTTPS</b> o <b>localhost</b> (cámara/WebRTC requieren contexto seguro)."); warn.innerHTML=notes.join("<br>"); warn.style.display=notes.length?"block":"none"; })();
 
 /* ===== ID ===== */
@@ -171,7 +166,7 @@ async function renderConversationList(){ const list=$("#convList"); list.innerHT
 async function openChat(peerId){ $("#messages").innerHTML=""; const msgs=await loadMessages(peerId); msgs.forEach(m=> addBubble(m.direction==="out"?"out":"in",m.text,m.at)); await renderConversationList(); }
 
 /* ===== estado ===== */
-const state = { pc:null, dc:null, currentPeer:null, MY_ID:"" };
+const state = { pc:null, dc:null, currentPeer:null, MY_ID:"", canvasMode:"none" };
 
 /* ===== WebRTC ===== */
 function rtcConfig(){ return document.getElementById('lanMode').checked ? { iceServers: [] } : { iceServers:[{urls:"stun:stun.l.google.com:19302"}] }; }
@@ -191,7 +186,7 @@ function bindDC(){
   };
 }
 function waitGathering(){ return new Promise(res=>{ if(state.pc.iceGatheringState==="complete") return res(); state.pc.onicegatheringstatechange=()=>{ if(state.pc.iceGatheringState==="complete") res(); }; }); }
-/* Poda SDP para modo LAN */
+/* Poda SDP para LAN */
 function shrinkSDPForLAN(desc){
   if(!document.getElementById('lanMode').checked) return desc;
   const s = typeof desc.sdp === 'string' ? desc.sdp : '';
@@ -225,19 +220,17 @@ async function acceptAnswer(ansObj){
   await state.pc.setRemoteDescription(ansObj.sdp);
 }
 
-/* ===== QR (ID fijo + oferta/respuesta comprimidos) ===== */
+/* ===== QR ===== */
 function pack(str){ return LZString.compressToEncodedURIComponent(str); }
 function unpack(packed){ return LZString.decompressFromEncodedURIComponent(packed||"") || ""; }
-
 const qrCanvas = document.getElementById('qrCanvas');
 function drawQR(text, ecc='L'){
-  const qr = qrcode(0, ecc); // versión auto
-  qr.addData(text);
-  qr.make();
+  if(state.canvasMode==='lock') return; // evita repintados accidentales
+  const qr = qrcode(0, ecc);
+  qr.addData(text); qr.make();
   const ctx = qrCanvas.getContext('2d'), size = qrCanvas.width;
   const count = qr.getModuleCount();
-  const minCell = 4; // px
-  const cell = Math.max(minCell, Math.floor(size / count));
+  const minCell = 4; const cell = Math.max(minCell, Math.floor(size / count));
   const w = cell*count, pad = Math.floor((size - w)/2);
   ctx.clearRect(0,0,size,size);
   ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size);
@@ -246,26 +239,23 @@ function drawQR(text, ecc='L'){
     if(qr.isDark(r,c)) ctx.fillRect(pad+c*cell, pad+r*cell, cell, cell);
   }
 }
-function drawMyIdQR(){ drawQR(JSON.stringify({kind:'id', id: state.MY_ID}), 'M'); } // pequeño, robusto
-function drawOfferQR(obj){ drawQR(pack(JSON.stringify(obj)), 'L'); } // comprimido
+function drawMyIdQR(){ state.canvasMode='id'; drawQR(JSON.stringify({kind:'id', id: state.MY_ID}), 'M'); }
+function drawOfferQR(obj){ state.canvasMode='offer'; drawQR(pack(JSON.stringify(obj)), 'L'); }
+function drawAnswerQR(obj){ state.canvasMode='answer'; drawQR(pack(JSON.stringify(obj)), 'L'); }
+function clearCanvas(){ state.canvasMode='none'; const g=qrCanvas.getContext('2d'); g.clearRect(0,0,qrCanvas.width,qrCanvas.height); }
 
 function parseQRString(raw){
-  // Puede ser una ID (JSON pequeño) o un payload comprimido
-  try{
-    const asJSON = JSON.parse(raw);
-    return asJSON; // {kind:'id',...} esperado
-  }catch{
+  try{ return JSON.parse(raw); }catch{
     const txt = unpack(raw) || raw;
     try{ return JSON.parse(txt); }catch{ return null; }
   }
 }
 
-/* ===== lector (BarcodeDetector) ===== */
+/* ===== lector ===== */
 const hasBD = 'BarcodeDetector' in window; let bd=null;
 if(hasBD){ try{ bd=new BarcodeDetector({formats:['qr_code']}); }catch{} }
 const scanModal=$("#scanModal"), video=$("#video"), closeScan=$("#closeScan"), switchCam=$("#switchCam");
 let stream=null, useBack=true, rafId=null;
-
 async function startScan(){
   if(!secure) return alert("Cámara requiere HTTPS/localhost.");
   if(!bd) return alert("Tu navegador no soporta lector QR nativo (BarcodeDetector).");
@@ -278,44 +268,44 @@ async function startScan(){
 function stopScan(){ if(rafId) cancelAnimationFrame(rafId), rafId=null; if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.srcObject=null; scanModal.classList.remove("open"); }
 switchCam.onclick = async ()=>{ useBack=!useBack; await startScan(); };
 closeScan.onclick = ()=> stopScan();
-let lastDecodeAt = 0;
+
+let lastDecodeAt=0, decodedOnce=false;
 async function tickScan(){
   try{
-    const now = performance.now();
-    if(now - lastDecodeAt > 80){ // throttling ~12.5 fps
+    const now=performance.now();
+    if(now - lastDecodeAt > 120 && !decodedOnce){
       const codes = await bd.detect(video);
       if(codes && codes.length){
-        lastDecodeAt = now;
-        stopScan();
+        decodedOnce=true; // evita dobles disparos
+        lastDecodeAt=now; stopScan();
         const obj = parseQRString((codes[0].rawValue||"").trim());
-        if(!obj) return alert("QR leído, pero no se pudo decodificar.");
+        if(!obj) { decodedOnce=false; return alert("QR leído, pero no se pudo decodificar."); }
         await handleScannedObject(obj);
         return;
       }
     }
   }catch(e){ /* seguir */ }
-  rafId = requestAnimationFrame(tickScan);
+  rafId=requestAnimationFrame(tickScan);
 }
 
 /* ===== handshake ===== */
 async function handleScannedObject(obj){
   if(obj.kind==="id" && obj.id){
-    // Guardamos/seleccionamos conversación y ofrecemos crear oferta
-    await saveConversation(obj.id, "ID recibida");
-    await renderConversationList();
-    if(confirm("ID leída: "+obj.id.slice(0,12)+"…\n¿Crear oferta para conectarte?")){
-      const offer=await createOffer();
-      drawOfferQR(offer);
-    }
+    await saveConversation(obj.id,"ID recibida"); await renderConversationList();
+    // AUTOINICIO: creamos oferta y mostramos QR de oferta inmediatamente
+    const offer=await createOffer();
+    drawOfferQR(offer);
     return;
   }
   if(obj.kind==="offer"){
     const ans=await acceptOffer(obj);
-    drawOfferQR(ans); // mostramos respuesta comprimida
+    drawAnswerQR(ans);
     return;
   }
   if(obj.kind==="answer"){
     await acceptAnswer(obj);
+    // una vez conectados, “bloqueo” el canvas para que no se repinte accidentalmente
+    state.canvasMode='lock';
     return;
   }
   alert("QR desconocido.");
@@ -329,8 +319,8 @@ document.getElementById('offerBtn').addEventListener('click', async ()=>{
   catch(e){ alert("Error creando oferta: "+(e?.message||e)); }
   finally{ busy(document.getElementById('offerBtn'), false); }
 });
-document.getElementById('scanBtn').addEventListener('click', ()=> startScan());
-document.getElementById('clearQRBtn').addEventListener('click', ()=>{ const g=qrCanvas.getContext('2d'); g.clearRect(0,0,qrCanvas.width,qrCanvas.height); });
+document.getElementById('scanBtn').addEventListener('click', ()=>{ decodedOnce=false; startScan(); });
+document.getElementById('clearQRBtn').addEventListener('click', clearCanvas);
 document.getElementById('newConvBtn').addEventListener('click', ()=>{ app.classList.remove('menu-open'); window.scrollTo({top:0,behavior:'smooth'}); });
 document.getElementById('sendBtn').addEventListener('click', async ()=>{
   const inp=$("#msgInput"), text=inp.value.trim(); if(!text) return;
