@@ -55,6 +55,7 @@
   .switch{background:#1f2937;color:#fff;border:1px solid #374151;border-radius:10px;padding:8px 12px}
   .errbar{position:fixed;top:0;left:0;right:0;padding:10px;background:#fee2e2;color:#7f1d1d;border-bottom:1px solid #fecaca;font-size:12px;display:none;z-index:9999}
   .toggle{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;border-radius:12px;padding:6px 10px}
+  .hidden{display:none !important}
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
@@ -83,7 +84,7 @@
 
     <div id="secureWarn" class="warn" style="display:none"></div>
 
-    <section class="connect">
+    <section class="connect" id="connectUI">
       <div class="row" style="justify-content:space-between;gap:8px;align-items:center">
         <div class="row" style="gap:6px;flex-wrap:wrap">
           <button id="myIdBtn" type="button">Mi ID (QR fijo)</button>
@@ -140,6 +141,7 @@ window.addEventListener('unhandledrejection', e=> showErr('Promise rechazada: '+
 const $ = s => document.querySelector(s);
 const app = $("#app");
 $("#hamb").onclick = ()=> app.classList.toggle("menu-open");
+const connectUI = $("#connectUI");
 const secure = location.protocol === 'https:' || ['localhost','127.0.0.1'].includes(location.hostname);
 function busy(b, on){ if(b) b.disabled=!!on; }
 function setStatus(on){ const el=$("#netStatus"); el.textContent=on?"Conectado":"Desconectado"; el.classList.toggle("on",!!on); }
@@ -170,23 +172,45 @@ const state = { pc:null, dc:null, currentPeer:null, MY_ID:"", canvasMode:"none" 
 
 /* ===== WebRTC ===== */
 function rtcConfig(){ return document.getElementById('lanMode').checked ? { iceServers: [] } : { iceServers:[{urls:"stun:stun.l.google.com:19302"}] }; }
+function onConnected(){
+  setStatus(true);
+  connectUI.classList.add('hidden');          // ocultar QR/ofertas
+  addBubble('in', '✅ Conectado', Date.now());
+}
+function onDisconnected(){
+  setStatus(false);
+  connectUI.classList.remove('hidden');       // volver a mostrar UI de conexión
+}
 function resetPC(){
   if(state.pc) try{ state.pc.close(); }catch{}
   state.pc=new RTCPeerConnection(rtcConfig());
-  state.pc.oniceconnectionstatechange=()=>{ const st=state.pc.iceConnectionState; setStatus(st==="connected"||st==="completed"); };
+  state.pc.oniceconnectionstatechange=()=>{ const st=state.pc.iceConnectionState; if(st==='connected'||st==='completed') onConnected(); if(st==='failed'||st==='disconnected'||st==='closed') onDisconnected(); };
+  state.pc.onconnectionstatechange=()=>{ const st=state.pc.connectionState; if(st==='connected') onConnected(); if(st==='failed'||st==='disconnected'||st==='closed') onDisconnected(); };
   state.pc.ondatachannel=(ev)=>{ state.dc=ev.channel; bindDC(); };
 }
 function bindDC(){
   if(!state.dc) return;
-  state.dc.onopen=()=>{ try{ state.dc.send(JSON.stringify({type:"hello", id:state.MY_ID})); }catch{} };
+  state.dc.onopen=()=>{              // cuando el canal abre, marcamos conexión y enviamos hello
+    onConnected();
+    try{ state.dc.send(JSON.stringify({type:"hello", id:state.MY_ID})); }catch{}
+  };
+  state.dc.onclose=onDisconnected;
   state.dc.onmessage=async ev=>{
     const raw=String(ev.data||"");
-    try{ const hello=JSON.parse(raw); if(hello && hello.type==="hello" && hello.id){ state.currentPeer=hello.id; await saveConversation(state.currentPeer,"¡Conectado!"); await renderConversationList(); return; } }catch{}
+    try{
+      const hello=JSON.parse(raw);
+      if(hello && hello.type==="hello" && hello.id){
+        state.currentPeer=hello.id;
+        await saveConversation(state.currentPeer,"¡Conectado!");
+        await renderConversationList();
+        return;
+      }
+    }catch{}
     const pid=state.currentPeer||"peer"; await saveConversation(pid,raw); await saveMessage(pid,"in",raw); addBubble("in",raw,Date.now()); renderConversationList();
   };
 }
 function waitGathering(){ return new Promise(res=>{ if(state.pc.iceGatheringState==="complete") return res(); state.pc.onicegatheringstatechange=()=>{ if(state.pc.iceGatheringState==="complete") res(); }; }); }
-/* Poda SDP para LAN */
+/* Poda SDP para LAN (opcional) */
 function shrinkSDPForLAN(desc){
   if(!document.getElementById('lanMode').checked) return desc;
   const s = typeof desc.sdp === 'string' ? desc.sdp : '';
@@ -225,7 +249,7 @@ function pack(str){ return LZString.compressToEncodedURIComponent(str); }
 function unpack(packed){ return LZString.decompressFromEncodedURIComponent(packed||"") || ""; }
 const qrCanvas = document.getElementById('qrCanvas');
 function drawQR(text, ecc='L'){
-  if(state.canvasMode==='lock') return; // evita repintados accidentales
+  if(state.canvasMode==='lock') return;
   const qr = qrcode(0, ecc);
   qr.addData(text); qr.make();
   const ctx = qrCanvas.getContext('2d'), size = qrCanvas.width;
@@ -243,7 +267,6 @@ function drawMyIdQR(){ state.canvasMode='id'; drawQR(JSON.stringify({kind:'id', 
 function drawOfferQR(obj){ state.canvasMode='offer'; drawQR(pack(JSON.stringify(obj)), 'L'); }
 function drawAnswerQR(obj){ state.canvasMode='answer'; drawQR(pack(JSON.stringify(obj)), 'L'); }
 function clearCanvas(){ state.canvasMode='none'; const g=qrCanvas.getContext('2d'); g.clearRect(0,0,qrCanvas.width,qrCanvas.height); }
-
 function parseQRString(raw){
   try{ return JSON.parse(raw); }catch{
     const txt = unpack(raw) || raw;
@@ -262,7 +285,7 @@ async function startScan(){
   try{
     stopScan();
     stream=await navigator.mediaDevices.getUserMedia({video:{facingMode: useBack?{ideal:'environment'}:'user', width:{ideal:1280}, height:{ideal:720}}, audio:false});
-    video.srcObject=stream; await video.play(); scanModal.classList.add("open"); tickScan();
+    video.srcObject=stream; await video.play(); scanModal.classList.add("open"); decodedOnce=false; tickScan();
   }catch(e){ alert("No se pudo abrir la cámara: "+(e?.message||e)); }
 }
 function stopScan(){ if(rafId) cancelAnimationFrame(rafId), rafId=null; if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; } video.pause(); video.srcObject=null; scanModal.classList.remove("open"); }
@@ -276,7 +299,7 @@ async function tickScan(){
     if(now - lastDecodeAt > 120 && !decodedOnce){
       const codes = await bd.detect(video);
       if(codes && codes.length){
-        decodedOnce=true; // evita dobles disparos
+        decodedOnce=true;
         lastDecodeAt=now; stopScan();
         const obj = parseQRString((codes[0].rawValue||"").trim());
         if(!obj) { decodedOnce=false; return alert("QR leído, pero no se pudo decodificar."); }
@@ -292,8 +315,7 @@ async function tickScan(){
 async function handleScannedObject(obj){
   if(obj.kind==="id" && obj.id){
     await saveConversation(obj.id,"ID recibida"); await renderConversationList();
-    // AUTOINICIO: creamos oferta y mostramos QR de oferta inmediatamente
-    const offer=await createOffer();
+    const offer=await createOffer();         // auto-oferta al leer una ID
     drawOfferQR(offer);
     return;
   }
@@ -304,8 +326,7 @@ async function handleScannedObject(obj){
   }
   if(obj.kind==="answer"){
     await acceptAnswer(obj);
-    // una vez conectados, “bloqueo” el canvas para que no se repinte accidentalmente
-    state.canvasMode='lock';
+    state.canvasMode='lock';                // no repintar más
     return;
   }
   alert("QR desconocido.");
@@ -319,7 +340,7 @@ document.getElementById('offerBtn').addEventListener('click', async ()=>{
   catch(e){ alert("Error creando oferta: "+(e?.message||e)); }
   finally{ busy(document.getElementById('offerBtn'), false); }
 });
-document.getElementById('scanBtn').addEventListener('click', ()=>{ decodedOnce=false; startScan(); });
+document.getElementById('scanBtn').addEventListener('click', ()=> startScan());
 document.getElementById('clearQRBtn').addEventListener('click', clearCanvas);
 document.getElementById('newConvBtn').addEventListener('click', ()=>{ app.classList.remove('menu-open'); window.scrollTo({top:0,behavior:'smooth'}); });
 document.getElementById('sendBtn').addEventListener('click', async ()=>{
