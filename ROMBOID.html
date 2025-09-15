@@ -1,1 +1,651 @@
-.
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Aviones Touch — PowerUps, Vidas y Jefes</title>
+<style>
+  :root{
+    --fg:#ffffff; --muted:#b7c0d1; --accent:#4cd6ff; --danger:#ff4c6a; --bg:#0a1020; --panel:#101932; --gold:#ffd060;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,Segoe UI,Roboto,Arial}
+  #ui{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between}
+  #topbar{display:flex;justify-content:space-between;align-items:center;
+    padding:10px 12px;background:linear-gradient(180deg, rgba(0,0,0,.35), transparent);
+    font-weight:600; letter-spacing:.3px; gap:8px; flex-wrap:wrap}
+  #score{font-variant-numeric:tabular-nums}
+  #hint{font-size:.9rem;color:var(--muted)}
+  #lives{display:flex; gap:6px; align-items:center}
+  .life{width:16px; height:16px; border-radius:3px; background:linear-gradient(180deg,#e9f6ff,#85d7ff); box-shadow:0 0 8px rgba(133,215,255,.5) inset}
+  .life.off{opacity:.25; filter:grayscale(1)}
+  #power{display:flex; gap:8px; align-items:center; font-size:.85rem; color:var(--muted)}
+  .badge{border:1px solid #2e3c6d; padding:3px 8px; border-radius:999px; background:rgba(16,25,50,.6); color:#cfe7ff}
+  #centerPanel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .card{pointer-events:auto;background:rgba(16,25,50,.92);border:1px solid #1d2a52;
+    padding:18px; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35); text-align:center; max-width:92vw}
+  .btn{display:inline-block;margin-top:12px;padding:12px 18px;border-radius:12px;border:1px solid #2e3c6d;
+    color:var(--fg); background:linear-gradient(180deg,#1a2750,#0f1733); text-decoration:none;font-weight:700}
+  .btn:active{transform:scale(.98)}
+  canvas{display:block;touch-action:none}
+  #touchDot{position:fixed; width:30px;height:30px;border-radius:50%; border:2px solid var(--accent);
+    transform:translate(-50%,-50%); opacity:0; pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="ui">
+  <div id="topbar">
+    <div style="display:flex;gap:10px;align-items:center">
+      <div id="score">Puntos: 0</div>
+      <div id="lives">
+        <div class="life" id="life1"></div>
+        <div class="life" id="life2"></div>
+        <div class="life" id="life3"></div>
+      </div>
+    </div>
+    <div id="power"></div>
+    <div id="hint">Arrastra para mover ✈️</div>
+  </div>
+  <div id="centerPanel">
+    <div id="overlay" class="card" style="display:none">
+      <h2 id="overlayTitle" style="margin:0 0 6px">Aviones Touch</h2>
+      <div id="overlayText" style="opacity:.9">Evita choques, recoge <b>power‑ups</b>, derrota <b>jefes</b>. Arrastra el dedo para moverte.</div>
+      <a id="btnStart" class="btn" href="#">Jugar</a>
+    </div>
+  </div>
+</div>
+
+<div id="touchDot"></div>
+
+<script>
+(()=> {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+
+  const ui = {
+    score: document.getElementById('score'),
+    overlay: document.getElementById('overlay'),
+    overlayTitle: document.getElementById('overlayTitle'),
+    overlayText: document.getElementById('overlayText'),
+    btnStart: document.getElementById('btnStart'),
+    touchDot: document.getElementById('touchDot'),
+    hint: document.getElementById('hint'),
+    power: document.getElementById('power'),
+    lives: [document.getElementById('life1'), document.getElementById('life2'), document.getElementById('life3')]
+  };
+
+  let DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+  let running=false, last=0;
+  let game;
+
+  function resize(){
+    DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 3));
+    const w = window.innerWidth, h = window.innerHeight;
+    canvas.width = Math.floor(w * DPR);
+    canvas.height = Math.floor(h * DPR);
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(DPR, DPR); // work in CSS pixels
+  }
+  window.addEventListener('resize', resize, { passive:true });
+  resize();
+
+  // ---------- Utilidades ----------
+  const rand = (a,b)=> a + Math.random()*(b-a);
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+  function dist2(ax,ay,bx,by){ const dx=ax-bx, dy=ay-by; return dx*dx+dy*dy; }
+
+  // ---------- Entidades ----------
+  function makeGame(){
+    const state = {
+      time: 0,
+      score: 0,
+      lives: 3,
+      player: {
+        x: Math.floor(window.innerWidth/2),
+        y: Math.floor(window.innerHeight*0.78),
+        r: 16,
+        speed: 640,
+        targetX: null,
+        targetY: null,
+        fireTimer: 0,
+        fireRate: 0.13,
+        alive: true,
+        shield: 0,          // segundos de escudo activo
+        rapid: 0,           // disparo rápido
+        spread: 0,          // disparo en abanico
+        invuln: 0,
+        // --------- NUEVO: ataque acumulativo y permanente durante la partida ---------
+        attack: 1,          // multiplicador de daño (1.0 por defecto)
+        kills: 0            // muertes totales para escalar ataque
+      },
+      bullets: [],
+      enemyBullets: [],
+      enemies: [],
+      particles: [],
+      powerups: [],
+      spawnTimer: 0.9,
+      difficulty: 1,
+      nextBossScore: 120,
+      boss: null,
+    };
+    return state;
+  }
+
+  function spawnEnemy(){
+    const zig = Math.random()<0.5;
+    const x = rand(20, window.innerWidth-20);
+    const y = -30;
+    const speed = rand(80, 150) + game.difficulty*10;
+    game.enemies.push({
+      x,y, r: 18, hp: 2 + Math.floor(game.difficulty/2),
+      vx: zig ? rand(-70,70) : 0,
+      vy: speed,
+      t: 0, shoot:false
+    });
+  }
+
+  function spawnBoss(){
+    const hp = 220 + Math.floor(game.difficulty*60);
+    game.boss = {
+      x: window.innerWidth/2, y: 90, r: 42, hp, hpMax: hp,
+      vx: 140, vy: 0, t: 0, pattern: 0, shootTimer: 0.4
+    };
+  }
+
+  function dropPowerUp(x,y){
+    // 35% de probabilidad de soltar power‑up
+    if (Math.random()<0.35){
+      const types = ['shield','rapid','spread','heart'];
+      const type = types[Math.floor(Math.random()*types.length)];
+      game.powerups.push({x,y,vy:90, r:12, type, t:0});
+    }
+  }
+
+  function spawnExplosion(x,y, color="#ffd060", n=12, speed=220){
+    for(let i=0;i<n;i++){
+      game.particles.push({
+        x,y, life: rand(.35,.8), t:0,
+        vx: rand(-speed,speed), vy: rand(-speed,speed),
+        size: rand(1,3), color
+      });
+    }
+  }
+
+  // ---------- Input táctil/puntero ----------
+  let pointerActive=false, px=0, py=0;
+  canvas.addEventListener('pointerdown', (e)=>{
+    pointerActive = true;
+    const rect = canvas.getBoundingClientRect();
+    px = (e.clientX - rect.left);
+    py = (e.clientY - rect.top);
+    if (game) { game.player.targetX = px; game.player.targetY = py; }
+    showDot(px,py);
+  });
+  canvas.addEventListener('pointermove', (e)=>{
+    if (!pointerActive) return;
+    const rect = canvas.getBoundingClientRect();
+    px = (e.clientX - rect.left);
+    py = (e.clientY - rect.top);
+    if (game) { game.player.targetX = px; game.player.targetY = py; }
+    showDot(px,py);
+  });
+  window.addEventListener('pointerup', ()=>{
+    pointerActive = false;
+    hideDot();
+  });
+
+  function showDot(x,y){
+    ui.touchDot.style.left = x + 'px';
+    ui.touchDot.style.top  = y + 'px';
+    ui.touchDot.style.opacity = .8;
+  }
+  function hideDot(){ ui.touchDot.style.opacity = 0; }
+
+  // ---------- Lógica ----------
+  function update(dt){
+    game.time += dt;
+    game.difficulty += dt*0.2;
+
+    // Player movimiento
+    const p = game.player;
+    if (p.targetX != null){
+      const dx = p.targetX - p.x;
+      const dy = p.targetY - p.y;
+      const d = Math.hypot(dx,dy);
+      const step = p.speed * dt;
+      if (d <= step){ p.x = p.targetX; p.y = p.targetY; }
+      else { p.x += dx/d*step; p.y += dy/d*step; }
+      p.x = clamp(p.x, 18, window.innerWidth-18);
+      p.y = clamp(p.y, 18, window.innerHeight-18);
+    }
+
+    // temporizadores de power‑ups
+    p.shield = Math.max(0, p.shield - dt);
+    p.rapid  = Math.max(0, p.rapid  - dt);
+    p.spread = Math.max(0, p.spread - dt);
+
+    // Disparo auto
+    p.fireTimer -= dt;
+    const rate = (p.rapid>0) ? p.fireRate*0.5 : p.fireRate;
+    if (p.alive && p.fireTimer <= 0){
+      p.fireTimer = rate;
+      // bala central
+      game.bullets.push({ x:p.x, y:p.y-20, vy:-760, r:4 });
+      // spread opcional
+      if (p.spread>0){
+        game.bullets.push({ x:p.x-10, y:p.y-18, vy:-740, r:4, vx:-120 });
+        game.bullets.push({ x:p.x+10, y:p.y-18, vy:-740, r:4, vx:120 });
+      }
+    }
+    if (p.invuln>0) p.invuln -= dt;
+
+    // Balas del jugador
+    for (let i=game.bullets.length-1;i>=0;i--){
+      const b = game.bullets[i];
+      b.y += b.vy*dt;
+      if (b.vx) b.x += b.vx*dt;
+      if (b.y < -10){ game.bullets.splice(i,1); continue; }
+      // contra boss
+      if (game.boss){
+        const e = game.boss;
+        if (dist2(b.x,b.y,e.x,e.y) < (b.r+e.r)*(b.r+e.r)){
+          game.bullets.splice(i,1);
+          // --------- CAMBIO: daño escala con p.attack ---------
+          e.hp -= 2 * p.attack;
+          spawnExplosion(b.x,b.y,"#8fe1ff", 6, 120);
+          if (e.hp<=0){
+            spawnExplosion(e.x,e.y,"#ffd060", 50, 420);
+            game.boss = null;
+            game.score += 200;
+            dropPowerUp(e.x,e.y);
+            game.nextBossScore += Math.floor(140 + game.difficulty*40);
+            // bonificación al derrotar jefe (permanente durante la partida)
+            p.attack = Math.min(6, p.attack + 0.5);
+          }
+          continue;
+        }
+      }
+      // contra enemigos
+      for (let j=game.enemies.length-1;j>=0;j--){
+        const e = game.enemies[j];
+        if (dist2(b.x,b.y,e.x,e.y) < (b.r+e.r)*(b.r+e.r)){
+          game.bullets.splice(i,1);
+          // --------- CAMBIO: daño escala con p.attack ---------
+          e.hp -= 1 * p.attack;
+          spawnExplosion(b.x,b.y,"#8fe1ff", 6, 120);
+          if (e.hp<=0){
+            spawnExplosion(e.x,e.y,"#ffd060", 16, 260);
+            game.enemies.splice(j,1);
+            game.score += 10;
+            dropPowerUp(e.x,e.y);
+            // incremento de ataque permanente por cada enemigo destruido
+            p.kills += 1;
+            // +3% por kill, con tope razonable para no romper el juego
+            p.attack = Math.min(6, p.attack + 0.03);
+          } else {
+            e.vy += 20;
+          }
+          break;
+        }
+      }
+    }
+
+    // Enemigos
+    game.spawnTimer -= dt;
+    if (!game.boss && game.spawnTimer <= 0){
+      game.spawnTimer = Math.max(0.25, 0.95 - game.difficulty*0.05);
+      spawnEnemy();
+    }
+    for (let i=game.enemies.length-1;i>=0;i--){
+      const e = game.enemies[i];
+      e.t += dt;
+      e.x += e.vx*dt;
+      e.y += e.vy*dt;
+      if (e.x<18 || e.x>window.innerWidth-18) e.vx *= -1;
+      if (e.y > window.innerHeight + 30){ game.enemies.splice(i,1); continue; }
+      // choque con jugador
+      const p = game.player;
+      if (p.alive && p.invuln<=0){
+        if (dist2(e.x,e.y, p.x,p.y) < (e.r+p.r)*(e.r+p.r)){
+          damagePlayer();
+          game.enemies.splice(i,1);
+          spawnExplosion(e.x,e.y,"#ff6b81", 20, 320);
+        }
+      }
+    }
+
+    // Boss spawn
+    if (!game.boss && game.score >= game.nextBossScore){
+      spawnBoss();
+    }
+
+    // Boss lógica
+    if (game.boss){
+      const b = game.boss;
+      b.t += dt;
+      b.x += b.vx*dt;
+      if (b.x < 40 || b.x > window.innerWidth-40) b.vx *= -1;
+
+      // disparos del boss (patrones alternos)
+      b.shootTimer -= dt;
+      if (b.shootTimer<=0){
+        b.pattern = (b.pattern+1)%3;
+        b.shootTimer = 0.4;
+        if (b.pattern===0){
+          // ráfaga directa
+          for(let i=-1;i<=1;i++){
+            game.enemyBullets.push({x:b.x+i*18,y:b.y+10, vx:i*60, vy:260, r:4});
+          }
+        } else if (b.pattern===1){
+          // anillo
+          for(let a=0;a<Math.PI*2;a+=Math.PI/6){
+            game.enemyBullets.push({x:b.x,y:b.y, vx:Math.cos(a)*160, vy:Math.sin(a)*160, r:3});
+          }
+        } else {
+          // barrido
+          const dir = (Math.random()<0.5) ? -1 : 1;
+          for(let i=0;i<6;i++){
+            game.enemyBullets.push({x:b.x + i*10*dir, y:b.y+6, vx:120*dir, vy:260, r:3});
+          }
+        }
+      }
+    }
+
+    // Balas enemigas
+    {
+      const p = game.player;
+      for (let i=game.enemyBullets.length-1;i>=0;i--){
+        const eb = game.enemyBullets[i];
+        eb.x += (eb.vx||0)*dt;
+        eb.y += eb.vy*dt;
+        if (eb.y > window.innerHeight+20 || eb.x<-20 || eb.x>window.innerWidth+20){
+          game.enemyBullets.splice(i,1); continue;
+        }
+        if (p.alive && p.invuln<=0){
+          if (dist2(eb.x,eb.y,p.x,p.y) < (eb.r+p.r)*(eb.r+p.r)){
+            game.enemyBullets.splice(i,1);
+            damagePlayer();
+          }
+        }
+      }
+    }
+
+    // Power‑ups
+    for (let i=game.powerups.length-1;i>=0;i--){
+      const pu = game.powerups[i];
+      pu.t += dt; pu.y += pu.vy*dt;
+      if (pu.y > window.innerHeight + 20){ game.powerups.splice(i,1); continue; }
+      const p = game.player;
+      if (dist2(pu.x,pu.y,p.x,p.y) < (pu.r+p.r)*(pu.r+p.r)){
+        applyPowerUp(pu.type);
+        spawnExplosion(pu.x,pu.y,"#c7f7ff", 10, 180);
+        game.powerups.splice(i,1);
+      }
+    }
+
+    // Partículas
+    for (let i=game.particles.length-1;i>=0;i--){
+      const pa = game.particles[i];
+      pa.t += dt;
+      pa.x += pa.vx*dt;
+      pa.y += pa.vy*dt;
+      if (pa.t>=pa.life) game.particles.splice(i,1);
+    }
+
+    // UI
+    ui.score.textContent = 'Puntos: ' + game.score;
+    for (let i=0;i<3;i++){
+      ui.lives[i].classList.toggle('off', i >= game.lives);
+    }
+    renderBadges();
+  }
+
+  function renderBadges(){
+    const p = game.player;
+    const arr = [];
+    if (p.shield>0) arr.push('🛡️ Escudo ' + Math.ceil(p.shield)+'s');
+    if (p.rapid>0)  arr.push('⚡ Rápido ' + Math.ceil(p.rapid)+'s');
+    if (p.spread>0) arr.push('🔱 Abanico ' + Math.ceil(p.spread)+'s');
+    // (Sin cambios visuales adicionales; mantenemos las insignias existentes)
+    ui.power.innerHTML = arr.map(t=>'<span class="badge">'+t+'</span>').join('');
+  }
+
+  function applyPowerUp(type){
+    const p = game.player;
+    if (type==='shield'){ p.shield = Math.max(p.shield, 8); p.invuln = 0; }
+    else if (type==='rapid'){ p.rapid = Math.max(p.rapid, 10); }
+    else if (type==='spread'){ p.spread = Math.max(p.spread, 12); }
+    else if (type==='heart'){ if (game.lives<3) game.lives += 1; }
+  }
+
+  function damagePlayer(){
+    const p = game.player;
+    if (p.shield>0){ // el escudo absorbe y se reduce
+      p.shield = Math.max(0, p.shield - 3);
+      spawnExplosion(p.x,p.y,"#79e6ff", 18, 300);
+      p.invuln = 0.6;
+      return;
+    }
+    if (p.invuln>0) return;
+    game.lives -= 1;
+    spawnExplosion(p.x,p.y,"#ff6b81", 26, 360);
+    if (game.lives<=0){
+      p.alive = false;
+      endGame();
+    } else {
+      p.invuln = 1.4;
+    }
+  }
+
+  // ---------- Render ----------
+  function draw(){
+    const w = window.innerWidth, h = window.innerHeight;
+    ctx.fillStyle = '#060a18';
+    ctx.fillRect(0,0,w,h);
+    drawStars(w,h);
+
+    // Player
+    if (game.player.alive){
+      drawPlayer(game.player);
+    }
+
+    // Balas jugador
+    for (const b of game.bullets){
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, 3, 0, Math.PI*2);
+      ctx.fillStyle = '#a7f3ff';
+      ctx.fill();
+    }
+
+    // Enemigos
+    for (const e of game.enemies){ drawEnemy(e); }
+
+    // Boss
+    if (game.boss){ drawBoss(game.boss); }
+
+    // Balas enemigas
+    for (const eb of game.enemyBullets){
+      ctx.beginPath();
+      ctx.arc(eb.x, eb.y, eb.r, 0, Math.PI*2);
+      ctx.fillStyle = '#ff9aa6';
+      ctx.fill();
+    }
+
+    // Power‑ups
+    for (const pu of game.powerups){
+      drawPowerUp(pu);
+    }
+
+    // Partículas
+    for (const pa of game.particles){
+      const t = pa.t/pa.life;
+      ctx.globalAlpha = 1 - t;
+      ctx.fillStyle = pa.color;
+      ctx.fillRect(pa.x, pa.y, pa.size, pa.size);
+    }
+    ctx.globalAlpha = 1;
+
+    // Barra de vida del boss
+    if (game.boss){
+      const b = game.boss;
+      const wBar = Math.min(window.innerWidth - 20, 340);
+      const x = (window.innerWidth - wBar)/2, y = 8+24; // debajo de la topbar
+      ctx.fillStyle = 'rgba(255,255,255,.08)';
+      ctx.fillRect(x,y,wBar,8);
+      ctx.fillStyle = '#ff6b81';
+      ctx.fillRect(x,y, (b.hp/b.hpMax)*wBar, 8);
+      ctx.strokeStyle = 'rgba(255,255,255,.25)';
+      ctx.strokeRect(x+.5,y+.5,wBar-1,8-1);
+    }
+  }
+
+  function drawStars(w,h){
+    const n = 70;
+    const t = game.time;
+    for (let i=0;i<n;i++){
+      const x = (i*97 % w);
+      const y = ( (i*53 + Math.floor(t*60)) % h );
+      const s = (i%4===0)? 2 : 1;
+      ctx.fillStyle = (i%7===0)? '#4cd6ff' : '#9fb5ff';
+      ctx.fillRect(x, y, s, s);
+    }
+  }
+
+  function drawPlayer(p){
+    const blink = (p.invuln>0 && Math.floor(p.invuln*20)%2===0);
+    if (blink) return;
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    // halo
+    const grd = ctx.createRadialGradient(0,0,0, 0,0,24);
+    grd.addColorStop(0,'rgba(76,214,255,.35)');
+    grd.addColorStop(1,'rgba(76,214,255,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath(); ctx.arc(0,0,24,0,Math.PI*2); ctx.fill();
+    // fuselaje
+    ctx.beginPath();
+    ctx.moveTo(0,-20); ctx.lineTo(12,14); ctx.lineTo(0,8); ctx.lineTo(-12,14); ctx.closePath();
+    ctx.fillStyle = '#e9f6ff'; ctx.fill();
+    // cabina
+    ctx.beginPath(); ctx.arc(0,-8,4.5,0,Math.PI*2); ctx.fillStyle='#4cd6ff'; ctx.fill();
+    // estela
+    ctx.beginPath(); ctx.moveTo(-3,22); ctx.lineTo(3,22); ctx.lineTo(0,36); ctx.closePath();
+    ctx.fillStyle=(p.shield>0)?'#aaf3ff':'#6ec9ff'; ctx.globalAlpha=.7; ctx.fill(); ctx.globalAlpha=1;
+    // anillo escudo
+    if (p.shield>0){
+      ctx.beginPath(); ctx.arc(0,0,22,0,Math.PI*2);
+      ctx.strokeStyle='rgba(170,243,255,.8)'; ctx.lineWidth=2; ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawEnemy(e){
+    ctx.save();
+    ctx.translate(e.x, e.y);
+    ctx.beginPath();
+    ctx.moveTo(0, -14); ctx.lineTo(14, 0); ctx.lineTo(0, 14); ctx.lineTo(-14,0); ctx.closePath();
+    ctx.fillStyle = '#ff6b81';
+    ctx.fill();
+    ctx.globalAlpha=.5;
+    ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2);
+    const g = ctx.createRadialGradient(0,0,2,0,0,18);
+    g.addColorStop(0,'rgba(255,108,129,.6)'); g.addColorStop(1,'rgba(255,108,129,0)');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
+
+  function drawBoss(b){
+    ctx.save();
+    ctx.translate(b.x, b.y);
+    // cuerpo tipo diamante grande
+    ctx.beginPath();
+    ctx.moveTo(0,-38); ctx.lineTo(38,0); ctx.lineTo(0,38); ctx.lineTo(-38,0); ctx.closePath();
+    ctx.fillStyle = '#ff3d5e'; ctx.fill();
+    // brillo
+    ctx.globalAlpha=.55;
+    ctx.beginPath(); ctx.arc(0,0,46,0,Math.PI*2);
+    const g = ctx.createRadialGradient(0,0,6,0,0,46);
+    g.addColorStop(0,'rgba(255,61,94,.65)'); g.addColorStop(1,'rgba(255,61,94,0)');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.globalAlpha=1;
+    // ojo
+    ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fillStyle='#222'; ctx.fill();
+    ctx.restore();
+  }
+
+  function drawPowerUp(pu){
+    ctx.save();
+    ctx.translate(pu.x, pu.y);
+    ctx.globalAlpha = 0.95;
+    if (pu.type==='shield'){ // escudo
+      ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2);
+      ctx.strokeStyle='#aaf3ff'; ctx.lineWidth=2; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-6,2); ctx.lineTo(-1,7); ctx.lineTo(7,-5); ctx.strokeStyle='#aaf3ff'; ctx.lineWidth=2; ctx.stroke();
+    } else if (pu.type==='rapid'){ // rayo
+      ctx.beginPath(); ctx.moveTo(-4,-6); ctx.lineTo(2,-1); ctx.lineTo(-1,0); ctx.lineTo(4,6);
+      ctx.strokeStyle='#ffe66d'; ctx.lineWidth=2; ctx.stroke();
+    } else if (pu.type==='spread'){ // tridente
+      ctx.beginPath(); ctx.moveTo(0,-8); ctx.lineTo(0,8);
+      ctx.moveTo(-6,-2); ctx.lineTo(0,0); ctx.lineTo(6,-2);
+      ctx.strokeStyle='#b7ffa3'; ctx.lineWidth=2; ctx.stroke();
+    } else if (pu.type==='heart'){ // vida
+      ctx.fillStyle='#ff7b94';
+      ctx.beginPath();
+      ctx.moveTo(0,6);
+      ctx.bezierCurveTo(-10,-2,-6,-10,0,-5);
+      ctx.bezierCurveTo(6,-10,10,-2,0,6);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ---------- Bucle ----------
+  function loop(ts){
+    if (!running) return;
+    if (!last) last = ts;
+    const dt = Math.min(0.035, (ts - last)/1000);
+    last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // ---------- Estados ----------
+  function startGame(){
+    game = makeGame();
+    ui.overlay.style.display = 'none';
+    ui.hint.style.opacity = .9;
+    last = 0;
+    running = true;
+    requestAnimationFrame(loop);
+  }
+
+  function endGame(){
+    running = false;
+    setTimeout(()=>{
+      ui.overlayTitle.textContent = '¡Game Over!';
+      ui.overlayText.innerHTML = 'Puntuación: <b>' + game.score + '</b>.<br/>Toca \"Reintentar\" para jugar de nuevo.';
+      ui.btnStart.textContent = 'Reintentar';
+      ui.overlay.style.display = 'block';
+    }, 250);
+  }
+
+  // Mostrar portada al cargar
+  ui.overlay.style.display = 'block';
+  ui.overlayTitle.textContent = 'Aviones Touch';
+  ui.overlayText.innerHTML = 'Arrastra el dedo para mover el avión. Recoge <b>power‑ups</b> (🛡️ ⚡ 🔱 ❤️) y derrota <b>jefes</b>.';
+  ui.btnStart.textContent = 'Jugar';
+  ui.btnStart.addEventListener('click', (e)=>{ e.preventDefault(); startGame(); });
+
+  // Evita scroll accidental en móvil
+  window.addEventListener('touchmove', e => { if (pointerActive) e.preventDefault(); }, { passive:false });
+
+})();
+</script>
+</body>
+</html>
