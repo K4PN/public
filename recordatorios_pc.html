@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tareas & Recordatorios — Modo Nocturno + Mini-Juegos</title>
+<meta name="theme-color" content="#0b1220">
+<style>
+  :root{
+    /* Paleta nocturna */
+    --bg:#0b1220;          /* azul muy oscuro */
+    --panel:#111827;       /* slate-900 */
+    --card:#0b1220;        /* fondo de tarjetas */
+    --muted:#94a3b8;       /* slate-400 */
+    --text:#e5edf7;        /* texto claro */
+    --accent:#60a5fa;      /* sky-400 */
+    --accent-strong:#3b82f6; /* blue-500 */
+    --good:#22c55e; --warn:#f59e0b; --danger:#f87171;
+    --border:#243244;      /* borde sutil */
+    --radius:16px;
+    --shadow: 0 6px 18px rgba(2, 6, 23, 0.75);
+    --glow: 0 0 0px rgba(96,165,250,0.0), 0 0 24px rgba(59,130,246,0.24);
+    --glow-strong: 0 0 0px rgba(96,165,250,0.0), 0 0 28px rgba(59,130,246,0.36);
+    --chip-bg:#0f172a;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    background:radial-gradient(1200px 800px at 10% -10%, #0d1730 0%, #0b1220 35%, #0a1020 60%, #080d19 100%);
+    color:var(--text);
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, Ubuntu, Cantarell, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  }
+
+  /* Disposición general */
+  .shell{
+    display:grid; grid-template-columns: 360px 1fr; gap:18px;
+    max-width: 1280px; margin:0 auto; padding:24px;
+    min-height:100%;
+  }
+
+  /* Panel izquierdo: reloj y minijuegos */
+  .clockPanel{
+    position: sticky; top:24px;
+    background: linear-gradient(180deg, #0f172a, #0c1322);
+    border:1px solid var(--border); border-radius:24px; box-shadow: var(--shadow);
+    padding:28px 24px;
+    display:flex; flex-direction:column; align-items:flex-start; gap:10px;
+  }
+  .big-time{
+    font-size: clamp(56px, 7.2vw, 84px);
+    line-height: .95; font-weight: 800; letter-spacing: -0.02em;
+    color: var(--accent-strong);
+    text-shadow: 0 0 24px rgba(59,130,246,0.25);
+  }
+  .big-date{
+    font-size: clamp(18px, 2.2vw, 24px);
+    color: var(--muted); margin-top: 6px;
+  }
+  .clock-extra{ margin-top: 10px; display:flex; gap:10px; flex-wrap: wrap; color: var(--muted); }
+  .chip{ padding:8px 12px; border-radius:999px; background: var(--chip-bg); border:1px solid var(--border); white-space:nowrap; color:#dbeafe; }
+
+  /* Pestañas de minijuegos */
+  .tabs{
+    margin-top:14px; width:100%;
+    background:#0b1220; border:1px solid var(--border); border-radius:16px; overflow:hidden; box-shadow: var(--shadow);
+  }
+  .tab-headers{ display:flex; background:#0f172a; border-bottom:1px solid var(--border); }
+  .tab-headers button{
+    flex:1; padding:10px 12px; background:transparent; color:#c7d2fe; border:none; cursor:pointer; font-weight:600;
+  }
+  .tab-headers button.active{ background:#0b1220; color:#93c5fd; border-bottom:2px solid var(--accent); }
+  .tab-content{ padding:10px; }
+  .tab-pane{ display:none; }
+  .tab-pane.active{ display:block; }
+
+  /* Panel derecho: app de recordatorios */
+  .app{
+    background: linear-gradient(180deg, #0f1627, #0c1220);
+    border:1px solid var(--border); border-radius:24px; box-shadow: var(--shadow);
+    display:flex; flex-direction:column; gap:12px; min-height:100%;
+  }
+  header{
+    position:sticky; top:0; z-index:10;
+    background: linear-gradient(to bottom, rgba(15,22,39,.96), rgba(12,18,32,.92));
+    border-bottom:1px solid var(--border); border-top-left-radius:24px; border-top-right-radius:24px;
+    padding:14px 16px 12px;
+    backdrop-filter: blur(6px);
+  }
+  .title{ display:flex; align-items:center; justify-content:space-between; gap:8px; }
+  h1{ margin:0; letter-spacing:.2px; display:flex; align-items:center; gap:10px;
+    font-size: clamp(18px, 2.8vw, 22px); }
+  h1 .badge{font-size:.8rem; background:#1e293b; color:#dbeafe; padding:4px 10px; border-radius:999px; border:1px solid #334155}
+
+  .actions{display:flex; gap:8px}
+  .btn{ border:1px solid var(--border); background:#152136;
+    padding:10px 12px; border-radius:12px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; color: var(--text); box-shadow:0 1px 0 rgba(0,0,0,0.25); }
+  .btn:hover{ background:#1c2942 }
+  .btn.primary{ background: linear-gradient(180deg, #3b82f6, #2563eb); border-color:#1d4ed8; color:white; }
+  .btn.warn{ background: linear-gradient(180deg, #f59e0b, #d97706); border-color:#b45309; color:white; }
+  .btn.good{ background: linear-gradient(180deg, #22c55e, #16a34a); border-color:#15803d; color:white; }
+  .btn.ghost{ background:transparent; color: var(--text); }
+  .btn.ghost:hover{ background:#1c2942; }
+
+  .searchRow{
+    display:grid; grid-template-columns: 28px 1fr minmax(150px, 30%);
+    gap:8px; align-items:center;
+    background:#0b1220; border:1px solid var(--border); padding:6px 8px; border-radius:12px;
+  }
+  .searchRow .icon{ width:20px; height:20px; color:#a5b4fc }
+  #search{ border:none; outline:none; background:transparent; min-width:0; font-size:15px; line-height:1.2; height: 36px; padding:6px 2px; color:var(--text); }
+  #sort{ width:100%; background:#0b1220; border:1px solid var(--border); border-radius:10px; padding:8px 10px; appearance:auto; font-size:14px; color:var(--text); }
+
+  .filters{ display:flex; gap:8px; overflow:auto; padding:6px 4px 2px; }
+  .filters .chip{ background:#0b1220; border:1px solid var(--border); color:#dbeafe; }
+  .filters .chip.active{ outline:2px solid var(--accent); color:#93c5fd; }
+
+  main#list{ display:flex; flex-direction:column; gap:12px; padding: 12px 16px 18px; }
+  /* Tarjeta destacada en modo nocturno */
+  .card{
+    background: radial-gradient(240px 180px at 10% -10%, rgba(59,130,246,0.14) 0%, rgba(59,130,246,0.06) 30%, rgba(59,130,246,0.02) 50%, rgba(0,0,0,0) 70%), var(--card);
+    border:1px solid rgba(96,165,250,0.55);
+    border-radius:var(--radius);
+    padding:14px;
+    display:flex; gap:12px; align-items:flex-start;
+    box-shadow: var(--glow);
+    transition: box-shadow .2s ease, transform .06s ease, border-color .2s ease, background .2s ease;
+  }
+  .card:hover{ box-shadow: var(--glow-strong); transform: translateY(-1px); border-color: rgba(147,197,253,0.75); }
+  .checkbox{ min-width:28px; height:28px; border-radius:8px; border:2px solid var(--accent);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; color: var(--accent); font-weight:bold; background:#091326; }
+  .checkbox.done{ background:var(--accent-strong); color:white; border-color:transparent; }
+  .task{ flex:1; display:flex; flex-direction:column; gap:6px }
+  .task h3{ margin:0; font-size:1.05rem; line-height:1.35; color: #e5edf7; text-shadow: 0 0 10px rgba(59,130,246,0.18); }
+  .meta{ display:flex; gap:8px; flex-wrap:wrap; color:var(--muted); font-size:.9rem }
+  .meta .due{ padding:4px 8px; background:#0e1729; border:1px dashed var(--border); border-radius:999px }
+  .right .btn{ background:#0e1729 }
+
+  .empty{ text-align:center; opacity:.8; padding:24px; border:1px dashed var(--border); border-radius:14px; background:#0e1729; color:var(--muted); }
+
+  footer.nav{ position:sticky; bottom:0; left:0; right:0; z-index:5;
+    background: linear-gradient(180deg, rgba(12,18,32,.94), rgba(12,18,32,1));
+    border-top:1px solid var(--border); border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+  }
+  .nav-inner{ padding:10px 16px; display:flex; gap:10px; justify-content:flex-end; }
+
+  dialog{ border:none; border-radius:18px; padding:0; max-width:720px; width:clamp(420px,66vw,720px);
+    background:linear-gradient(180deg,#101a2b,#0b1220); color:var(--text); border:1px solid var(--border); box-shadow: var(--shadow); }
+  dialog::backdrop{ backdrop-filter: blur(2px); background: rgba(0,0,0,.6) }
+  .modal-head{ padding:14px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between }
+  .modal-body{ padding:14px 16px; display:grid; gap:10px }
+  .modal-foot{ padding:14px 16px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end }
+  .input, textarea, select, input[type="datetime-local"]{ width:100%; background:#0b1220; border:1px solid var(--border); border-radius:12px; padding:12px 12px; color:var(--text) }
+  textarea{ min-height:80px; resize:vertical }
+
+  .sr-only{ position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden; }
+
+  /* Tableros de juegos */
+  .board{ display:grid; gap:2px; user-select:none; }
+
+  /* Buscaminas */
+  #msBoard{ grid-template-columns: repeat(9, 28px); }
+  .ms-cell{ width:28px; height:28px; display:flex; align-items:center; justify-content:center; background:#0f172a; border:1px solid #1f2a3a; border-radius:6px; cursor:pointer; font-weight:700; }
+  .ms-cell.revealed{ background:#13223a; border-color:#22314a; }
+  .ms-cell.flag{ background:#1b2a44; }
+  .ms-cell.mine{ background:#3b1f2a; }
+  .ms-bar{ display:flex; gap:8px; align-items:center; margin-bottom:8px; font-size:14px; color:#cbd5e1 }
+  .ms-btn{ padding:6px 10px; background:#16253f; border:1px solid #243244; border-radius:8px; color:#dbeafe; cursor:pointer }
+  .ms-num0{color:#94a3b8} .ms-num1{color:#60a5fa} .ms-num2{color:#34d399} .ms-num3{color:#f59e0b} .ms-num4{color:#f87171} .ms-num5{color:#c084fc} .ms-num6{color:#22c55e} .ms-num7{color:#eab308} .ms-num8{color:#f43f5e}
+
+  /* Ajedrez */
+  #chessBoard{ grid-template-columns: repeat(8, 36px); }
+  .sq{ width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:22px; cursor:pointer; }
+  .dark{ background:#1b263a } .light{ background:#0f172a }
+  .sq.sel{ outline:2px solid #60a5fa; }
+  .sq.move{ box-shadow: inset 0 0 0 2px #38bdf8; }
+
+  /* Tres en raya */
+  #tttBoard{ grid-template-columns: repeat(3, 48px); margin-top:6px; }
+  .ttt-cell{ width:48px; height:48px; display:flex; align-items:center; justify-content:center; font-size:26px; background:#0f172a; border:1px solid #334155; border-radius:10px; cursor:pointer; }
+  .ttt-status{ margin-top:6px; color:#cbd5e1 }
+
+  /* Responsive */
+  @media (max-width: 980px){
+    .shell{ grid-template-columns: 1fr; }
+    .clockPanel{ position:relative; top:auto; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- IZQUIERDA: reloj, fecha y mini-juegos -->
+  <aside class="clockPanel" aria-label="Reloj">
+    <div class="big-time" id="bigTime">--:--</div>
+    <div class="big-date" id="bigDate">Cargando fecha…</div>
+    <div class="clock-extra">
+      <span class="chip" id="weekday">—</span>
+      <span class="chip" id="tz">Europe/Madrid</span>
+    </div>
+
+    <!-- Pestañas -->
+    <div class="tabs">
+      <div class="tab-headers">
+        <button class="active" data-tab="ms">🧨 Buscaminas</button>
+        <button data-tab="chess">♟️ Ajedrez</button>
+        <button data-tab="ttt">⭕❌ Tres en raya</button>
+      </div>
+      <div class="tab-content">
+        <!-- Buscaminas -->
+        <div class="tab-pane active" id="tab-ms">
+          <div class="ms-bar">
+            <button id="msReset" class="ms-btn">Reiniciar</button>
+            <span>💣 <b id="msMinesLeft">10</b></span>
+            <span>⏱️ <b id="msTimer">0</b>s</span>
+            <span id="msStatus"></span>
+          </div>
+          <div id="msBoard" class="board"></div>
+          <small style="color:#94a3b8">Clic: revelar · Mayús+Clic o botón derecho: bandera</small>
+        </div>
+
+        <!-- Ajedrez -->
+        <div class="tab-pane" id="tab-chess">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; color:#cbd5e1">
+            <button id="chessReset" class="ms-btn">Reiniciar</button>
+            <span>Turno: <b id="turnLbl">♟️ Blancas</b></span>
+            <small style="margin-left:auto">Simplificado: sin jaque/jaque mate ni enroque; promoción a dama.</small>
+          </div>
+          <div id="chessBoard" class="board"></div>
+        </div>
+
+        <!-- Tres en raya -->
+        <div class="tab-pane" id="tab-ttt">
+          <div class="ms-bar">
+            <button id="tttReset" class="ms-btn">Reiniciar</button>
+            <span class="ttt-status" id="tttStatus">Turno: X</span>
+          </div>
+          <div id="tttBoard" class="board"></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- DERECHA: gestor de recordatorios -->
+  <section class="app">
+    <header>
+      <div class="title">
+        <h1>🗒️ Tareas & Recordatorios <span id="count" class="badge">0</span></h1>
+        <div class="actions">
+          <button class="btn ghost" id="exportBtn" type="button" title="Exportar JSON">⬇️ Exportar</button>
+          <button class="btn ghost" id="importBtn" type="button" title="Importar JSON">⬆️ Importar</button>
+          <input class="sr-only" type="file" id="importFile" accept="application/json">
+        </div>
+      </div>
+      <div class="searchRow" style="margin-top:8px">
+        <svg class="icon" viewBox="0 0 24 24" fill="none"><path d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm11 3-6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="search" type="text" placeholder="Buscar tareas..." autocomplete="off" inputmode="search">
+        <select id="sort" aria-label="Ordenar">
+          <option value="dueAsc">Fecha ⬆️</option>
+          <option value="dueDesc">Fecha ⬇️</option>
+          <option value="newest">Más nuevas</option>
+          <option value="oldest">Más antiguas</option>
+          <option value="alpha">A–Z</option>
+        </select>
+      </div>
+      <div class="filters">
+        <div class="chip active" data-filter="all">Todas</div>
+        <div class="chip" data-filter="today">Hoy</div>
+        <div class="chip" data-filter="done">Hechas</div>
+        <div class="chip" data-filter="todo">Pendientes</div>
+      </div>
+    </header>
+
+    <main id="list"></main>
+    <div id="emptyState" class="empty" hidden>✨ Sin tareas aún. Pulsa “Nueva” para empezar.</div>
+
+    <footer class="nav">
+      <div class="nav-inner">
+        <button class="btn primary" id="newBtn" type="button">➕ Nueva</button>
+        <button class="btn" id="clearDoneBtn" type="button" title="Eliminar hechas">🧹 Limpiar hechas</button>
+        <button class="btn warn" id="notifBtn" type="button" title="Activar notificaciones">🔔 Avisos</button>
+      </div>
+    </footer>
+  </section>
+</div>
+
+<dialog id="taskDialog">
+  <form id="taskForm" method="dialog">
+    <div class="modal-head">
+      <strong id="dialogTitle">Nueva tarea</strong>
+      <button type="button" class="btn ghost" id="closeDialog">✖</button>
+    </div>
+    <div class="modal-body">
+      <input class="input" id="title" placeholder="Título *" required maxlength="160" />
+      <textarea id="notes" placeholder="Notas (opcional)" class="input"></textarea>
+      <div style="display:flex; gap:10px; flex-wrap:wrap">
+        <input id="due" class="input" type="datetime-local" />
+        <select id="repeat" class="input" title="Repetir">
+          <option value="none">Sin repetición</option>
+          <option value="daily">Diaria</option>
+          <option value="weekly">Semanal</option>
+          <option value="monthly">Mensual</option>
+        </select>
+      </div>
+      <label class="row muted" style="display:flex; align-items:center; gap:8px">
+        <input id="leadMins" type="number" min="0" step="5" value="0" class="input" style="max-width:140px" />
+        Minutos antes para avisar
+      </label>
+      <input type="hidden" id="taskId">
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn danger" id="deleteBtn" hidden>Eliminar</button>
+      <div style="flex:1"></div>
+      <button class="btn" type="reset" id="resetBtn">Limpiar</button>
+      <button class="btn good" type="submit" id="saveBtn">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+(function(){
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const storeKey = "tasks.v1";
+  let tasks = loadTasks();
+  let currentFilter = "all";
+  let currentQuery = "";
+  let sortMode = "dueAsc";
+  let timers = new Map();
+
+  const list = $("#list");
+  const emptyState = $("#emptyState");
+  const search = $("#search");
+  const sort = $("#sort");
+  const newBtn = $("#newBtn");
+  const clearDoneBtn = $("#clearDoneBtn");
+  const notifBtn = $("#notifBtn");
+
+  const dialog = $("#taskDialog");
+  const form = $("#taskForm");
+  const title = $("#title");
+  const notes = $("#notes");
+  const due = $("#due");
+  const repeat = $("#repeat");
+  const leadMins = $("#leadMins");
+  const taskId = $("#taskId");
+  const deleteBtn = $("#deleteBtn");
+  const closeDialog = $("#closeDialog");
+  const exportBtn = $("#exportBtn");
+  const importBtn = $("#importBtn");
+  const importFile = $("#importFile");
+
+  /* --------- Reloj --------- */
+  function updateClock(){
+    const now = new Date();
+    const optsTime = { hour: '2-digit', minute:'2-digit' };
+    const optsDate = { year:'numeric', month:'long', day:'numeric' };
+    $("#bigTime").textContent = now.toLocaleTimeString([], optsTime);
+    $("#bigDate").textContent = now.toLocaleDateString('es-ES', optsDate);
+    const weekday = now.toLocaleDateString('es-ES', { weekday:'long' });
+    $("#weekday").textContent = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+  $("#tz").textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Madrid";
+
+  /* --------- Persistencia --------- */
+  function loadTasks(){
+    try{
+      const raw = localStorage.getItem(storeKey);
+      return raw ? JSON.parse(raw) : [];
+    }catch{ return [] }
+  }
+  function saveTasks(){
+    localStorage.setItem(storeKey, JSON.stringify(tasks));
+    scheduleAll();
+  }
+  function uid(){ return Math.random().toString(36).slice(2,9) + Date.now().toString(36) }
+
+  /* --------- Utilidades --------- */
+  function fmtDate(iso){
+    if(!iso) return "Sin fecha";
+    const d = new Date(iso);
+    if (isNaN(d)) return "Fecha inválida";
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    const time = d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    const date = d.toLocaleDateString();
+    return (sameDay ? "Hoy" : date) + " " + time;
+  }
+
+  function state(){
+    const total = tasks.length;
+    const open = tasks.filter(t => !t.done).length;
+    const countEl = $("#count");
+    if (countEl) countEl.textContent = open + "/" + total;
+    emptyState.hidden = total > 0;
+  }
+
+  /* --------- Render --------- */
+  function render(){
+    const q = currentQuery.trim().toLowerCase();
+    let filtered = tasks.filter(t=>{
+      const matchesText = !q || (t.title.toLowerCase().includes(q) || (t.notes||"").toLowerCase().includes(q));
+      let matchesFilter = true;
+      const now = new Date();
+      if(currentFilter==="today"){
+        if(!t.due) matchesFilter = false;
+        else {
+          const d = new Date(t.due);
+          const same = d.toDateString() === now.toDateString();
+          matchesFilter = same;
+        }
+      } else if(currentFilter==="done"){
+        matchesFilter = !!t.done;
+      } else if(currentFilter==="todo"){
+        matchesFilter = !t.done;
+      }
+      return matchesText && matchesFilter;
+    });
+
+    filtered.sort((a,b)=>{
+      const da = a.due ? new Date(a.due).getTime() : Infinity;
+      const db = b.due ? new Date(b.due).getTime() : Infinity;
+      if(sortMode==="dueAsc") return da - db;
+      if(sortMode==="dueDesc") return db - da;
+      if(sortMode==="newest") return b.created - a.created;
+      if(sortMode==="oldest") return a.created - b.created;
+      if(sortMode==="alpha") return a.title.localeCompare(b.title);
+      return 0;
+    });
+
+    list.innerHTML = "";
+    for(const t of filtered){
+      const item = document.createElement("div");
+      item.className = "card";
+      item.innerHTML = `
+        <div class="checkbox ${t.done?'done':''}" role="checkbox" aria-checked="${t.done}" data-id="${t.id}">${t.done?'✓':''}</div>
+        <div class="task">
+          <h3>${escapeHtml(t.title)}</h3>
+          <div class="meta">
+            <span class="due">${t.due? ('⏰ ' + fmtDate(t.due)) : '⏳ Sin fecha'}</span>
+            ${t.repeat!=='none'? `<span>🔁 ${labelRepeat(t.repeat)}</span>`:''}
+            ${t.done? `<span>✅ Hecha</span>`:''}
+          </div>
+          ${t.notes? `<p>${escapeHtml(t.notes)}</p>`:''}
+        </div>
+        <div class="right">
+          <button class="btn ghost" data-edit="${t.id}" type="button" title="Editar">✏️</button>
+          <button class="btn ghost" data-del="${t.id}" type="button" title="Eliminar">🗑️</button>
+        </div>`;
+      list.appendChild(item);
+    }
+    state();
+  }
+
+  function escapeHtml(s){
+    return s ? s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;'}[m])) : "";
+  }
+  function labelRepeat(v){
+    return v==='daily'?'Diaria': v==='weekly'?'Semanal': v==='monthly'?'Mensual':'Sin repetición';
+  }
+
+  /* --------- CRUD --------- */
+  function openDialog(task=null){
+    $("#dialogTitle").textContent = task? "Editar tarea" : "Nueva tarea";
+    deleteBtn.hidden = !task;
+    taskId.value = task? task.id : "";
+    title.value = task? task.title : "";
+    notes.value = task? (task.notes||"") : "";
+    due.value = task && task.due ? toLocalInputValue(new Date(task.due)) : "";
+    repeat.value = task? (task.repeat||"none") : "none";
+    leadMins.value = task? (task.leadMins||0) : 0;
+    dialog.showModal();
+    setTimeout(()=> title.focus(), 50);
+  }
+  function toLocalInputValue(d){
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function upsertTask(e){
+    e.preventDefault();
+    const id = taskId.value || uid();
+    const exists = tasks.find(t=>t.id===id);
+    const obj = {
+      id,
+      title: title.value.trim(),
+      notes: (notes.value || "").trim(),
+      due: due.value ? new Date(due.value).toISOString() : null,
+      repeat: repeat.value,
+      leadMins: Math.max(0, parseInt(leadMins.value||"0",10)),
+      done: exists? exists.done : false,
+      created: exists? exists.created : Date.now()
+    };
+    if(!obj.title){ title.focus(); return; }
+    if(exists) Object.assign(exists, obj);
+    else tasks.push(obj);
+    saveTasks(); render(); dialog.close();
+  }
+  function deleteTask(id){
+    tasks = tasks.filter(t=>t.id!==id);
+    saveTasks(); render();
+  }
+  function toggleDone(id){
+    const t = tasks.find(x=>x.id===id);
+    if(!t) return;
+    t.done = !t.done;
+    saveTasks(); render();
+  }
+  function clearDone(){
+    const before = tasks.length;
+    tasks = tasks.filter(t=>!t.done);
+    if(tasks.length!==before){ saveTasks(); render(); }
+  }
+
+  /* --------- Notificaciones --------- */
+  function scheduleAll(){
+    for (const [id, h] of Array.from(timers.entries())) { clearTimeout(h); timers.delete(id); }
+    const now = Date.now();
+    for(const t of tasks){
+      if(!t.due || t.done) continue;
+      const remindAt = new Date(t.due).getTime() - (t.leadMins||0)*60000;
+      const delay = remindAt - now;
+      if (delay <= 0) continue;
+      const handle = setTimeout(()=> notifyTask(t.id), delay);
+      timers.set(t.id, handle);
+    }
+  }
+  function notifyTask(id){
+    const t = tasks.find(x=>x.id===id);
+    if(!t || t.done) return;
+    if(Notification && Notification.permission === "granted"){
+      const n = new Notification(`⏰ ${t.title}`, { body: t.notes || "Recordatorio" });
+      try{ navigator.vibrate && navigator.vibrate([80,40,80]); }catch{}
+      n.onclick = ()=>{ window.focus(); };
+    }else{
+      alert(`⏰ ${t.title}\n${t.notes||""}`);
+    }
+  }
+  async function ensureNotifPermission(){
+    if(!("Notification" in window)) { alert("Este navegador no soporta notificaciones."); return; }
+    if(Notification.permission === "default"){
+      try{ await Notification.requestPermission(); }catch(e){}
+    }
+    if(Notification.permission === "granted"){
+      const n = new Notification("🔔 Notificaciones activadas",{ body:"Te avisaré según tus recordatorios." });
+      setTimeout(()=> n.close(), 1200);
+    }else{
+      alert("Permiso de notificaciones denegado o bloqueado.");
+    }
+  }
+  setInterval(()=>{
+    const now = Date.now();
+    for(const t of tasks){
+      if(!t.due || t.done) continue;
+      const remindAt = new Date(t.due).getTime() - (t.leadMins||0)*60000;
+      if (now >= remindAt && now - remindAt < 59000){
+        notifyTask(t.id);
+        if(t.repeat && t.repeat!=="none"){
+          const d = new Date(t.due);
+          if(t.repeat==="daily") d.setDate(d.getDate()+1);
+          if(t.repeat==="weekly") d.setDate(d.getDate()+7);
+          if(t.repeat==="monthly") d.setMonth(d.getMonth()+1);
+          t.due = d.toISOString();
+          saveTasks();
+        }
+      }
+    }
+  }, 15000);
+
+  /* --------- Eventos UI --------- */
+  newBtn.addEventListener("click", ()=> openDialog());
+  clearDoneBtn.addEventListener("click", clearDone);
+  notifBtn.addEventListener("click", ensureNotifPermission);
+  closeDialog.addEventListener("click", ()=> dialog.close());
+  form.addEventListener("submit", upsertTask);
+  deleteBtn.addEventListener("click", ()=>{
+    const id = taskId.value;
+    if(id && confirm("¿Eliminar esta tarea?")){ deleteTask(id); dialog.close(); }
+  });
+  search.addEventListener("input", ()=>{ currentQuery = search.value; render(); });
+  sort.addEventListener("change", ()=>{ sortMode = sort.value; render(); });
+  $$(".filters .chip").forEach(ch=> ch.addEventListener("click", ()=>{
+    $$(".filters .chip").forEach(c=> c.classList.remove("active"));
+    ch.classList.add("active");
+    currentFilter = ch.dataset.filter;
+    render();
+  }));
+  list.addEventListener("click", (e)=>{
+    const cb = e.target.closest(".checkbox");
+    if(cb){ toggleDone(cb.dataset.id); return; }
+    const edit = e.target.closest("[data-edit]");
+    if(edit){
+      const t = tasks.find(x=>x.id===edit.dataset.edit);
+      if(t) openDialog(t);
+      return;
+    }
+    const del = e.target.closest("[data-del]");
+    if(del){
+      const id = del.dataset.del;
+      deleteTask(id);
+      return;
+    }
+  });
+  exportBtn.addEventListener("click", ()=>{
+    const blob = new Blob([JSON.stringify(tasks,null,2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tareas.json";
+    a.click();
+    setTimeout(()=> URL.revokeObjectURL(url), 1000);
+  });
+  importBtn.addEventListener("click", ()=> importFile.click());
+  importFile.addEventListener("change", async ()=>{
+    const file = importFile.files[0];
+    if(!file) return;
+    try{
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if(Array.isArray(data)){
+        tasks = data.map(x=> ({
+          id: x.id || uid(),
+          title: String(x.title||"").slice(0,160),
+          notes: String(x.notes||""),
+          due: x.due || null,
+          repeat: x.repeat||"none",
+          leadMins: Number.isFinite(x.leadMins)? x.leadMins : 0,
+          done: !!x.done,
+          created: x.created || Date.now()
+        }));
+        saveTasks(); render();
+        alert("Importación completada.");
+      }else{
+        alert("Formato inválido.");
+      }
+    }catch(e){
+      alert("No se pudo importar: " + e.message);
+    }finally{
+      importFile.value = "";
+    }
+  });
+  function roundToNext15(date){
+    const d = new Date(date);
+    d.setSeconds(0,0);
+    const minutes = d.getMinutes();
+    d.setMinutes(minutes + (15 - (minutes % 15 || 15)));
+    return d;
+  }
+  due.value = toLocalInputValue(roundToNext15(new Date()));
+  render();
+  scheduleAll();
+
+  /* ====== Lógica pestañas ====== */
+  $$(".tab-headers button").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      $$(".tab-headers button").forEach(b=> b.classList.remove("active"));
+      btn.classList.add("active");
+      const key = btn.dataset.tab;
+      $$(".tab-pane").forEach(p=> p.classList.remove("active"));
+      $("#tab-"+key).classList.add("active");
+    });
+  });
+
+  /* ====== Buscaminas ====== */
+  const MS_W=9, MS_H=9, MS_MINES=10;
+  const msBoard = $("#msBoard");
+  const msReset = $("#msReset");
+  const msTimer = $("#msTimer");
+  const msMinesLeft = $("#msMinesLeft");
+  const msStatus = $("#msStatus");
+  let msGrid, msRevealed, msFlags, msAlive, msTick, msTime=0;
+
+  function msInit(){
+    msGrid = Array.from({length:MS_H}, ()=> Array(MS_W).fill(0));
+    msRevealed = new Set(); msFlags = new Set(); msAlive = true; msTime=0; msTimer.textContent="0"; msStatus.textContent="";
+    msMinesLeft.textContent = MS_MINES;
+    clearInterval(msTick); msTick = null;
+    // minas
+    let mines=0;
+    while(mines<MS_MINES){
+      const x = Math.floor(Math.random()*MS_W), y = Math.floor(Math.random()*MS_H);
+      if(msGrid[y][x]!==-1){ msGrid[y][x]=-1; mines++; }
+    }
+    // números
+    for(let y=0;y<MS_H;y++){
+      for(let x=0;x<MS_W;x++){
+        if(msGrid[y][x]===-1) continue;
+        let n=0;
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+          if(!dx&&!dy) continue; const nx=x+dx, ny=y+dy;
+          if(nx>=0&&nx<MS_W&&ny>=0&&ny<MS_H&&msGrid[ny][nx]===-1) n++;
+        }
+        msGrid[y][x]=n;
+      }
+    }
+    // dibujar
+    msBoard.innerHTML="";
+    msBoard.style.setProperty("user-select","none");
+    for(let y=0;y<MS_H;y++){
+      for(let x=0;x<MS_W;x++){
+        const d=document.createElement("div"); d.className="ms-cell"; d.dataset.x=x; d.dataset.y=y; d.textContent="";
+        d.addEventListener("click", e=> msReveal(x,y));
+        d.addEventListener("contextmenu", e=>{ e.preventDefault(); msFlag(x,y); });
+        d.addEventListener("mousedown", e=>{ if(e.shiftKey){ e.preventDefault(); msFlag(x,y);} });
+        msBoard.appendChild(d);
+      }
+    }
+  }
+  function msStartTimer(){ if(msTick) return; msTick=setInterval(()=>{ msTime++; msTimer.textContent=String(msTime); },1000); }
+  function msKey(x,y){ return y+":"+x; }
+  function msElem(x,y){ return msBoard.querySelector(`.ms-cell[data-x="${x}"][data-y="${y}"]`); }
+  function msReveal(x,y){
+    if(!msAlive) return; msStartTimer();
+    const key=msKey(x,y);
+    if(msFlags.has(key) || msRevealed.has(key)) return;
+    const cell = msGrid[y][x];
+    const el = msElem(x,y);
+    el.classList.add("revealed");
+    msRevealed.add(key);
+    if(cell===-1){
+      el.classList.add("mine"); el.textContent="💥"; msGameOver(false); return;
+    }
+    if(cell>0){ el.textContent=cell; el.classList.add("ms-num"+cell); }
+    else{ // 0: abrir vecinos
+      el.textContent="";
+      for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+        if(!dx&&!dy) continue; const nx=x+dx, ny=y+dy;
+        if(nx>=0&&nx<MS_W&&ny>=0&&ny<MS_H) if(!msRevealed.has(msKey(nx,ny))) msReveal(nx,ny);
+      }
+    }
+    // ¿victoria?
+    if(msRevealed.size === MS_W*MS_H - MS_MINES) msGameOver(true);
+  }
+  function msFlag(x,y){
+    if(!msAlive) return;
+    const key=msKey(x,y); const el=msElem(x,y);
+    if(msRevealed.has(key)) return;
+    if(msFlags.has(key)){ msFlags.delete(key); el.classList.remove("flag"); el.textContent=""; }
+    else{ msFlags.add(key); el.classList.add("flag"); el.textContent="🚩"; }
+    msMinesLeft.textContent = String(MS_MINES - msFlags.size);
+  }
+  function msGameOver(win){
+    msAlive=false; clearInterval(msTick); msTick=null;
+    if(!win){
+      // revelar todas las minas
+      for(let y=0;y<MS_H;y++)for(let x=0;x<MS_W;x++){
+        if(msGrid[y][x]===-1){ const el=msElem(x,y); el.classList.add("revealed","mine"); if(!el.textContent) el.textContent="💣"; }
+      }
+      msStatus.textContent="Perdiste"; msStatus.style.color="#f87171";
+    }else{
+      msStatus.textContent="¡Ganaste!"; msStatus.style.color="#22c55e";
+    }
+  }
+  msReset.addEventListener("click", msInit);
+  msInit();
+
+  /* ====== Ajedrez (simplificado) ====== */
+  const chessBoard = $("#chessBoard");
+  const chessReset = $("#chessReset");
+  const turnLbl = $("#turnLbl");
+  const PIECES = { r:"♜", n:"♞", b:"♝", q:"♛", k:"♚", p:"♟", R:"♖", N:"♘", B:"♗", Q:"♕", K:"♔", P:"♙" };
+  let board = [], turn="w", sel=null;
+
+  function chessInit(){
+    board = [
+      ["r","n","b","q","k","b","n","r"],
+      ["p","p","p","p","p","p","p","p"],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["","","","","","","",""],
+      ["P","P","P","P","P","P","P","P"],
+      ["R","N","B","Q","K","B","N","R"],
+    ];
+    turn="w"; sel=null; drawBoard();
+  }
+  function drawBoard(){
+    chessBoard.innerHTML = "";
+    for(let y=0;y<8;y++){
+      for(let x=0;x<8;x++){
+        const dark = (x+y)%2===1;
+        const d = document.createElement("div");
+        d.className = "sq " + (dark? "dark":"light");
+        d.dataset.x=x; d.dataset.y=y;
+        const p = board[y][x];
+        d.textContent = p? PIECES[p] : "";
+        d.addEventListener("click", ()=> onSquareClick(x,y));
+        chessBoard.appendChild(d);
+      }
+    }
+    turnLbl.textContent = turn==="w" ? "♟️ Blancas" : "♞ Negras";
+  }
+  function onSquareClick(x,y){
+    const p = board[y][x];
+    if(sel){
+      const [sx,sy] = sel;
+      if(sx===x && sy===y){ sel=null; drawBoard(); return; }
+      const legal = isLegal(sx,sy,x,y);
+      if(legal){
+        // mover
+        const moving = board[sy][sx];
+        // promoción simple a dama
+        if(moving==="P" && y===0) board[y][x]="Q";
+        else if(moving==="p" && y===7) board[y][x]="q";
+        else board[y][x]=moving;
+        board[sy][sx]="";
+        sel=null;
+        turn = (turn==="w"?"b":"w");
+        drawBoard();
+      }else{
+        // seleccionar de nuevo
+        if(p){
+          const isWhite = p===p.toUpperCase();
+          if((turn==="w" && isWhite) || (turn==="b" && !isWhite)){
+            sel=[x,y]; highlight(x,y);
+          }else{
+            sel=null; drawBoard();
+          }
+        }else{
+          sel=null; drawBoard();
+        }
+      }
+    }else{
+      if(!p) return;
+      const isWhite = p===p.toUpperCase();
+      if((turn==="w" && isWhite) || (turn==="b" && !isWhite)){
+        sel=[x,y];
+        highlight(x,y);
+      }
+    }
+  }
+  function highlight(x,y){
+    drawBoard();
+    const sq = chessBoard.querySelector(`.sq[data-x="${x}"][data-y="${y}"]`);
+    if(sq) sq.classList.add("sel");
+    // pintar movimientos legales (indicativo)
+    for(let ty=0;ty<8;ty++) for(let tx=0;tx<8;tx++){
+      if(isLegal(x,y,tx,ty)){
+        const target = chessBoard.querySelector(`.sq[data-x="${tx}"][data-y="${ty}"]`);
+        target && target.classList.add("move");
+      }
+    }
+  }
+  function empty(x,y){ return !board[y][x]; }
+  function side(x,y){ const p=board[y][x]; if(!p) return ""; return p===p.toUpperCase()? "w":"b"; }
+  function isLegal(sx,sy,tx,ty){
+    const p = board[sy][sx]; if(!p) return false;
+    const s = p===p.toUpperCase()? "w":"b";
+    if(s!==turn) return false;
+    if(s===side(tx,ty)) return false;
+    const dx = tx-sx, dy = ty-sy;
+    const adx = Math.abs(dx), ady = Math.abs(dy);
+
+    const rayClear = (sx,sy,dx,dy)=>{
+      let x=sx+dx, y=sy+dy;
+      while(x!==tx || y!==ty){
+        if(!empty(x,y)) return false;
+        x+=dx; y+=dy;
+      }
+      return true;
+    };
+
+    switch(p.toLowerCase()){
+      case "p": {
+        const dir = s==="w"? -1: 1;
+        const start = s==="w"? 6: 1;
+        if(dx===0 && dy===dir && empty(tx,ty)) return true;
+        if(dx===0 && sy===start && dy===2*dir && empty(sx,sy+dir) && empty(tx,ty)) return true;
+        if(ady===1 && dy===dir && !empty(tx,ty) && side(tx,ty)!==s) return true;
+        return false;
+      }
+      case "r": return (dx===0 || dy===0) && rayClear(sx,sy,Math.sign(dx),Math.sign(dy));
+      case "b": return (adx===ady) && rayClear(sx,sy,Math.sign(dx),Math.sign(dy));
+      case "q": return ((dx===0||dy===0)||(adx===ady)) && rayClear(sx,sy,Math.sign(dx||0),Math.sign(dy||0));
+      case "n": return (adx===1 && ady===2) || (adx===2 && ady===1);
+      case "k": return adx<=1 && ady<=1;
+    }
+    return false;
+  }
+  chessReset.addEventListener("click", chessInit);
+  chessInit();
+
+  /* ====== Tres en raya ====== */
+  const tttBoard = $("#tttBoard");
+  const tttReset = $("#tttReset");
+  const tttStatus = $("#tttStatus");
+  let ttt, tttTurn;
+  function tttInit(){
+    ttt = Array(9).fill(""); tttTurn="X"; tttStatus.textContent="Turno: X";
+    tttBoard.innerHTML="";
+    for(let i=0;i<9;i++){
+      const d=document.createElement("div"); d.className="ttt-cell"; d.dataset.i=i;
+      d.addEventListener("click", ()=> tttMove(i)); tttBoard.appendChild(d);
+    }
+  }
+  function tttMove(i){
+    if(ttt[i] || tttWinner()) return;
+    ttt[i]=tttTurn;
+    tttBoard.querySelector(`.ttt-cell[data-i="${i}"]`).textContent=tttTurn;
+    const w=tttWinner();
+    if(w){ tttStatus.textContent = w==="D" ? "Empate" : "Ganador: " + w; return; }
+    tttTurn = tttTurn==="X" ? "O" : "X";
+    tttStatus.textContent = "Turno: " + tttTurn;
+  }
+  function tttWinner(){
+    const L=[ [0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6] ];
+    for(const [a,b,c] of L){ if(ttt[a] && ttt[a]===ttt[b] && ttt[a]===ttt[c]) return ttt[a]; }
+    if(ttt.every(x=>x)) return "D"; return "";
+  }
+  tttReset.addEventListener("click", tttInit);
+  tttInit();
+
+})(); // fin IIFE
+</script>
+</body>
+</html>
