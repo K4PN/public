@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Stellaria — 4X por turnos (v1.3)</title>
+<style>
+  :root{
+    --bg:#0b1020; --panel:#111a33; --panel-2:#0f1730; --text:#e5ecff; --muted:#99a7d1;
+    --accent:#6bc2ff; --accent-2:#9ef7d6; --warn:#ffb86b; --danger:#ff6b6b; --ok:#60d394;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;
+    background: radial-gradient(1000px 600px at 10% -10%, #12204a, transparent 60%),
+                radial-gradient(900px 500px at 110% 10%, #0b1a3a, transparent 60%),
+                var(--bg);
+    color:var(--text); line-height:1.35;
+  }
+  header{
+    padding:16px 20px; display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(180deg, rgba(255,255,255,0.05), transparent 60%);
+    border-bottom:1px solid rgba(255,255,255,0.06);
+    position:sticky; top:0; z-index:5;
+    backdrop-filter: blur(6px);
+    gap:12px;
+  }
+  .title{display:flex; gap:12px; align-items:center}
+  .logo{width:34px; height:34px; border-radius:8px; background:conic-gradient(from 200deg, #7cf 0 40%, #9ef7d6 0 70%, #7cf 0 100%);
+    box-shadow:0 0 20px #7cf8;}
+  h1{font-size:18px; margin:0}
+  .res-bar{
+    display:grid; grid-template-columns:repeat(6, minmax(130px,1fr));
+    gap:6px; width:100%; padding:0 10px;
+  }
+  .chip{
+    background:linear-gradient(180deg, var(--panel), var(--panel-2));
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:10px; padding:8px 10px; display:flex; gap:8px; align-items:center; justify-content:space-between;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .chip small{color:var(--muted)}
+  .main{padding:12px 16px; max-width:1200px; margin:0 auto;}
+  .topnav{display:flex; gap:10px; align-items:center; margin:10px 0 6px 0}
+  nav.tabs-bar{ display:flex; gap:8px; overflow:auto; padding-bottom:6px; }
+  .tab-btn{
+    background:linear-gradient(180deg, #172347, #0e1836);
+    border:1px solid rgba(255,255,255,0.06);
+    padding:10px 12px; border-radius:999px; color:var(--text);
+    cursor:pointer; transition:transform .08s ease; white-space:nowrap;
+  }
+  .tab-btn:hover{transform:translateY(-1px)}
+  .tab-btn.active{outline:2px solid var(--accent); background:#12204a}
+  .tab-select{display:none; background:#0b1431; color:var(--text); border:1px solid #ffffff22; border-radius:10px; padding:8px 10px}
+  section.panel{
+    background:linear-gradient(180deg, #121b3a, #0e1730);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:16px; padding:16px; min-height:520px;
+    box-shadow:0 10px 30px #0006 inset, 0 0 0 1px rgba(255,255,255,0.02);
+  }
+  h2{margin:0 0 10px 0; font-size:18px}
+  h3{margin:14px 0 6px 0; font-size:15px; color:var(--accent)}
+  p{margin:6px 0 10px 0}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  .btn{
+    background:linear-gradient(180deg, #2a4b94, #1d3265);
+    color:white; border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:10px 12px; cursor:pointer;
+  }
+  .btn.secondary{background:linear-gradient(180deg, #203158, #17264a)}
+  .btn.warn{background:linear-gradient(180deg, #7b4b15, #6a3a0a)}
+  .btn.danger{background:linear-gradient(180deg, #7b1526, #6a0a1a)}
+  .btn:disabled{opacity:.6; cursor:not-allowed}
+  .card{
+    background:linear-gradient(180deg, #152149, #101b3c);
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius:12px; padding:12px; margin:8px 0;
+  }
+  .list{display:grid; gap:8px}
+  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+  .stat{color:var(--accent-2)}
+  .ok{color:var(--ok)} .danger-t{color:var(--danger)}
+  .log{height:260px; overflow:auto; background:#0a1230; border-radius:8px; padding:8px; border:1px solid #ffffff10}
+  .hr{height:1px; background:linear-gradient(90deg, transparent, #ffffff25, transparent); margin:10px 0}
+  .small{font-size:12px; color:var(--muted)}
+  .right{margin-left:auto}
+  .input{background:#0b1431; border:1px solid #ffffff22; color:var(--text); border-radius:10px; padding:8px 10px; width:100%}
+  .table{width:100%; border-collapse:collapse}
+  .table th,.table td{padding:8px; border-bottom:1px solid #ffffff14; text-align:left}
+  .pill{padding:2px 8px; border-radius:999px; border:1px solid #ffffff22; background:#0b1533; font-size:12px}
+  footer{padding:20px; text-align:center; color:var(--muted)}
+  @media(max-width:980px){
+    .res-bar{grid-template-columns:1fr 1fr 1fr}
+    .grid-2{grid-template-columns:1fr}
+    .tab-select{display:block}
+    nav.tabs-bar{display:none}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">
+    <div class="logo"></div>
+    <div>
+      <h1>Stellaria</h1>
+      <div class="small">Estrategia 4X por turnos con progreso persistente</div>
+    </div>
+  </div>
+  <div class="res-bar" id="resBar"></div>
+</header>
+
+<div class="main">
+  <div class="topnav">
+    <nav id="tabs" class="tabs-bar"></nav>
+    <select id="tabSelect" class="tab-select"></select>
+  </div>
+  <section class="panel" id="view"></section>
+</div>
+
+<footer>Hecho con ❤️ (localStorage). Versión 1.3</footer>
+
+<script>
+// ===== Núcleo =====
+const G = {
+  version: 4,
+  tickMs: 1000,
+  lastTick: Date.now(),
+  state: null,
+  tabs: [
+    {id:'base', name:'Base'},
+    {id:'investigacion', name:'Investigación'},
+    {id:'astillero', name:'Astillero'},
+    {id:'defensas', name:'Defensas'},
+    {id:'inteligencia', name:'Inteligencia'},
+    {id:'mercado', name:'Mercado & Pactos'},
+    {id:'flota', name:'Flota'},
+    {id:'misiones', name:'Misiones'},
+    {id:'combate', name:'Simulador'},
+    {id:'sistema', name:'Guardado'}
+  ]
+};
+
+const defaultState = () => ({
+  t: Date.now(),
+  recursos:{metal:500, cristal:300, deuterio:100, energia:0, poblacion:10, xp:0},
+  almacen:{metal:2000, cristal:2000, deuterio:1000},
+  edificios:{
+    minaMetal:1, minaCristal:1, sintetizador:1, solar:1, habitat:1, laboratorio:1, astillero:1,
+    almacenMetal:1, almacenCristal:1, tanqueDeut:1
+  },
+  tecnologias:{armas:0, escudos:0, blindaje:0, energia:0, propulsion:0, logistica:0, espionaje:0},
+  defensas:{laser:0, ionico:0, escudoPlanet:0},
+  pacto:null,
+  colaConstruccion:[],
+  colaNaves:[],
+  naves:{},
+  nivelPirata:1,
+  historialCombates:[],
+  misionesProg:{},
+  incursiones:{enabled:true, last:Date.now(), minIntervalMs:180000, chance:0.35}, // 3 min, 35%
+  raidLog:[]
+});
+
+// ===== Datos =====
+const ships = {
+  caza:{name:'Caza', cost:{metal:300, cristal:150, deuterio:30}, buildTime:8,
+        stats:{ataque:40, escudo:20, casco:120, velocidad:9, capacidad:50}},
+  bombardero:{name:'Bombardero', cost:{metal:900, cristal:400, deuterio:120}, buildTime:18,
+        stats:{ataque:120, escudo:40, casco:450, velocidad:6, capacidad:150}},
+  crucero:{name:'Crucero', cost:{metal:2000, cristal:900, deuterio:300}, buildTime:28,
+        stats:{ataque:220, escudo:90, casco:900, velocidad:7, capacidad:300}},
+  destructor:{name:'Destructor', cost:{metal:5000, cristal:2400, deuterio:800}, buildTime:40,
+        stats:{ataque:480, escudo:160, casco:2200, velocidad:5, capacidad:600}},
+  acorazado:{name:'Acorazado', cost:{metal:12000, cristal:6000, deuterio:2500}, buildTime:60,
+        stats:{ataque:1200, escudo:320, casco:5200, velocidad:4, capacidad:1200}},
+  sonda:{name:'Sonda', cost:{metal:100, cristal:50, deuterio:10}, buildTime:4,
+        stats:{ataque:0, escudo:4, casco:10, velocidad:12, capacidad:0}}
+};
+
+const edificios = {
+  minaMetal:{name:'Mina de Metal', base:{metal:60, cristal:15}, prod:(lvl)=> 15*Math.pow(1.34,lvl), energia:(lvl)=> 10*Math.pow(1.25,lvl)},
+  minaCristal:{name:'Mina de Cristal', base:{metal:48, cristal:24}, prod:(lvl)=> 10*Math.pow(1.34,lvl), energia:(lvl)=> 8*Math.pow(1.25,lvl)},
+  sintetizador:{name:'Sintetizador Deuterio', base:{metal:75, cristal:60}, prod:(lvl)=> 6*Math.pow(1.33,lvl), energia:(lvl)=> 12*Math.pow(1.25,lvl)},
+  solar:{name:'Planta Solar', base:{metal:45, cristal:0}, energia:(lvl)=> 30*Math.pow(1.28,lvl)},
+  habitat:{name:'Hábitat', base:{metal:120, cristal:60}, pop:(lvl)=> 10*lvl},
+  laboratorio:{name:'Laboratorio', base:{metal:200, cristal:100}},
+  astillero:{name:'Astillero', base:{metal:220, cristal:140}},
+  almacenMetal:{name:'Almacén Metal', base:{metal:150, cristal:30}, cap:(lvl)=> 2000*Math.pow(1.7,lvl)},
+  almacenCristal:{name:'Almacén Cristal', base:{metal:140, cristal:50}, cap:(lvl)=> 2000*Math.pow(1.7,lvl)},
+  tanqueDeut:{name:'Tanque Deuterio', base:{metal:160, cristal:60}, cap:(lvl)=> 1000*Math.pow(1.7,lvl)}
+};
+
+const tecnologias = {
+  armas:{name:'Armas', desc:'+10% ataque por nivel', cost:{metal:200, cristal:200, deuterio:100}},
+  escudos:{name:'Escudos', desc:'+10% escudo por nivel', cost:{metal:160, cristal:240, deuterio:140}},
+  blindaje:{name:'Blindaje', desc:'+10% casco por nivel', cost:{metal:240, cristal:120, deuterio:180}},
+  energia:{name:'Energía', desc:'+6% producción minas y +6% energía', cost:{metal:180, cristal:180, deuterio:80}},
+  propulsion:{name:'Propulsión', desc:'+4% velocidad flota', cost:{metal:120, cristal:160, deuterio:140}},
+  logistica:{name:'Logística', desc:'+1 hueco de cola naves por nivel', cost:{metal:300, cristal:160, deuterio:220}},
+  espionaje:{name:'Espionaje', desc:'Mejora precisión de sondas', cost:{metal:120, cristal:120, deuterio:80}},
+};
+
+const defensas = {
+  laser:{name:'Cañón Láser', desc:'+4% ataque flota por nivel', base:{metal:180, cristal:80}},
+  ionico:{name:'Cañón Iónico', desc:'+4% escudo flota por nivel', base:{metal:160, cristal:140}},
+  escudoPlanet:{name:'Escudo Planetario', desc:'Barrera extra de escudo para toda la flota', base:{metal:400, cristal:200, deuterio:150}}
+};
+
+const missionTree = [
+  {id:'m1', name:'Primeros pasos', desc:'Alcanza nivel 2 en Mina de Metal y Mina de Cristal.',
+    check: s => (s.edificios.minaMetal>=2 && s.edificios.minaCristal>=2),
+    reward: s => addRes({metal:200, cristal:150, deuterio:80, xp:5})},
+  {id:'m2', name:'Poder de la ciencia', desc:'Investiga Energía nivel 1.',
+    check: s => (s.tecnologias.energia>=1),
+    reward: s => addRes({metal:250, cristal:250, xp:8})},
+  {id:'m3', name:'Primera sangre', desc:'Gana contra Base Pirata nivel 2.',
+    check: s => (s.nivelPirata>2),
+    reward: s => { s.tecnologias.armas=(s.tecnologias.armas||0)+1; addRes({xp:12}); }},
+  {id:'m4', name:'Muro de plasma', desc:'Construye alguna defensa (cualquier tipo nivel 1).',
+    check: s => (s.defensas.laser>0 || s.defensas.ionico>0 || s.defensas.escudoPlanet>0),
+    reward: s => addRes({metal:300, cristal:200, deuterio:120, xp:10})},
+  {id:'m5', name:'Expansión', desc:'Construye 5 Cazas.',
+    check: s => ((s.naves.caza||0)>=5),
+    reward: s => addRes({metal:500, cristal:300, xp:15})},
+];
+
+// ===== Util =====
+const fmt = n => Math.floor(n).toLocaleString('es-ES');
+const clamp = (x,a,b)=> Math.max(a, Math.min(b,x));
+const copy = o => JSON.parse(JSON.stringify(o));
+function save(){ localStorage.setItem('stellaria_save', JSON.stringify({v:G.version, s:G.state})); }
+function load(){
+  const raw = localStorage.getItem('stellaria_save');
+  if(!raw){ G.state = defaultState(); save(); return; }
+  try{ const {s} = JSON.parse(raw); G.state = {...defaultState(), ...s}; }
+  catch(e){ G.state = defaultState(); }
+}
+
+function addRes(res){
+  const S = G.state;
+  for(const k of ['metal','cristal','deuterio']){
+    S.recursos[k] = Math.min(S.recursos[k] + (res[k]||0), S.almacen[k]);
+  }
+  S.recursos.energia += res.energia||0;
+  S.recursos.poblacion += res.poblacion||0;
+  S.recursos.xp += res.xp||0;
+}
+function canAfford(cost){
+  const R = G.state.recursos;
+  return ['metal','cristal','deuterio'].every(k => (R[k]||0) >= (cost[k]||0));
+}
+function pay(cost){
+  const R = G.state.recursos;
+  for(const k of ['metal','cristal','deuterio']) R[k]-=(cost[k]||0);
+}
+function costScale(base, lvl){
+  const m = {}; for(const k in base) m[k] = Math.floor(base[k]*Math.pow(1.6, lvl-1)); return m;
+}
+
+// ===== Producción =====
+function productionPerSec(){
+  const S = G.state, E=S.edificios, T=S.tecnologias;
+  const pactoB = S.pacto?.bonusProd || 0;
+  const techBonus = 1 + (T.energia||0)*0.06;
+  const prod={metal:0, cristal:0, deuterio:0, energia:0};
+  const mm = edificios.minaMetal.prod(E.minaMetal||0) * techBonus * (1+pactoB);
+  const mc = edificios.minaCristal.prod(E.minaCristal||0) * techBonus * (1+pactoB);
+  const md = edificios.sintetizador.prod(E.sintetizador||0) * techBonus * (1+pactoB);
+  const eNeed = (edificios.minaMetal.energia(E.minaMetal||0) + edificios.minaCristal.energia(E.minaCristal||0) + edificios.sintetizador.energia(E.sintetizador||0));
+  const eGen = edificios.solar.energia(E.solar||0) * techBonus;
+  const eNet = eGen - eNeed;
+  const energyFactor = eNet >= 0 ? 1 : clamp(1 + eNet/Math.max(1,eNeed), 0, 1);
+  prod.metal = mm * energyFactor;
+  prod.cristal = mc * energyFactor;
+  prod.deuterio = md * energyFactor;
+  prod.energia = eNet;
+  return prod;
+}
+function tick(){
+  const now = Date.now();
+  const dt = Math.floor((now - G.lastTick)/G.tickMs);
+  if(dt<=0) return;
+  G.lastTick = now;
+  const prod = productionPerSec();
+  addRes({metal:prod.metal*dt, cristal:prod.cristal*dt, deuterio:prod.deuterio*dt});
+  processBuildQueue(dt);
+  processShipQueue(dt);
+  maybeRaid(now);
+  render(); save();
+}
+function catchUp(){
+  const now = Date.now();
+  const dt = Math.floor((now - (G.state.t||now))/G.tickMs);
+  G.state.t = now;
+  const prod = productionPerSec();
+  addRes({metal:prod.metal*dt, cristal:prod.cristal*dt, deuterio:prod.deuterio*dt});
+}
+
+// ===== Colas =====
+function processBuildQueue(dt){
+  const q = G.state.colaConstruccion;
+  for(let i=0;i<dt;i++){
+    if(q.length===0) break;
+    q[0].t--;
+    if(q[0].t<=0){
+      const it = q.shift();
+      if(it.kind==='def'){ G.state.defensas[it.id] = (G.state.defensas[it.id]||0)+1; }
+      else if(it.id.startsWith && it.id.startsWith('tech:')){
+        const key = it.id.split(':')[1];
+        G.state.tecnologias[key]=(G.state.tecnologias[key]||0)+1;
+      }else{
+        G.state.edificios[it.id]=(G.state.edificios[it.id]||0)+1;
+        if(it.id==='almacenMetal') G.state.almacen.metal = Math.floor(2000*Math.pow(1.7, G.state.edificios.almacenMetal));
+        if(it.id==='almacenCristal') G.state.almacen.cristal = Math.floor(2000*Math.pow(1.7, G.state.edificios.almacenCristal));
+        if(it.id==='tanqueDeut') G.state.almacen.deuterio = Math.floor(1000*Math.pow(1.7, G.state.edificios.tanqueDeut));
+      }
+    }
+  }
+}
+function processShipQueue(dt){
+  const q = G.state.colaNaves;
+  for(let i=0;i<dt;i++){
+    if(q.length===0) break;
+    q[0].t--;
+    if(q[0].t<=0){
+      const it = q[0];
+      G.state.naves[it.ship] = (G.state.naves[it.ship]||0)+1;
+      it.cant--;
+      if(it.cant<=0) q.shift();
+      else it.t = it.baseTime;
+    }
+  }
+}
+
+// ===== Combate =====
+function computeShipStats(key){
+  const base = ships[key].stats;
+  const T = G.state.tecnologias;
+  return {
+    ataque: base.ataque * (1 + 0.10*(T.armas||0)),
+    escudo: base.escudo * (1 + 0.10*(T.escudos||0)),
+    casco:  base.casco  * (1 + 0.10*(T.blindaje||0)),
+    velocidad: base.velocidad * (1 + 0.04*(T.propulsion||0)),
+    capacidad: base.capacidad
+  };
+}
+function defenseBonuses(){
+  const D = G.state.defensas;
+  return {
+    atkMul: 1 + (D.laser||0)*0.04,
+    shieldMul: 1 + (D.ionico||0)*0.04,
+    shieldFlat: (D.escudoPlanet||0)*80 // repartido entre naves
+  };
+}
+function fleetFromState(applyDef=false){
+  const f=[];
+  for(const k in G.state.naves){
+    for(let i=0;i<G.state.naves[k];i++){
+      f.push({tipo:k, ...computeShipStats(k), hp:null});
+    }
+  }
+  if(applyDef && f.length){
+    const b = defenseBonuses();
+    const flat = b.shieldFlat / f.length;
+    for(const s of f){
+      s.ataque *= b.atkMul;
+      s.escudo *= b.shieldMul;
+      s.escudo += flat;
+    }
+  }
+  for(const s of f) s.hp = s.casco;
+  return f;
+}
+function enemyFleet(level){
+  const base = Math.max(1, Math.floor(level*1.2));
+  const xp = G.state.recursos.xp;
+  const xpFactor = 1 + Math.min(2, Math.log10(1+xp)/3);
+  const pool = [
+    ...Array(Math.ceil(base*1.2)).fill('caza'),
+    ...(level>3? Array(Math.ceil(base/2)).fill('bombardero'):[]),
+    ...(level>6? Array(Math.ceil(base/2)).fill('crucero'):[]),
+    ...(level>9? Array(Math.ceil(base/3)).fill('destructor'):[]),
+    ...(level>12? Array(Math.ceil(base/4)).fill('acorazado'):[]),
+  ];
+  const count = Math.ceil((3 + level*0.8) * xpFactor);
+  const f=[];
+  for(let i=0;i<count;i++){
+    const t = pool[Math.floor(Math.random()*pool.length)] || 'caza';
+    const mult = 1 + level*0.05;
+    const b = ships[t].stats;
+    f.push({tipo:t, ataque:b.ataque*mult, escudo:b.escudo*mult, casco:b.casco*mult, velocidad:b.velocidad, capacidad:b.capacidad, hp:b.casco*mult});
+  }
+  return f;
+}
+function resolveTurn(attacker, defender){
+  if(attacker.length===0 || defender.length===0) return [];
+  const order = attacker.concat(defender).map((s,i)=>({...s, side: i<attacker.length? 'A':'B'}))
+               .sort((a,b)=> b.velocidad - a.velocidad + (Math.random()-0.5)*0.2);
+  const log=[];
+  for(const unit of order){
+    const side = unit.side;
+    const allies = side==='A'? attacker: defender;
+    const enemies = side==='A'? defender: attacker;
+    if(!allies.includes(unit) || enemies.length===0) continue;
+    const target = enemies[Math.floor(Math.random()*enemies.length)];
+    const dmg = unit.ataque;
+    const effShield = target.escudo;
+    let over = dmg - effShield;
+    const shieldHit = Math.max(0, Math.min(dmg, effShield));
+    if(over>0){ target.hp -= over; }
+    log.push(`${unit.tipo} (${side}) golpea a ${target.tipo} por ${fmt(dmg)} (escudo ${fmt(shieldHit)}${over>0?`, casco ${fmt(over)}`:''})`);
+    if(target.hp<=0){
+      const idx = enemies.indexOf(target);
+      enemies.splice(idx,1);
+      log.push(`⚡ ${target.tipo} (${side==='A'?'B':'A'}) destruido`);
+    }
+  }
+  return log;
+}
+function battle(friendly, hostile, maxRounds=6){
+  const A = copy(friendly), B = copy(hostile);
+  let rounds=0;
+  const logs=[];
+  while(A.length && B.length && rounds<maxRounds){
+    rounds++;
+    logs.push(`— Ronda ${rounds} —`);
+    const turnLog = resolveTurn(A,B).concat(resolveTurn(B,A) || []);
+    logs.push(...turnLog);
+  }
+  const victory = A.length>0 && B.length===0;
+  return {victory, rounds, A, B, logs};
+}
+
+// ===== Incursiones (ataques enemigos a tu base) =====
+function maybeRaid(now){
+  const R = G.state.incursiones;
+  if(!R?.enabled) return;
+  const due = now - (R.last||0) >= (R.minIntervalMs||180000);
+  if(!due) return;
+  // registrar último check para no spamear
+  G.state.incursiones.last = now;
+  const lvl = Math.max(1, G.state.nivelPirata - 1);
+  const chance = (R.chance||0.35) * (1 + Math.min(0.5, Math.log10(1 + G.state.recursos.xp)/4)); // leve aumento con progreso
+  if(Math.random() < chance){
+    runRaid(lvl);
+  }
+}
+function runRaid(lvl){
+  const defending = fleetFromState(true); // aplica defensas
+  const attackers = enemyFleet(lvl+1); // un pelín por encima del último nivel vencido
+  const result = battle(defending, attackers, 8);
+  // pérdidas del jugador -> reflejar en inventario
+  const losses = {};
+  const survivorsCount = {};
+  for(const k in G.state.naves) survivorsCount[k]=0;
+  for(const s of result.A) survivorsCount[s.tipo]++;
+  for(const k in G.state.naves){
+    const lost = Math.max(0, (G.state.naves[k]||0) - (survivorsCount[k]||0));
+    if(lost>0){ losses[k]=lost; G.state.naves[k]-=lost; }
+  }
+  // botín/robo
+  let robado = {metal:0, cristal:0, deuterio:0}, recompensa = {metal:0, cristal:0, deuterio:0, xp:0};
+  if(!result.victory){
+    // Enemigo gana: roban hasta 15% de cada recurso limitado por capacidad atacante
+    const cap = attackers.reduce((s,a)=> s+(a.capacidad||0), 0);
+    const R = G.state.recursos;
+    const objetivo = {metal: Math.floor(R.metal*0.15), cristal: Math.floor(R.cristal*0.15), deuterio: Math.floor(R.deuterio*0.15)};
+    let carga = 0;
+    const order = ['metal','cristal','deuterio'];
+    for(const k of order){
+      if(carga>=cap) break;
+      const disp = Math.min(objetivo[k], cap - carga);
+      robado[k] = disp;
+      R[k] -= disp;
+      carga += disp;
+    }
+  }else{
+    // Defiendes con éxito: chatarra
+    recompensa = {metal: 100 + Math.round(lvl*50), cristal: 50 + Math.round(lvl*35), deuterio: 20 + Math.round(lvl*20), xp: 6 + Math.round(lvl*2)};
+    addRes(recompensa);
+  }
+  const entry = {
+    tipo:'incursion',
+    fecha: new Date().toLocaleString(),
+    nivel: lvl, defendida: result.victory, rondas: result.rounds,
+    perdidas: losses, robo: robado, recompensa, log: result.logs.slice(0,200)
+  };
+  G.state.raidLog.unshift(entry);
+  G.state.raidLog = G.state.raidLog.slice(0,20);
+  // También lo mostramos en historial general
+  G.state.historialCombates.unshift({
+    fecha: entry.fecha,
+    nivel: lvl,
+    victoria: result.victory,
+    rondas: result.rounds,
+    perdidas: losses,
+    botin: result.victory ? recompensa : {metal:-robado.metal, cristal:-robado.cristal, deuterio:-robado.deuterio, xp:0},
+    log: result.logs.slice(0,200),
+    incursion: true
+  });
+  G.state.historialCombates = G.state.historialCombates.slice(0,20);
+  renderRaid(entry);
+  save();
+}
+
+// ===== UI =====
+const view = document.getElementById('view');
+const tabsEl = document.getElementById('tabs');
+const tabSelect = document.getElementById('tabSelect');
+const resBar = document.getElementById('resBar');
+
+function renderResBar(){
+  const R=G.state.recursos, A=G.state.almacen;
+  const prod = productionPerSec();
+  resBar.innerHTML = `
+    <div class="chip"><small>Metal</small><b>${fmt(R.metal)}</b><small class="pill">max ${fmt(A.metal)}</small></div>
+    <div class="chip"><small>Cristal</small><b>${fmt(R.cristal)}</b><small class="pill">max ${fmt(A.cristal)}</small></div>
+    <div class="chip"><small>Deuterio</small><b>${fmt(R.deuterio)}</b><small class="pill">max ${fmt(A.deuterio)}</small></div>
+    <div class="chip"><small>Energía</small><b class="${prod.energia>=0?'ok':'danger-t'}">${fmt(prod.energia)}</b></div>
+    <div class="chip"><small>Población</small><b>${fmt(R.poblacion)}</b></div>
+    <div class="chip"><small>XP</small><b>${fmt(R.xp)}</b></div>
+  `;
+}
+function setTab(id){
+  G.tab = id;
+  for(const btn of tabsEl.querySelectorAll('.tab-btn')) btn.classList.toggle('active', btn.dataset.id===id);
+  if(tabSelect) tabSelect.value = id;
+  render();
+}
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  G.tabs.forEach(t=>{
+    const b = document.createElement('button');
+    b.className='tab-btn'; b.dataset.id=t.id; b.textContent=t.name; b.onclick=()=>setTab(t.id);
+    tabsEl.appendChild(b);
+  });
+  tabSelect.innerHTML = G.tabs.map(t=> `<option value="${t.id}">${t.name}</option>`).join('');
+  tabSelect.onchange = (e)=> setTab(e.target.value);
+}
+
+function renderBase(){
+  const S = G.state, E=S.edificios;
+  const prod = productionPerSec();
+  function row(id, info){
+    const lvl = E[id]||0;
+    const c = costScale(edificios[id].base, lvl+1);
+    const time = Math.ceil(6*Math.pow(1.3,lvl));
+    const can = canAfford(c);
+    const dataCost = encodeURIComponent(JSON.stringify(c));
+    return `
+    <div class="card">
+      <div class="row">
+        <b>${info.name}</b><span class="pill">Nivel ${lvl}</span>
+        <span class="right small">Tiempo: ${time}s</span>
+      </div>
+      <div class="small">Coste: M ${fmt(c.metal||0)} · C ${fmt(c.cristal||0)} ${c.deuterio? '· D '+fmt(c.deuterio):''}</div>
+      <div class="row">
+        <button class="btn" ${can? '':'disabled'} data-cost="${dataCost}" onclick="build('${id}', ${time}, this.dataset.cost)">Mejorar</button>
+        ${id==='minaMetal'? `<span class="small">+${fmt(prod.metal)} /s</span>`:''}
+        ${id==='minaCristal'? `<span class="small">+${fmt(prod.cristal)} /s</span>`:''}
+        ${id==='sintetizador'? `<span class="small">+${fmt(prod.deuterio)} /s</span>`:''}
+        ${id==='solar'? `<span class="small">Energía neta: ${fmt(prod.energia)}/s</span>`:''}
+      </div>
+    </div>`;
+  }
+  const R = G.state.incursiones;
+  view.innerHTML = `
+    <h2>Base</h2>
+    <p>Construye y mejora tu colonia. La producción escala con las minas y la <b>tecnología de Energía</b>.</p>
+    <div class="card small">Incursiones: ${R.enabled? '✅ activas':'⛔ desactivadas'} · Cada ≥ ${(R.minIntervalMs/60000).toFixed(1)} min · Probabilidad ${(Math.round((R.chance||0.35)*100))}%
+    <button class="btn secondary right" onclick="toggleIncursiones()">${R.enabled? 'Desactivar':'Activar'}</button>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h3>Producción</h3>
+        <div class="list">
+          ${row('minaMetal', edificios.minaMetal)}
+          ${row('minaCristal', edificios.minaCristal)}
+          ${row('sintetizador', edificios.sintetizador)}
+          ${row('solar', edificios.solar)}
+        </div>
+      </div>
+      <div>
+        <h3>Infraestructura</h3>
+        <div class="list">
+          ${row('habitat', edificios.habitat)}
+          ${row('laboratorio', edificios.laboratorio)}
+          ${row('astillero', edificios.astillero)}
+          ${row('almacenMetal', edificios.almacenMetal)}
+          ${row('almacenCristal', edificios.almacenCristal)}
+          ${row('tanqueDeut', edificios.tanqueDeut)}
+        </div>
+      </div>
+    </div>
+    <div class="hr"></div>
+    <h3>Cola de construcción</h3>
+    <div id="colaConstruccion"></div>
+  `;
+  renderColas();
+}
+function toggleIncursiones(){
+  G.state.incursiones.enabled = !G.state.incursiones.enabled;
+  save(); render();
+}
+function build(id, secs, encodedCost){
+  const cost = typeof encodedCost==='string' ? JSON.parse(decodeURIComponent(encodedCost)) : encodedCost;
+  if(!canAfford(cost)) return;
+  pay(cost);
+  G.state.colaConstruccion.push({id,t:secs});
+  render(); save();
+}
+function renderColas(){
+  const c1 = G.state.colaConstruccion;
+  const c2 = G.state.colaNaves;
+  const el = document.getElementById('colaConstruccion');
+  if(el){
+    el.innerHTML = c1.length? c1.map((x,i)=> `<div class="card">#${i+1} ${(x.kind==='def')? defensas[x.id].name : (edificios[x.id]?.name || ('Tech '+x.id))} · restante: ${x.t}s</div>`).join('') : '<div class="small">Vacío</div>';
+  }
+  const el2 = document.getElementById('colaNaves');
+  if(el2){
+    el2.innerHTML = c2.length? c2.map((x,i)=> `<div class="card">#${i+1} ${ships[x.ship].name} x${x.cant} · restante: ${x.t}s</div>`).join('') : '<div class="small">Vacío</div>';
+  }
+}
+
+function renderInvestigacion(){
+  const S=G.state;
+  function row(id, info){
+    const lvl = S.tecnologias[id]||0;
+    const cost = costScale(info.cost, lvl+1);
+    const time = Math.ceil(8*Math.pow(1.32,lvl));
+    const can = canAfford(cost) && (G.state.edificios.laboratorio>0);
+    const dataCost = encodeURIComponent(JSON.stringify(cost));
+    return `<div class="card">
+      <div class="row"><b>${info.name}</b><span class="pill">Nivel ${lvl}</span><span class="small right">${info.desc}</span></div>
+      <div class="small">Coste: M ${fmt(cost.metal||0)} · C ${fmt(cost.cristal||0)} · D ${fmt(cost.deuterio||0)} · Tiempo ${time}s</div>
+      <button class="btn" ${can?'':'disabled'} data-cost="${dataCost}" onclick="research('${id}', ${time}, this.dataset.cost)">Investigar</button>
+    </div>`;
+  }
+  view.innerHTML = `
+    <h2>Investigación</h2>
+    <p>Las tecnologías mejoran tu flota y economía. <span class="small">Requiere Laboratorio.</span></p>
+    <div class="list">
+      ${Object.keys(tecnologias).map(k=> row(k, tecnologias[k])).join('')}
+    </div>
+    <div class="hr"></div>
+    <h3>Cola</h3>
+    <div id="colaConstruccion"></div>
+  `;
+  renderColas();
+}
+function research(id, secs, encodedCost){
+  const cost = typeof encodedCost==='string' ? JSON.parse(decodeURIComponent(encodedCost)) : encodedCost;
+  if(!canAfford(cost)) return;
+  pay(cost);
+  G.state.colaConstruccion.push({id:`tech:${id}`, t:secs});
+  render(); save();
+}
+
+function renderAstillero(){
+  const S=G.state;
+  const logistica = 1 + (S.tecnologias.logistica||0);
+  function row(id, sh){
+    const cost = sh.cost;
+    const can = canAfford(cost) && (S.edificios.astillero>0);
+    return `<tr>
+      <td><b>${sh.name}</b></td>
+      <td>M ${fmt(cost.metal)} · C ${fmt(cost.cristal)} · D ${fmt(cost.deuterio||0)}</td>
+      <td class="small">ATK <span class="stat">${sh.stats.ataque}</span> · ESC <span class="stat">${sh.stats.escudo}</span> · HP <span class="stat">${sh.stats.casco}</span> · VEL ${sh.stats.velocidad}</td>
+      <td style="width:160px">
+        <div class="row">
+          <input class="input" type="number" min="1" value="1" id="qty_${id}" />
+          <button class="btn" ${can?'':'disabled'} onclick="queueShip('${id}', parseInt(document.getElementById('qty_${id}').value)||1)">Construir</button>
+        </div>
+      </td>
+    </tr>`
+  }
+  view.innerHTML = `
+    <h2>Astillero</h2>
+    <p>Construye naves. La tecnología de <b>Logística</b> aumenta el tamaño de la cola simultánea (${logistica}).</p>
+    <table class="table">
+      <thead><tr><th>Nave</th><th>Coste</th><th>Stats base</th><th>Acción</th></tr></thead>
+      <tbody>
+        ${Object.keys(ships).map(k=>row(k, ships[k])).join('')}
+      </tbody>
+    </table>
+    <div class="hr"></div>
+    <h3>Cola del astillero</h3>
+    <div id="colaNaves"></div>
+  `;
+  renderColas();
+}
+function queueShip(id, qty){
+  const S=G.state;
+  const cap = 1 + (S.tecnologias.logistica||0);
+  if(G.state.colaNaves.length >= cap){ alert('Cola llena. Mejora Logística.'); return; }
+  const cost = {metal:0, cristal:0, deuterio:0};
+  for(const k of ['metal','cristal','deuterio']) cost[k]=(ships[id].cost[k]||0)*qty;
+  if(!canAfford(cost)) return;
+  pay(cost);
+  const t = Math.max(2, Math.floor(ships[id].buildTime / (1 + 0.05*(S.edificios.astillero||0))));
+  G.state.colaNaves.push({ship:id, cant:qty, t:t, baseTime:t});
+  render(); save();
+}
+
+// ---- Defensas ----
+function renderDefensas(){
+  const D = G.state.defensas;
+  function row(id, d){
+    const lvl = D[id]||0;
+    const c = costScale(d.base, lvl+1);
+    const time = Math.ceil(7*Math.pow(1.25,lvl));
+    const can = canAfford(c);
+    const dataCost = encodeURIComponent(JSON.stringify(c));
+    return `<div class="card">
+      <div class="row"><b>${d.name}</b><span class="pill">Nivel ${lvl}</span><span class="small right">${d.desc}</span></div>
+      <div class="small">Coste: M ${fmt(c.metal||0)} · C ${fmt(c.cristal||0)} ${c.deuterio? '· D '+fmt(c.deuterio):''} · Tiempo ${time}s</div>
+      <button class="btn" ${can?'':'disabled'} data-cost="${dataCost}" onclick="mejoraDef('${id}', ${time}, this.dataset.cost)">Construir/Mejorar</button>
+    </div>`;
+  }
+  const b = defenseBonuses();
+  view.innerHTML = `
+    <h2>Defensas</h2>
+    <p>Aplica <b>bonos globales</b> a tu flota cuando atacas y cuando defiendes: ataque x${b.atkMul.toFixed(2)}, escudo x${b.shieldMul.toFixed(2)}, barrera total +${fmt(b.shieldFlat)} por combate.</p>
+    <div class="list">
+      ${Object.keys(defensas).map(k=> row(k, defensas[k])).join('')}
+    </div>
+    <div class="hr"></div>
+    <div class="row">
+      <button class="btn secondary" onclick="simRaidNow()">Simular incursión ahora</button>
+      <span class="small">Para probar sin esperar.</span>
+    </div>
+    <div id="raidOut"></div>
+    <div class="hr"></div>
+    <h3>Cola</h3>
+    <div id="colaConstruccion"></div>
+  `;
+  renderColas();
+}
+function mejoraDef(id, secs, encodedCost){
+  const cost = typeof encodedCost==='string' ? JSON.parse(decodeURIComponent(encodedCost)) : encodedCost;
+  if(!canAfford(cost)) return;
+  pay(cost);
+  G.state.colaConstruccion.push({kind:'def', id, t:secs});
+  render(); save();
+}
+function simRaidNow(){ runRaid(G.state.nivelPirata); }
+
+// ---- Inteligencia (Sondas) ----
+function renderInteligencia(){
+  const sondas = G.state.naves.sonda||0;
+  view.innerHTML = `
+    <h2>Inteligencia</h2>
+    <p>Envía <b>Sondas</b> para espiar la base pirata del nivel actual y estimar la probabilidad de victoria. Las sondas se construyen en el Astillero.</p>
+    <div class="row">
+      <span class="pill">Sondas disponibles: ${sondas}</span>
+      <button class="btn" ${sondas>0?'':'disabled'} onclick="scanNivel()">Sondear nivel ${G.state.nivelPirata}</button>
+    </div>
+    <div id="scanOut"></div>
+  `;
+}
+function scanNivel(){
+  const S=G.state;
+  if((S.naves.sonda||0)<=0) return;
+  S.naves.sonda--;
+  const lvl = S.nivelPirata;
+  const intel = runScan(lvl);
+  const el = document.getElementById('scanOut');
+  el.innerHTML = `
+    <div class="card">
+      <div class="row"><b>Informe de espionaje</b><span class="pill right">Nivel ${lvl}</span></div>
+      <div class="small">${intel.summary}</div>
+      <div class="hr"></div>
+      <div class="small">Composición estimada enemigo: ${intel.comp}</div>
+      <div class="small">Prob. estimada de victoria: <b>${Math.round(intel.winProb*100)}%</b></div>
+    </div>
+  `;
+  renderResBar(); save();
+}
+function runScan(level){
+  const T = G.state.tecnologias.espionaje||0;
+  const enemy = enemyFleet(level);
+  const comp = enemy.reduce((m,s)=> (m[s.tipo]=(m[s.tipo]||0)+1, m), {});
+  const iters = 8 + T*2;
+  let wins=0;
+  for(let i=0;i<iters;i++){
+    if(battle(fleetFromState(true), enemyFleet(level), 8).victory) wins++;
+  }
+  const noise = Math.max(0, 0.25 - T*0.04);
+  const noisyComp = Object.entries(comp).map(([k,v])=> `${ships[k].name} ~${Math.max(1, Math.round(v*(1 + (Math.random()*2-1)*noise)))}`).join(', ');
+  return {winProb: wins/iters, comp: noisyComp, summary:`Tecnología de Espionaje ${T} (precisión ${Math.round((1-noise)*100)}%)`};
+}
+
+// ---- Mercado & Pactos ----
+function renderMercado(){
+  const pacto = G.state.pacto;
+  const tasa = pacto? (0.04 + (pacto.tasa||0)) : 0.12;
+  view.innerHTML = `
+    <h2>Mercado & Pactos</h2>
+    <p>Intercambia recursos con una comisión del <b>${Math.round(tasa*100)}%</b>. Firma un pacto para mejorar producción y comisión.</p>
+    ${pacto? `<div class="card"><b>Pacto activo:</b> ${pacto.nombre} · +${Math.round((pacto.bonusProd||0)*100)}% producción, comisión base ${Math.round((pacto.tasa||0)*100)}%</div>`
+           : `<div class="card"><b>Sin pacto.</b> Puedes firmar con: 
+                <button class="btn" onclick="firmarPacto('Liga del Borde',0.05,0.05)">Liga del Borde (+5% prod, -5% comisión)</button>
+                <button class="btn" onclick="firmarPacto('Consorcio Helio',0.08,0.07)">Consorcio Helio (+8% prod, -7% comisión)</button>
+              </div>`}
+    <div class="grid-2">
+      <div class="card">
+        <h3>Vender</h3>
+        <div class="row">
+          <select id="sellK" class="input" style="max-width:140px">
+            <option value="metal">Metal</option><option value="cristal">Cristal</option><option value="deuterio">Deuterio</option>
+          </select>
+          <input id="sellAmt" class="input" type="number" min="0" placeholder="Cantidad"/>
+          <button class="btn" onclick="trade()">Intercambiar</button>
+        </div>
+        <div class="small">Recibirás el recurso más escaso según tus almacenes. Se aplica comisión.</div>
+        <div id="tradeOut" class="small"></div>
+      </div>
+      <div class="card">
+        <h3>Balance</h3>
+        <div class="small">Producción/h con pacto: <b>Metal ${fmt(productionPerSec().metal*3600)}</b>, <b>Cristal ${fmt(productionPerSec().cristal*3600)}</b>, <b>Deut ${fmt(productionPerSec().deuterio*3600)}</b></div>
+      </div>
+    </div>
+  `;
+}
+function firmarPacto(nombre, bonusProd, tasa){
+  const coste = {metal:800, cristal:600, deuterio:300};
+  if(!canAfford(coste)){ alert('No tienes recursos para la embajada (M800 C600 D300)'); return; }
+  pay(coste);
+  G.state.pacto = {nombre, bonusProd, tasa};
+  render(); save();
+}
+function trade(){
+  const sellK = document.getElementById('sellK').value;
+  const amt = Math.max(0, parseInt(document.getElementById('sellAmt').value)||0);
+  const tasa = G.state.pacto? (0.04 + (G.state.pacto.tasa||0)) : 0.12;
+  if(G.state.recursos[sellK] < amt){ alert('Cantidad superior a tus recursos.'); return; }
+  const stocks = ['metal','cristal','deuterio'].map(k=>({k, ratio: (G.state.recursos[k]+1)/(G.state.almacen[k]+1)}))
+                      .sort((a,b)=> a.ratio-b.ratio);
+  const buyK = stocks[0].k===sellK? stocks[1].k : stocks[0].k;
+  const net = Math.floor(amt * (1 - tasa));
+  G.state.recursos[sellK]-=amt;
+  G.state.recursos[buyK]=Math.min(G.state.almacen[buyK], G.state.recursos[buyK]+net);
+  const out = document.getElementById('tradeOut');
+  out.textContent = `Has vendido ${fmt(amt)} ${sellK} por ${fmt(net)} ${buyK} (comisión ${Math.round(tasa*100)}%).`;
+  renderResBar(); save();
+}
+
+// ---- Flota ----
+function renderFlota(){
+  const rows = Object.keys(ships).map(k=>{
+    const num = G.state.naves[k]||0;
+    return `<div class="card"><div class="row"><b>${ships[k].name}</b><span class="pill">x${num}</span></div></div>`
+  }).join('');
+  view.innerHTML = `
+    <h2>Flota</h2>
+    <div class="list">${rows || '<div class="small">Aún no tienes naves.</div>'}</div>
+    <div class="hr"></div>
+    <h3>Historial de combates (incluye incursiones)</h3>
+    <div class="list" id="historial"></div>
+  `;
+  const h = document.getElementById('historial');
+  h.innerHTML = G.state.historialCombates.length? G.state.historialCombates.map(x=>{
+    const perd = Object.keys(x.perdidas||{}).map(k=> `${ships[k].name} -${x.perdidas[k]}`).join(', ') || '—';
+    const botin = x.incursion
+      ? (x.victoria ? `Chatarra: M ${fmt(x.botin.metal)} · C ${fmt(x.botin.cristal)} · D ${fmt(x.botin.deuterio)}`
+                    : `Robo sufrido: M ${fmt(-x.botin.metal||0)} · C ${fmt(-x.botin.cristal||0)} · D ${fmt(-x.botin.deuterio||0)}`)
+      : `M ${fmt(x.botin.metal)} · C ${fmt(x.botin.cristal)} · D ${fmt(x.botin.deuterio)} · XP +${fmt(x.botin.xp||0)}`;
+    return `<div class="card"><div class="row">
+      <b>${x.incursion? (x.victoria? 'Incursión defendida':'Incursión fallida') : (x.victoria? 'Victoria':'Derrota')}</b>
+      <span class="pill">Nivel ${x.nivel}</span>
+      <span class="right small">${x.fecha}</span></div>
+      <div class="small">Pérdidas: ${perd}</div>
+      <div class="small">${botin}</div>
+    </div>`;
+  }).join('') : '<div class="small">Sin registros.</div>';
+}
+
+// ---- Misiones ----
+function renderMisiones(){
+  const lvl = G.state.nivelPirata;
+  const prog = G.state.misionesProg;
+  function missionRow(m){
+    const done = !!prog[m.id];
+    const ok = m.check(G.state);
+    return `<div class="card">
+      <div class="row"><b>${m.name}</b>${done? '<span class="pill ok">Completada</span>' : (ok? '<span class="pill">Listo</span>':'')}<span class="right small">${m.desc}</span></div>
+      <div class="row">
+        <button class="btn" ${(!done && ok)? '':'disabled'} onclick="claimMission('${m.id}')">Reclamar recompensa</button>
+      </div>
+    </div>`;
+  }
+  view.innerHTML = `
+    <h2>Misiones</h2>
+    <div class="card">
+      <div class="row">
+        <div>
+          <div><b>Base pirata</b> <span class="pill">Nivel ${lvl}</span></div>
+          <div class="small">Escala con tu progreso. Hasta 8 rondas.</div>
+        </div>
+        <button class="btn right" onclick="missionFight(${lvl})">¡Atacar!</button>
+      </div>
+    </div>
+    <h3>Árbol de misiones</h3>
+    <div class="list">
+      ${missionTree.map(missionRow).join('')}
+    </div>
+    <div id="resultadoCombate"></div>
+  `;
+}
+function claimMission(id){
+  const m = missionTree.find(x=>x.id===id);
+  if(!m) return;
+  if(m.check(G.state) && !G.state.misionesProg[id]){
+    m.reward(G.state);
+    G.state.misionesProg[id]=true;
+    render(); save();
+  }
+}
+function renderCombate(result, losses, loot){
+  setTab('misiones');
+  const el = document.getElementById('resultadoCombate');
+  if(!el) return;
+  const lossTxt = Object.keys(losses).length? Object.keys(losses).map(k=> `${ships[k].name} -${losses[k]}`).join(', ') : '—';
+  el.innerHTML = `
+    <div class="card">
+      <div class="row"><b>Resultado:</b> <span class="${result.victory? 'ok':'danger-t'}">${result.victory? 'Victoria':'Derrota'}</span>
+        <span class="pill right">Rondas ${result.rounds}</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <h3>Resumen</h3>
+          <div class="small">Pérdidas: ${lossTxt}</div>
+          <div class="small">Botín: M ${fmt(loot.metal)} · C ${fmt(loot.cristal)} · D ${fmt(loot.deuterio)} · XP +${fmt(loot.xp)}</div>
+        </div>
+        <div>
+          <h3>Registro</h3>
+          <div class="log mono">${result.logs.map(l=> `<div>${l}</div>`).join('')}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- Raid UI ----
+function renderRaid(entry){
+  setTab('defensas');
+  const el = document.getElementById('raidOut');
+  if(!el) return;
+  const rob = entry.robo || {metal:0, cristal:0, deuterio:0};
+  el.innerHTML = `
+    <div class="card">
+      <div class="row"><b>Incursión pirata</b> <span class="${entry.defendida? 'ok':'danger-t'}">${entry.defendida? 'Defendida':'¡Han saqueado la base!'}</span>
+        <span class="pill right">Nivel ${entry.nivel}</span></div>
+      <div class="grid-2">
+        <div>
+          <h3>Resultado</h3>
+          ${entry.defendida
+            ? `<div class="small">Recuperaste chatarra: M ${fmt(entry.recompensa.metal)} · C ${fmt(entry.recompensa.cristal)} · D ${fmt(entry.recompensa.deuterio)} · XP +${fmt(entry.recompensa.xp)}</div>`
+            : `<div class="small">Perdiste: M ${fmt(rob.metal)} · C ${fmt(rob.cristal)} · D ${fmt(rob.deuterio)}</div>`}
+        </div>
+        <div>
+          <h3>Registro</h3>
+          <div class="log mono">${entry.log.map(l=> `<div>${l}</div>`).join('')}</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- Simulador ----
+function renderSimulador(){
+  view.innerHTML = `
+    <h2>Simulador</h2>
+    <p>Prueba un combate con tu flota actual (aplica defensas y tecnologías). No afecta el inventario.</p>
+    <div class="row">
+      <input class="input" id="lvlSim" type="number" min="1" value="${G.state.nivelPirata}" style="max-width:120px"/>
+      <button class="btn" onclick="simFight()">Simular</button>
+    </div>
+    <div id="simResult"></div>
+  `;
+}
+function simFight(){
+  const lvl = parseInt(document.getElementById('lvlSim').value)||1;
+  const res = battle(fleetFromState(true), enemyFleet(lvl), 8);
+  const el = document.getElementById('simResult');
+  el.innerHTML = `
+    <div class="card">
+      <div class="row"><b>Resultado:</b> <span class="${res.victory? 'ok':'danger-t'}">${res.victory? 'Victoria':'Derrota'}</span>
+      <span class="pill right">Rondas ${res.rounds}</span></div>
+      <div class="log mono">${res.logs.map(l=> `<div>${l}</div>`).join('')}</div>
+    </div>`;
+}
+
+// ---- Sistema ----
+function renderSistema(){
+  const R = G.state.incursiones;
+  view.innerHTML = `
+    <h2>Guardado</h2>
+    <div class="row">
+      <button class="btn secondary" onclick="save()">Guardar ahora</button>
+      <button class="btn warn" onclick="exportSave()">Exportar</button>
+      <button class="btn danger" onclick="resetAll()">Reset</button>
+    </div>
+    <div class="hr"></div>
+    <h3>Incursiones</h3>
+    <div class="row">
+      <label class="small">Estado: ${R.enabled? 'activas':'desactivadas'}</label>
+      <button class="btn" onclick="toggleIncursiones()">${R.enabled? 'Desactivar':'Activar'}</button>
+      <label class="small right">Intervalo mín. (min):</label>
+      <input class="input" id="raidInt" type="number" min="1" value="${Math.max(1, Math.round((R.minIntervalMs||180000)/60000))}" style="max-width:100px"/>
+      <button class="btn" onclick="setRaidInterval()">Aplicar</button>
+    </div>
+    <div class="hr"></div>
+    <h3>Importar</h3>
+    <div class="row">
+      <input class="input" id="imp" placeholder="Pega tu código de guardado"/>
+      <button class="btn" onclick="importSave()">Importar</button>
+    </div>
+  `;
+}
+function setRaidInterval(){
+  const mins = Math.max(1, parseInt(document.getElementById('raidInt').value)||3);
+  G.state.incursiones.minIntervalMs = mins*60000;
+  save(); render();
+}
+function exportSave(){
+  const data = localStorage.getItem('stellaria_save');
+  navigator.clipboard.writeText(data||'').then(()=> alert('Copiado al portapapeles.'));
+}
+function importSave(){
+  const txt = document.getElementById('imp').value;
+  try{
+    const obj = JSON.parse(txt);
+    if(obj && obj.s){ localStorage.setItem('stellaria_save', txt); load(); render(); alert('Guardado importado.'); }
+  }catch(e){ alert('Formato inválido.'); }
+}
+function resetAll(){
+  if(!confirm('¿Seguro que quieres reiniciar tu progreso?')) return;
+  G.state = defaultState(); save(); render();
+}
+
+function render(){
+  renderResBar();
+  switch(G.tab){
+    case 'base': renderBase(); break;
+    case 'investigacion': renderInvestigacion(); break;
+    case 'astillero': renderAstillero(); break;
+    case 'defensas': renderDefensas(); break;
+    case 'inteligencia': renderInteligencia(); break;
+    case 'mercado': renderMercado(); break;
+    case 'flota': renderFlota(); break;
+    case 'misiones': renderMisiones(); break;
+    case 'combate': renderSimulador(); break;
+    case 'sistema': renderSistema(); break;
+    default: renderBase();
+  }
+}
+
+// ---- Boot ----
+load();
+catchUp();
+renderTabs();
+setTab(G.tab || 'base');
+render();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
