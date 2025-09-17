@@ -1,160 +1,632 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-  <title>AR Geo-Game con OpenStreetMap</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gestor de Galería con Metadatos (EXIF)</title>
 
-  <!-- Leaflet (OpenStreetMap) -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
-  ></script>
+<!-- Librerías para leer/escribir EXIF -->
+<!-- Lee EXIF/XMP/IPTC en el navegador -->
+<script src="https://unpkg.com/exifr/dist/full.umd.js"></script>
+<!-- Inserta/reescribe EXIF en JPG -->
+<script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
 
-  <style>
-    :root {
-      --bg: #0b0f14;
-      --fg: #e8f0ff;
-      --muted: #8aa1c0;
-      --accent: #67e8f9;
-      --accent2: #a78bfa;
-      --glass: rgba(13, 17, 23, 0.55);
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
-      background: var(--bg);
-      color: var(--fg);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Ubuntu, Cantarell, Noto Sans, sans-serif;
-      overscroll-behavior-y: contain;
-    }
-    /* Ajuste de altura para que footer no tape nada */
-    .app {
-      height: 100dvh; /* navegadores modernos */
-      height: calc(var(--vh, 1vh) * 100); /* fallback JS */
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-    }
-    header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: env(safe-area-inset-top) 12px 8px 12px;
-      background: linear-gradient(180deg, rgba(10,14,20,0.9), rgba(10,14,20,0));
-      z-index: 5;
-    }
-    header .title { font-weight: 700; }
-    header .stats { margin-left: auto; display: flex; gap: 12px; font-size: 14px; color: var(--muted); }
+<style>
+  :root {
+    --bg: #0f172a;        /* slate-900 */
+    --card: #111827;      /* gray-900 */
+    --muted: #94a3b8;     /* slate-400 */
+    --text: #e5e7eb;      /* gray-200 */
+    --accent: #22d3ee;    /* cyan-400 */
+    --accent-2: #38bdf8;  /* sky-400 */
+    --border: #1f2937;    /* gray-800 */
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+  }
+  header{
+    position:sticky; top:0; z-index:5; backdrop-filter: blur(8px);
+    background: linear-gradient(180deg, rgba(15,23,42,0.9), rgba(15,23,42,0.6) 70%, transparent);
+    border-bottom:1px solid var(--border);
+  }
+  .wrap{max-width:1200px; margin:0 auto; padding:16px}
+  h1{font-size:1.1rem; margin:0 0 8px 0; font-weight:600; letter-spacing:.2px}
+  .bar{
+    display:grid; gap:8px;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    align-items:center;
+  }
+  .bar input[type="text"], .bar input[type="date"], .bar select{
+    background:#0b1220; color:var(--text); border:1px solid var(--border);
+    border-radius:10px; padding:10px 12px; outline:none;
+  }
+  .bar label{font-size:.85rem; color:var(--muted)}
+  .btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    color:#002133; border:0; border-radius:999px; padding:10px 14px; cursor:pointer; font-weight:600;
+  }
+  .btn.secondary{
+    background:#0b1220; color:var(--text); border:1px solid var(--border);
+  }
+  #picker{display:none}
+  .chips{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+  .chip{font-size:.8rem; color:var(--muted)}
+  main{padding:16px 0}
+  .grid{
+    display:grid; gap:12px;
+    grid-template-columns: repeat(3, 1fr);
+  }
+  @media (max-width: 920px){ .grid{grid-template-columns: repeat(2, 1fr);} }
+  @media (max-width: 560px){ .grid{grid-template-columns: 1fr;} }
 
-    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 0 12px 8px; }
-    .tab-btn {
-      padding: 8px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);
-      background: var(--glass); color: var(--fg); cursor: pointer; font-weight: 600;
-    }
-    .tab-btn.active { outline: 2px solid var(--accent); }
-    .hint { font-size: 12px; color: var(--muted); padding: 0 12px 6px; }
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden;
+    transition:transform .1s ease; cursor:pointer;
+  }
+  .card:hover{transform:translateY(-2px)}
+  .thumb{
+    width:100%; aspect-ratio:1/1; object-fit:cover; display:block; background:#0b1220;
+  }
+  .metaRow{display:flex; justify-content:space-between; align-items:center; padding:8px 10px}
+  .metaRow small{color:var(--muted)}
+  .hidden{display:none !important}
 
-    main.view { position: relative; width: 100%; overflow: hidden; }
-    #cameraWrap, #mapWrap { position: relative; width: 100%; height: 100%; display: none; }
-    #cameraWrap.active, #mapWrap.active { display: block; }
-
-    /* Cámara */
-    #camera { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-    #hud { position: absolute; inset: 0; pointer-events: none; }
-    .hud-top {
-      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-      display: flex; gap: 10px; padding: 6px 10px; border-radius: 14px;
-      background: var(--glass); font-size: 14px;
-    }
-    .reticle {
-      position: absolute; left: 50%; top: 50%; translate: -50% -50%;
-      width: 120px; height: 120px; border-radius: 50%;
-      border: 2px dashed var(--accent);
-    }
-    .target { position: absolute; padding: 6px 10px; border-radius: 999px; background: var(--glass); font-size: 12px; }
-
-    /* Mapa */
-    #map { position: absolute; inset: 0; }
-    .legend { position: absolute; bottom: 12px; right: 12px; background: var(--glass); padding: 6px 8px; border-radius: 10px; font-size: 12px; color: var(--muted); }
-    .chip { padding: 2px 6px; border-radius: 999px; background: rgba(255,255,255,0.06); color: var(--fg); }
-
-    /* Footer */
-    .footer {
-      padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-      display: flex; gap: 10px;
-      background: linear-gradient(0deg, rgba(10,14,20,0.9), rgba(10,14,20,0));
-    }
-    .btn { flex: 1; padding: 12px; border-radius: 14px; font-weight: 700; text-align: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); background: var(--glass); color: var(--fg); }
-    .btn.primary { background: linear-gradient(135deg, var(--accent2), var(--accent)); color: #0b1020; border: none; }
-
-    .toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 10px 14px; border-radius: 12px; background: var(--glass); display: none; }
-  </style>
+  /* Modal visor */
+  dialog#viewer{
+    width:min(1100px, 92vw); max-height:92dvh; border:1px solid var(--border);
+    border-radius:16px; padding:0; background:var(--card); color:var(--text);
+  }
+  .viewer-wrap{
+    display:grid; grid-template-columns: 1.3fr 1fr; gap:0; height:100%;
+  }
+  @media (max-width: 920px){ .viewer-wrap{grid-template-columns: 1fr; } }
+  .viewer-img{
+    padding:14px; border-right:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    background:#0b1220;
+  }
+  .viewer-img img{max-width:100%; max-height:80vh; border-radius:12px}
+  .viewer-meta{padding:16px; overflow:auto}
+  .viewer-head{display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px}
+  .viewer-head h2{font-size:1rem; margin:0}
+  .close{background:transparent; border:0; color:var(--muted); font-size:1.6rem; cursor:pointer}
+  form .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+  form .row.full{grid-template-columns: 1fr}
+  form label{font-size:.8rem; color:var(--muted); display:block; margin-top:8px}
+  form input[type="text"], form input[type="datetime-local"], form textarea{
+    width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0b1220; color:var(--text);
+  }
+  form textarea{min-height:70px; resize:vertical}
+  .actions{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px}
+  .hint{font-size:.8rem; color:var(--muted); margin-top:6px}
+  .footer-tools{
+    display:flex; gap:8px; align-items:center; justify-content:flex-end; padding:10px 14px; border-top:1px solid var(--border);
+    background:#0b1220;
+  }
+  .note{
+    font-size:.85rem; color:var(--muted);
+  }
+</style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="title">AR Geo-Game</div>
-      <div class="stats">
-        <div id="statOrbs">⚪ 0</div>
-        <div id="statXP">⭐ 0</div>
-        <div id="statLvl">⬆︎ 1</div>
+  <header>
+    <div class="wrap">
+      <h1>📷 Gestor de Galería con Metadatos</h1>
+      <div class="bar">
+        <input id="q" type="text" placeholder="Buscar: nombre, título, autor, palabras clave…" />
+        <input id="dateFrom" type="date" title="Desde (fecha de captura)" />
+        <input id="dateTo" type="date" title="Hasta (fecha de captura)" />
+        <select id="gpsFilter" title="Filtro GPS">
+          <option value="any">GPS: cualquiera</option>
+          <option value="with">Con GPS</option>
+          <option value="without">Sin GPS</option>
+        </select>
+        <button class="btn secondary" id="btnPick">📂 Cargar carpeta</button>
       </div>
-    </header>
-
-    <div class="tabs">
-      <button class="tab-btn active" id="tabAR">Cámara AR</button>
-      <button class="tab-btn" id="tabMap">Mapa</button>
+      <input id="picker" type="file" webkitdirectory multiple accept="image/*" />
+      <div class="chips">
+        <span class="chip">Soporta lectura EXIF/XMP/IPTC. Escritura EXIF → JPG/JPEG.</span>
+        <span class="chip">Otros formatos: guarda metadatos en local o exporta sidecar JSON/CSV.</span>
+      </div>
     </div>
+  </header>
 
-    <div class="hint">Consejo: Necesitas HTTPS o localhost para cámara y geolocalización.</div>
+  <main class="wrap">
+    <div id="grid" class="grid"></div>
+  </main>
 
-    <main class="view">
-      <section id="cameraWrap" class="active">
-        <video id="camera" autoplay playsinline muted></video>
-        <div id="hud">
-          <div class="hud-top">
-            <span id="hudGPS">📍 Sin GPS</span>
-            <span id="hudHeading">🧭 —°</span>
-            <span id="hudDist">↔︎ — m</span>
+  <!-- Visor / Editor -->
+  <dialog id="viewer">
+    <div class="viewer-wrap">
+      <div class="viewer-img">
+        <img id="big" alt="preview"/>
+      </div>
+      <div class="viewer-meta">
+        <div class="viewer-head">
+          <h2 id="fname">—</h2>
+          <button class="close" id="close">✕</button>
+        </div>
+        <form id="metaForm" autocomplete="off">
+          <div class="row full">
+            <label>Nombre de archivo
+              <input id="f_name" type="text" readonly />
+            </label>
           </div>
-          <div class="reticle"></div>
-        </div>
-      </section>
+          <div class="row">
+            <label>Título (XPTitle / XMP dc:title)
+              <input id="f_title" type="text" placeholder="Ej: Atardecer en la costa" />
+            </label>
+            <label>Autor (Artist)
+              <input id="f_artist" type="text" placeholder="Tu nombre" />
+            </label>
+          </div>
+          <div class="row">
+            <label>Palabras clave (separadas por ; )
+              <input id="f_keywords" type="text" placeholder="playa; verano; viaje" />
+            </label>
+            <label>Derechos (Copyright)
+              <input id="f_copyright" type="text" placeholder="© 2025 Carlos" />
+            </label>
+          </div>
+          <div class="row full">
+            <label>Descripción (ImageDescription / XMP dc:description)
+              <textarea id="f_desc" placeholder="Contexto de la foto…"></textarea>
+            </label>
+          </div>
+          <div class="row">
+            <label>Fecha de captura (DateTimeOriginal)
+              <input id="f_datetime" type="datetime-local" />
+            </label>
+            <label>GPS (lat, lon)
+              <input id="f_gps" type="text" placeholder="40.4168, -3.7038" />
+            </label>
+          </div>
+          <div class="hint">Consejo: para GPS usa formato decimal: <code>lat, lon</code>. Ej: <code>39.4699, -0.3763</code></div>
 
-      <section id="mapWrap">
-        <div id="map"></div>
-        <div class="legend">
-          <div><span class="chip">🟦</span> Tú</div>
-          <div><span class="chip">🟣</span> Orbes</div>
-        </div>
-      </section>
-    </main>
+          <div class="actions">
+            <button type="button" class="btn" id="btnSaveExif">💾 Guardar como JPG (EXIF)</button>
+            <button type="button" class="btn secondary" id="btnSaveLocal">🧩 Guardar metadatos locales</button>
+            <button type="button" class="btn secondary" id="btnExportJSON">⬇️ Exportar JSON</button>
+            <button type="button" class="btn secondary" id="btnExportCSV">⬇️ Exportar CSV</button>
+          </div>
+          <div class="hint note" id="formatNote"></div>
+        </form>
+      </div>
+    </div>
+    <div class="footer-tools">
+      <span class="note">Los cambios EXIF se descargan como nueva imagen (el navegador no puede sobrescribir archivos).</span>
+    </div>
+  </dialog>
 
-    <footer class="footer">
-      <button class="btn" id="btnSpawn">Generar orbes</button>
-      <button class="btn primary" id="btnCapture">Capturar</button>
-    </footer>
-  </div>
+<script>
+/* =========================
+   Estado y utilidades
+========================= */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
 
-  <div class="toast" id="toast"></div>
+const state = {
+  files: [],       // [{file, url, name, type, exif, xmp, iptc, summary}]
+  filtered: [],
+  currentIndex: -1,
+  localMeta: loadLocalMeta(), // mapa filename -> metadatos editados
+};
 
-  <script>
-    /* Fallback para viewport en móviles con barras dinámicas */
-    function setVHVar(){
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', vh + 'px');
+function loadLocalMeta(){
+  try{
+    return JSON.parse(localStorage.getItem("gallery.localMeta")||"{}");
+  }catch(e){ return {}; }
+}
+function saveLocalMeta(){
+  localStorage.setItem("gallery.localMeta", JSON.stringify(state.localMeta));
+}
+
+/* =========================
+   Carga de carpeta
+========================= */
+const picker = $("#picker");
+$("#btnPick").addEventListener("click", ()=> picker.click());
+picker.addEventListener("change", async (e)=>{
+  const files = [...e.target.files].filter(f => f.type.startsWith("image/"));
+  state.files = [];
+  for (const f of files){
+    const url = URL.createObjectURL(f);
+    const entry = { file:f, url, name:f.name, type:f.type, exif:null, xmp:null, iptc:null, summary:{} };
+    try{
+      // exifr devuelve un objeto con campos comunes + exif/xmp/iptc cuando está disponible
+      const data = await exifr.parse(f, { xmp: true, iptc: true });
+      entry.exif = data || {};
+      entry.xmp = data?.xmp || null;
+      entry.iptc = data?.iptc || null;
+
+      // resumen básico para filtrado
+      const title = data?.XPTitle || data?.ImageDescription || getXmpTitle(data?.xmp) || "";
+      const artist = data?.Artist || getXmpCreator(data?.xmp) || "";
+      const keywords = getKeywords(data) || [];
+      const date = data?.DateTimeOriginal || data?.CreateDate || data?.ModifyDate || null;
+      const gps = getGpsDecimal(data);
+
+      // Combinar con metadatos locales si existen
+      const local = state.localMeta[f.name];
+      const merged = applyLocalOverride({title, artist, keywords, date, gps, desc: data?.ImageDescription || getXmpDescription(data?.xmp) || ""}, local);
+      entry.summary = merged;
+
+    }catch(err){
+      console.warn("EXIF read error", f.name, err);
+      // Si falla, al menos tener resumen por nombre/mime
+      const local = state.localMeta[f.name] || {};
+      entry.summary = applyLocalOverride({title:"", artist:"", keywords:[], date:null, gps:null, desc:""}, local);
     }
-    setVHVar();
-    window.addEventListener('resize', setVHVar);
+    state.files.push(entry);
+  }
+  state.filtered = [...state.files];
+  renderGrid();
+});
 
-    // ==== Aquí el mismo JS de juego (geolocalización, brújula, orbes) ====
-    // Por simplicidad lo omití aquí para no alargar demasiado,
-    // pero usa exactamente el mismo código de lógica que ya te pasé antes.
-  </script>
+/* =========================
+   Helpers de metadatos
+========================= */
+function getXmpTitle(xmp){
+  try{
+    const t = xmp?.["dc:title"];
+    if (typeof t === "string") return t;
+    if (t?.["x-default"]) return t["x-default"];
+  }catch(e){}
+  return null;
+}
+function getXmpDescription(xmp){
+  try{
+    const d = xmp?.["dc:description"];
+    if (typeof d === "string") return d;
+    if (d?.["x-default"]) return d["x-default"];
+  }catch(e){}
+  return null;
+}
+function getXmpCreator(xmp){
+  try{
+    const c = xmp?.["dc:creator"];
+    if (Array.isArray(c) && c.length) return c[0];
+  }catch(e){}
+  return null;
+}
+function getKeywords(data){
+  // EXIF XPKeywords (UCS-2), IPTC keywords, XMP dc:subject
+  const kws = new Set();
+  if (data?.XPKeywords){
+    const s = xpDecode(data.XPKeywords);
+    s.split(";").map(x=>x.trim()).filter(Boolean).forEach(x=>kws.add(x));
+  }
+  if (data?.iptc?.keywords){
+    data.iptc.keywords.forEach(x=>kws.add(x));
+  }
+  if (data?.xmp?.["dc:subject"]){
+    const subj = data.xmp["dc:subject"];
+    (Array.isArray(subj) ? subj : [subj]).forEach(x=>{ if(x) kws.add(String(x)); });
+  }
+  return [...kws];
+}
+function getGpsDecimal(data){
+  // exifr ya da lat/lon en decimal si existen
+  if (typeof data?.latitude === "number" && typeof data?.longitude === "number"){
+    return [data.latitude, data.longitude];
+  }
+  return null;
+}
+function xpEncode(str){
+  // XP* campos usan UCS-2 (UTF-16LE) como byte array con terminador 0
+  const buf = [];
+  for (let i=0; i<str.length; i++){
+    const code = str.charCodeAt(i);
+    buf.push(code & 0xff, code >> 8);
+  }
+  buf.push(0,0);
+  return buf;
+}
+function xpDecode(arr){
+  try{
+    // arr puede venir como array de números
+    const bytes = new Uint8Array(arr);
+    let s = "";
+    for (let i=0; i<bytes.length; i+=2){
+      const code = bytes[i] | (bytes[i+1]<<8);
+      if (code===0) break;
+      s += String.fromCharCode(code);
+    }
+    return s;
+  }catch(e){
+    return Array.isArray(arr) ? arr.join("") : String(arr||"");
+  }
+}
+function toRational(num){
+  // convierte número a {num, den} enteros aproximados
+  const den = 1000000;
+  return [Math.round(num*den), den];
+}
+function degToDMSRational(deg){
+  const d = Math.floor(Math.abs(deg));
+  const minFloat = (Math.abs(deg)-d)*60;
+  const m = Math.floor(minFloat);
+  const s = (minFloat - m)*60;
+  return [
+    [d,1],
+    toRational(m),
+    toRational(s)
+  ];
+}
+function applyLocalOverride(base, local){
+  if (!local) return base;
+  return {
+    title: local.title ?? base.title,
+    artist: local.artist ?? base.artist,
+    keywords: local.keywords ?? base.keywords,
+    date: local.date ?? base.date,
+    gps: local.gps ?? base.gps,
+    desc: local.desc ?? base.desc,
+  }
+}
+
+/* =========================
+   Render de galería
+========================= */
+function renderGrid(){
+  const grid = $("#grid");
+  grid.innerHTML = "";
+  const list = state.filtered;
+  if (!list.length){
+    grid.innerHTML = `<div class="note">No hay imágenes que coincidan con el filtro.</div>`;
+    return;
+  }
+  for (let i=0;i<list.length;i++){
+    const item = list[i];
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <img class="thumb" loading="lazy" src="${item.url}" alt="${item.name}">
+      <div class="metaRow">
+        <small>${item.name}</small>
+        <small>${item.summary.title ? "📝" : ""} ${item.summary.gps ? "📍" : ""}</small>
+      </div>
+    `;
+    card.addEventListener("click", ()=> openViewerByIndex(i));
+    grid.appendChild(card);
+  }
+}
+
+/* =========================
+   Búsqueda / filtros
+========================= */
+$("#q").addEventListener("input", applyFilters);
+$("#dateFrom").addEventListener("change", applyFilters);
+$("#dateTo").addEventListener("change", applyFilters);
+$("#gpsFilter").addEventListener("change", applyFilters);
+
+function applyFilters(){
+  const q = $("#q").value.trim().toLowerCase();
+  const df = $("#dateFrom").value ? new Date($("#dateFrom").value) : null;
+  const dt = $("#dateTo").value ? new Date($("#dateTo").value) : null;
+  const gpsOpt = $("#gpsFilter").value;
+
+  state.filtered = state.files.filter(it=>{
+    const s = it.summary;
+    const inText =
+      it.name.toLowerCase().includes(q) ||
+      (s.title||"").toLowerCase().includes(q) ||
+      (s.artist||"").toLowerCase().includes(q) ||
+      (s.desc||"").toLowerCase().includes(q) ||
+      (s.keywords||[]).join("; ").toLowerCase().includes(q);
+
+    const dateOk = (()=> {
+      if (!df && !dt) return true;
+      if (!s.date) return false;
+      const d = new Date(s.date);
+      if (df && d < df) return false;
+      if (dt && d > dt) return false;
+      return true;
+    })();
+
+    const gpsOk = (gpsOpt==="any") ? true :
+                  (gpsOpt==="with" ? !!s.gps : !s.gps);
+
+    return inText && dateOk && gpsOk;
+  });
+
+  renderGrid();
+}
+
+/* =========================
+   Visor / editor
+========================= */
+const viewer = $("#viewer");
+$("#close").addEventListener("click", ()=> viewer.close());
+
+function openViewerByIndex(i){
+  state.currentIndex = i;
+  const item = state.filtered[i];
+  $("#big").src = item.url;
+  $("#fname").textContent = item.name;
+  $("#f_name").value = item.name;
+
+  const s = item.summary;
+  $("#f_title").value    = s.title || "";
+  $("#f_artist").value   = s.artist || "";
+  $("#f_keywords").value = (s.keywords||[]).join("; ");
+  $("#f_copyright").value= s.copyright || "";
+  $("#f_desc").value     = s.desc || "";
+  $("#f_datetime").value = s.date ? toLocalInputDatetime(s.date) : "";
+  $("#f_gps").value      = s.gps ? `${s.gps[0].toFixed(6)}, ${s.gps[1].toFixed(6)}` : "";
+
+  const isJpg = /jpe?g$/i.test(item.name) || item.type==="image/jpeg";
+  $("#btnSaveExif").disabled = !isJpg;
+  $("#formatNote").textContent = isJpg
+    ? "Formato JPEG detectado. Podrás descargar una copia con EXIF actualizado."
+    : "Este archivo no es JPEG. No se puede reescribir EXIF; usa 'Guardar metadatos locales' o exporta sidecar.";
+
+  viewer.showModal();
+}
+function toLocalInputDatetime(d){
+  const date = new Date(d);
+  // ajustar a local y recortar milis
+  const pad = n => String(n).padStart(2,"0");
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/* =========================
+   Guardado: LOCAL
+========================= */
+$("#btnSaveLocal").addEventListener("click", ()=>{
+  const item = state.filtered[state.currentIndex];
+  const meta = readFormMeta();
+  state.localMeta[item.name] = meta;
+  saveLocalMeta();
+
+  // actualizar resumen en memoria y refrescar tarjeta
+  item.summary = applyLocalOverride(item.summary, meta);
+  renderGrid();
+  alert("Metadatos guardados localmente (navegador).");
+});
+
+function readFormMeta(){
+  const kw = $("#f_keywords").value.trim();
+  const gps = $("#f_gps").value.trim();
+  let gpsArr = null;
+  if (gps){
+    const m = gps.split(",").map(x=>parseFloat(x.trim()));
+    if (m.length===2 && m.every(n=>Number.isFinite(n))) gpsArr = m;
+  }
+  return {
+    title: $("#f_title").value.trim(),
+    artist: $("#f_artist").value.trim(),
+    keywords: kw ? kw.split(";").map(s=>s.trim()).filter(Boolean) : [],
+    copyright: $("#f_copyright").value.trim(),
+    desc: $("#f_desc").value.trim(),
+    date: $("#f_datetime").value ? new Date($("#f_datetime").value).toISOString() : null,
+    gps: gpsArr
+  };
+}
+
+/* =========================
+   Guardado: EXIF → Descargar JPG
+========================= */
+$("#btnSaveExif").addEventListener("click", async ()=>{
+  const item = state.filtered[state.currentIndex];
+  if (!(/jpe?g$/i.test(item.name) || item.type==="image/jpeg")){
+    alert("Este archivo no es JPEG. Usa el guardado local o exporta sidecar.");
+    return;
+  }
+
+  const meta = readFormMeta();
+
+  // Leer imagen original como DataURL
+  const dataURL = await fileToDataURL(item.file);
+
+  // Crear estructura EXIF con piexifjs
+  const zeroth = {};
+  const exif   = {};
+  const gps    = {};
+
+  if (meta.title)     zeroth[piexif.ImageIFD.XPTitle] = xpEncode(meta.title);
+  if (meta.desc)      zeroth[piexif.ImageIFD.ImageDescription] = meta.desc;
+  if (meta.artist)    zeroth[piexif.ImageIFD.Artist] = meta.artist;
+  if (meta.copyright) zeroth[piexif.ImageIFD.Copyright] = meta.copyright;
+  if (meta.keywords?.length){
+    zeroth[piexif.ImageIFD.XPKeywords] = xpEncode(meta.keywords.join("; "));
+  }
+
+  if (meta.date){
+    const dt = toExifDate(meta.date); // "YYYY:MM:DD HH:MM:SS"
+    exif[piexif.ExifIFD.DateTimeOriginal] = dt;
+    zeroth[piexif.ImageIFD.DateTime] = dt;
+  }
+
+  if (meta.gps){
+    const [lat, lon] = meta.gps;
+    gps[piexif.GPSIFD.GPSLatitudeRef]  = lat >= 0 ? "N" : "S";
+    gps[piexif.GPSIFD.GPSLatitude]     = degToDMSRational(lat);
+    gps[piexif.GPSIFD.GPSLongitudeRef] = lon >= 0 ? "E" : "W";
+    gps[piexif.GPSIFD.GPSLongitude]    = degToDMSRational(lon);
+  }
+
+  const exifObj = { "0th": zeroth, Exif: exif, GPS: gps };
+  const exifBytes = piexif.dump(exifObj);
+  const newDataUrl = piexif.insert(exifBytes, dataURL);
+
+  // descargar
+  const a = document.createElement("a");
+  const nameOut = item.name.replace(/\.jpe?g$/i, "") + "_meta.jpg";
+  a.href = newDataUrl;
+  a.download = nameOut;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  alert("Descarga lista: imagen JPEG con EXIF actualizado.");
+});
+
+function fileToDataURL(file){
+  return new Promise((res, rej)=>{
+    const reader = new FileReader();
+    reader.onload = e => res(e.target.result);
+    reader.onerror = rej;
+    reader.readAsDataURL(file);
+  });
+}
+function toExifDate(iso){
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}:${pad(d.getMonth()+1)}:${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/* =========================
+   Exportar sidecar JSON / CSV
+========================= */
+$("#btnExportJSON").addEventListener("click", ()=>{
+  const map = state.localMeta;
+  const blob = new Blob([JSON.stringify(map, null, 2)], {type:"application/json"});
+  triggerDownload(blob, "metadatos_locales.json");
+});
+
+$("#btnExportCSV").addEventListener("click", ()=>{
+  const rows = [["filename","title","artist","keywords","copyright","desc","date","gps_lat","gps_lon"]];
+  for (const [name, m] of Object.entries(state.localMeta)){
+    rows.push([
+      name,
+      csvEsc(m.title||""),
+      csvEsc(m.artist||""),
+      csvEsc((m.keywords||[]).join("; ")),
+      csvEsc(m.copyright||""),
+      csvEsc(m.desc||""),
+      m.date||"",
+      m.gps?.[0] ?? "",
+      m.gps?.[1] ?? ""
+    ]);
+  }
+  const csv = rows.map(r=>r.join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  triggerDownload(blob, "metadatos_locales.csv");
+});
+
+function triggerDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+function csvEsc(s){
+  const str = String(s).replace(/"/g,'""');
+  return /[",\n]/.test(str) ? `"${str}"` : str;
+}
+
+/* =========================
+   Accesos rápidos
+========================= */
+document.addEventListener("keydown",(e)=>{
+  if (e.key==="Escape" && viewer.open) viewer.close();
+});
+
+/* =========================
+   Fin
+========================= */
+</script>
 </body>
 </html>
