@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Adaptador IG: Recorte y Exportación</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#111723; --muted:#8ea1b2; --accent:#3aa3ff; --accent-2:#00d1b2; --white:#f5f7fa;
+    --danger:#ff5c5c; --ok:#38d39f;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  body{margin:0;background:linear-gradient(180deg,#0b0f14,#0e1320);color:var(--white);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Helvetica,Arial,sans-serif}
+  header{padding:16px 14px 8px;display:flex;gap:10px;align-items:center;justify-content:space-between;position:sticky;top:0;background:linear-gradient(180deg,#0b0f14,#0e1320 70%,transparent)}
+  h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+  .hint{color:var(--muted);font-size:12px}
+  .wrap{padding:10px 14px 18px;display:grid;gap:12px}
+  .card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  label.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:#101827;border:1px solid #1b2638;color:#cfe3fa;font-weight:600}
+  label.btn input{display:none}
+  label.btn.active{outline:2px solid var(--accent); background:#0f1a2a}
+  .select{width:100%;display:grid;gap:8px}
+  select, input[type="file"]{width:100%;padding:12px;border-radius:12px;border:1px solid #1b2638;background:#0f1623;color:#e9f1ff;font-weight:600}
+  .actions{display:flex;gap:8px;flex-wrap:wrap}
+  button{appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:800;cursor:pointer}
+  .primary{background:var(--accent);color:#001e38}
+  .ghost{background:#0f1a2a;color:#cfe3fa;border:1px solid #1b2638}
+  .danger{background:var(--danger);color:#210a0a}
+  .ok{background:var(--ok);color:#0b1d17}
+  .toggle{display:flex;align-items:center;gap:8px;color:#cde2ff}
+  .toggle input{accent-color:var(--accent)}
+  .hidden{display:none}
+  .notice{font-size:12px;color:#98a9bd}
+  /* Área de recorte */
+  .stage-outer{position:relative;width:100%;max-width:720px;margin:0 auto}
+  .stage{
+    position:relative;width:100%;aspect-ratio:1/1;
+    border-radius:16px;overflow:hidden;background:#0b0f14;border:1px solid #1b2638;
+    touch-action:none; /* permitimos control propio de gestos */
+  }
+  .img-layer{
+    position:absolute;left:0;top:0;right:0;bottom:0;
+    transform-origin:0 0;will-change:transform;image-rendering:auto;
+  }
+  .crop-frame{
+    position:absolute;inset:0;outline:9999px solid rgba(0,0,0,.45); /* fuera oscuro */
+    pointer-events:none; /* no captura gestos */
+  }
+  .crop-border{
+    position:absolute;inset:0;border:2px dashed rgba(255,255,255,.7);border-radius:10px;mix-blend-mode:screen
+  }
+  .guides.hidden{display:none}
+  .guides{position:absolute;inset:0;pointer-events:none}
+  .guide{position:absolute;left:0;width:100%;height:0;border-top:2px dotted rgba(0,209,178,.9)}
+  .guide-label{position:absolute;right:8px;top:-10px;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:8px;font-size:11px}
+  .grid{
+    position:absolute;inset:0;background:
+      linear-gradient(to right, rgba(255,255,255,.18) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,.18) 1px, transparent 1px);
+    background-size:33.333% 100%, 100% 33.333%;
+    mix-blend-mode:screen;opacity:.7;pointer-events:none
+  }
+  .footer{padding:10px 14px 28px}
+  .small{font-size:12px;color:#9fb2c7}
+  a.download{display:inline-block;margin-top:8px;color:#9fe7ff;font-weight:700;text-decoration:underline}
+</style>
+</head>
+<body>
+  <header>
+    <h1>Adaptador de formatos Instagram</h1>
+    <div class="hint">Sube, recorta, exporta</div>
+  </header>
+
+  <div class="wrap">
+    <div class="card select">
+      <label>1) Sube una imagen</label>
+      <input id="file" type="file" accept="image/*" />
+      <div class="notice">Consejo: usa imágenes grandes (≥ 2000 px de ancho) para mejor nitidez tras el recorte.</div>
+    </div>
+
+    <div class="card select hidden" id="formatCard">
+      <label for="format">2) Elige formato</label>
+      <select id="format">
+        <option value="square">Feed Cuadrado — 1080×1080 (1:1)</option>
+        <option value="portrait">Feed Vertical — 1080×1350 (4:5)</option>
+        <option value="landscape">Feed Horizontal — 1080×566 (≈1.91:1)</option>
+        <option value="story">Stories/Reels — 1080×1920 (9:16)</option>
+        <option value="profile">Foto de Perfil — 1080×1080 (1:1)</option>
+      </select>
+      <div class="row">
+        <label class="toggle">
+          <input type="checkbox" id="safeZone" />
+          Mostrar guías de zona segura (Stories/Reels)
+        </label>
+      </div>
+      <div class="notice">El recuadro de recorte respeta la relación seleccionada. Puedes mover y hacer zoom sobre la imagen.</div>
+    </div>
+
+    <div class="stage-outer hidden" id="stageOuter">
+      <div class="stage" id="stage">
+        <img id="img" class="img-layer" alt="preview"/>
+        <div class="grid"></div>
+        <div class="guides hidden" id="guides">
+          <!-- Guías para Stories/Reels: zona segura ≈ 1080×1420 centrada -->
+          <div class="guide" id="guideTop"><span class="guide-label">Evita texto aquí</span></div>
+          <div class="guide" id="guideBottom"><span class="guide-label">Evita texto aquí</span></div>
+        </div>
+        <div class="crop-frame" aria-hidden="true">
+          <div class="crop-border"></div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:10px">
+        <button class="ghost" id="reset">Restablecer</button>
+        <button class="primary" id="confirm">Confirmar recorte</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="exportCard">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div>
+          <strong>3) Exportación lista</strong>
+          <div class="small" id="exportInfo">Resolución destino:</div>
+        </div>
+        <div class="actions">
+          <button class="ok" id="download">Descargar</button>
+          <button class="danger" id="cancelExport">Cambiar recorte</button>
+        </div>
+      </div>
+      <canvas id="canvas" class="hidden"></canvas>
+      <a id="dlLink" class="download hidden" download="export-instagram.jpg">Descargar imagen</a>
+    </div>
+  </div>
+
+  <footer class="footer small">
+    Nota: para Stories/Reels se muestra opcionalmente una zona segura aproximada (alto 1420 px centrado en 1080×1920).
+    Los gestos móviles están soportados: arrastre (1 dedo) y pellizco (2 dedos).
+  </footer>
+
+<script>
+(function(){
+  const fileInput = document.getElementById('file');
+  const formatCard = document.getElementById('formatCard');
+  const formatSel = document.getElementById('format');
+  const safeZoneToggle = document.getElementById('safeZone');
+
+  const stageOuter = document.getElementById('stageOuter');
+  const stage = document.getElementById('stage');
+  const imgEl = document.getElementById('img');
+  const guides = document.getElementById('guides');
+  const guideTop = document.getElementById('guideTop');
+  const guideBottom = document.getElementById('guideBottom');
+
+  const btnReset = document.getElementById('reset');
+  const btnConfirm = document.getElementById('confirm');
+
+  const exportCard = document.getElementById('exportCard');
+  const exportInfo = document.getElementById('exportInfo');
+  const canvas = document.getElementById('canvas');
+  const btnDownload = document.getElementById('download');
+  const dlLink = document.getElementById('dlLink');
+  const btnCancelExport = document.getElementById('cancelExport');
+
+  // Formatos destino
+  const FORMATS = {
+    square:   {label:"Feed 1:1",       w:1080, h:1080, ar:1/1},
+    portrait: {label:"Feed 4:5",       w:1080, h:1350, ar:4/5},
+    landscape:{label:"Feed 1.91:1",    w:1080, h:566,  ar:1080/566}, // ≈1.91
+    story:    {label:"Stories/Reels",  w:1080, h:1920, ar:9/16},
+    profile:  {label:"Perfil 1:1",     w:1080, h:1080, ar:1/1}
+  };
+
+  // Estado de transformación
+  let state = {
+    image:null, naturalW:0, naturalH:0,
+    fmt:'square',
+    scale:1, minScale:1, maxScale:8,
+    tx:0, ty:0, // translation in CSS pixels inside stage
+    cropWpx:0, cropHpx:0, // CSS pixels of crop frame
+    startTouches:[],
+    startScale:1,
+    startTx:0, startTy:0,
+    startDist:0,
+    startMid:{x:0,y:0}
+  };
+
+  function setHidden(el, hide){ el.classList.toggle('hidden', !!hide); }
+
+  // Ajusta aspect-ratio visual del stage para que el marco de recorte tenga la relación correcta
+  function applyAspect(){
+    const fmt = FORMATS[state.fmt];
+    // CSS aspect-ratio usa ancho:alto
+    const inv = fmt.h / fmt.w; // alto/ancho
+    stage.style.aspectRatio = `${fmt.w}/${fmt.h}`;
+
+    // Calcular tamaño actual en CSS px del marco (coincide con stage interior)
+    const rect = stage.getBoundingClientRect();
+    state.cropWpx = rect.width;
+    state.cropHpx = rect.height;
+
+    // Recalcular escalado mínimo para cubrir el marco
+    computeMinScale();
+    clampTransform();
+    renderTransform();
+    // Guías de zona segura (solo stories/reels)
+    updateGuides();
+  }
+
+  function updateGuides(){
+    if(state.fmt !== 'story' || !safeZoneToggle.checked){
+      setHidden(guides, true);
+      return;
+    }
+    // Para 1080×1920, zona segura aproximada de 1420 px de alto centrada.
+    // En la vista, convertimos a porcentaje del alto visible.
+    const safeH = 1420;
+    const totalH = 1920;
+    const margin = (totalH - safeH)/2; // 250 px arriba y abajo
+    const topPct = (margin/totalH)*100;
+    const bottomPct = 100 - topPct;
+
+    guideTop.style.top = `${topPct}%`;
+    guideBottom.style.top = `${bottomPct}%`;
+    setHidden(guides, false);
+  }
+
+  // Lee imagen
+  fileInput.addEventListener('change', async (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = ()=>{
+      state.image = img;
+      state.naturalW = img.naturalWidth;
+      state.naturalH = img.naturalHeight;
+      imgEl.src = url;
+      // Mostrar selección de formato y stage
+      setHidden(formatCard, false);
+      // Si ya había stage visible, recalcular
+      setHidden(stageOuter, false);
+      // Forzar primer formato
+      state.fmt = formatSel.value;
+      // Reset transform
+      resetView(true);
+      applyAspect();
+    };
+    img.src = url;
+  });
+
+  formatSel.addEventListener('change', ()=>{
+    state.fmt = formatSel.value;
+    applyAspect();
+  });
+
+  safeZoneToggle.addEventListener('change', updateGuides);
+
+  function resetView(resetFmtMin=false){
+    state.scale = 1;
+    state.tx = 0;
+    state.ty = 0;
+    if(resetFmtMin) computeMinScale();
+    clampTransform();
+    renderTransform();
+    setHidden(exportCard, true);
+    dlLink.href = '';
+  }
+
+  btnReset.addEventListener('click', ()=> resetView(true));
+
+  // Calcula escala mínima para cubrir el marco en su menor dimensión
+  function computeMinScale(){
+    if(!state.image) return;
+    const iw = state.naturalW, ih = state.naturalH;
+    const cw = state.cropWpx, ch = state.cropHpx;
+    // Necesitamos que imagen escalada cubra completamente el crop
+    const sX = cw / iw;
+    const sY = ch / ih;
+    state.minScale = Math.max(sX, sY);
+    // Si venimos de otra imagen/formato, reubicar centrado
+    state.scale = Math.max(state.scale, state.minScale);
+    // centrado, colocar imagen para que el medio quede en el medio
+    state.tx = (cw - iw*state.scale)/2;
+    state.ty = (ch - ih*state.scale)/2;
+  }
+
+  // Limita para que no aparezcan barras vacías
+  function clampTransform(){
+    const iw = state.naturalW * state.scale;
+    const ih = state.naturalH * state.scale;
+    const cw = state.cropWpx, ch = state.cropHpx;
+    // Que cubra todo: tx <= 0 y tx + iw >= cw
+    const minTx = Math.min(0, cw - iw);
+    const maxTx = Math.max(0, cw - iw);
+    const minTy = Math.min(0, ch - ih);
+    const maxTy = Math.max(0, ch - ih);
+    state.tx = Math.min(Math.max(state.tx, minTx), 0);
+    state.ty = Math.min(Math.max(state.ty, minTy), 0);
+  }
+
+  function renderTransform(){
+    imgEl.style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
+  }
+
+  // Gestos
+  stage.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    if(!state.image) return;
+    const rect = stage.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const delta = -e.deltaY;
+    zoomAt(delta>0?1.06:0.94, cx, cy);
+  }, {passive:false});
+
+  stage.addEventListener('pointerdown', onPointerDown);
+  stage.addEventListener('pointermove', onPointerMove);
+  stage.addEventListener('pointerup', onPointerUp);
+  stage.addEventListener('pointercancel', onPointerUp);
+  stage.addEventListener('pointerleave', onPointerUp);
+
+  function onPointerDown(e){
+    if(!state.image) return;
+    stage.setPointerCapture(e.pointerId);
+    state.startTouches.push({id:e.pointerId, x:e.clientX, y:e.clientY});
+    if(state.startTouches.length===1){
+      state.startTx = state.tx;
+      state.startTy = state.ty;
+    }else if(state.startTouches.length===2){
+      const [a,b]=state.startTouches;
+      state.startDist = dist(a,b);
+      state.startScale = state.scale;
+      state.startMid = mid(a,b);
+    }
+  }
+
+  function onPointerMove(e){
+    const t = state.startTouches.find(x=>x.id===e.pointerId);
+    if(!t) return;
+    t.x = e.clientX; t.y = e.clientY;
+
+    if(state.startTouches.length===1){
+      // Pan
+      const cur = state.startTouches[0];
+      const dx = cur.x - e.pressure; // no sirve, corregimos abajo
+    }
+
+    if(state.startTouches.length===1){
+      const cur = state.startTouches[0];
+      // Diferencia vs posición inicial del pointerdown almacenada en startTx/startTy
+      // Para ello guardamos también al presionar el punto inicial:
+      // (Retroajuste) Añadimos si no existen:
+      if(state._panBase===undefined){
+        state._panBase = {x:cur.x, y:cur.y};
+      }
+      const dx = cur.x - state._panBase.x;
+      const dy = cur.y - state._panBase.y;
+      state.tx = state.startTx + dx;
+      state.ty = state.startTy + dy;
+      clampTransform();
+      renderTransform();
+    }else if(state.startTouches.length===2){
+      const [a,b]=state.startTouches;
+      const newDist = dist(a,b);
+      if(state.startDist>0){
+        const scaleFactor = newDist / state.startDist;
+        pinchZoom(scaleFactor, state.startMid.x, state.startMid.y);
+      }
+    }
+  }
+
+  function onPointerUp(e){
+    const idx = state.startTouches.findIndex(x=>x.id===e.pointerId);
+    if(idx>=0) state.startTouches.splice(idx,1);
+    if(state.startTouches.length===0){
+      delete state._panBase;
+    }
+  }
+
+  function dist(a,b){ const dx=a.x-b.x, dy=a.y-b.y; return Math.hypot(dx,dy); }
+  function mid(a,b){ return {x:(a.x+b.x)/2, y:(a.y+b.y)/2}; }
+
+  function cssToImageCoords(cx, cy){
+    // punto (cx,cy) en stage -> coord en imagen original
+    // (cx - tx)/scale, (cy - ty)/scale
+    const ix = (cx - state.tx)/state.scale;
+    const iy = (cy - state.ty)/state.scale;
+    return {ix, iy};
+  }
+
+  function zoomAt(factor, cx, cy){
+    // Zoom alrededor del punto (cx,cy) en la vista
+    const before = cssToImageCoords(cx, cy);
+    const newScale = clamp(state.scale * factor, state.minScale, state.maxScale);
+    const ratio = newScale / state.scale;
+    state.scale = newScale;
+    // Re-posicionar para mantener el punto anclado
+    state.tx = cx - before.ix * state.scale;
+    state.ty = cy - before.iy * state.scale;
+    clampTransform();
+    renderTransform();
+  }
+
+  function pinchZoom(scaleFactor, centerX, centerY){
+    const rect = stage.getBoundingClientRect();
+    const cx = centerX - rect.left;
+    const cy = centerY - rect.top;
+    const target = clamp(state.startScale * scaleFactor, state.minScale, state.maxScale);
+    const ratio = target / state.scale;
+    state.scale = target;
+    const before = cssToImageCoords(cx, cy);
+    state.tx = cx - before.ix * state.scale;
+    state.ty = cy - before.iy * state.scale;
+    clampTransform();
+    renderTransform();
+  }
+
+  function clamp(v,min,max){ return Math.min(Math.max(v,min),max); }
+
+  // Confirmar -> render al canvas a la resolución destino
+  btnConfirm.addEventListener('click', ()=>{
+    if(!state.image) return;
+    const fmt = FORMATS[state.fmt];
+    const destW = fmt.w, destH = fmt.h;
+
+    // Calcular rectángulo de recorte en coordenadas de la imagen original
+    // El marco visible ocupa [0,cw]x[0,ch] en CSS; mapeamos a la imagen: (x - tx)/scale
+    const sx = (0 - state.tx) / state.scale;
+    const sy = (0 - state.ty) / state.scale;
+    const sWidth = state.cropWpx / state.scale;
+    const sHeight = state.cropHpx / state.scale;
+
+    // Ajustes por límites (por seguridad)
+    const sxClamped = clamp(sx, 0, state.naturalW);
+    const syClamped = clamp(sy, 0, state.naturalH);
+    const swClamped = Math.min(sWidth, state.naturalW - sxClamped);
+    const shClamped = Math.min(sHeight, state.naturalH - syClamped);
+
+    // Render
+    canvas.width = destW;
+    canvas.height = destH;
+    const ctx = canvas.getContext('2d');
+
+    // Fondo negro para evitar bordes transparentes en JPEG
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0,0,destW,destH);
+
+    // Dibuja escalando recorte al tamaño final
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(
+      state.image,
+      sxClamped, syClamped, swClamped, shClamped,
+      0, 0, destW, destH
+    );
+
+    setHidden(exportCard, false);
+    exportInfo.textContent = `Resolución destino: ${destW}×${destH}px — ${FORMATS[state.fmt].label}`;
+    // Prepara enlace de descarga
+    const dataURL = canvas.toDataURL('image/jpeg', 0.92);
+    dlLink.href = dataURL;
+    dlLink.download = buildFilename();
+    setHidden(dlLink, false);
+  });
+
+  function buildFilename(){
+    const fmt = FORMATS[state.fmt];
+    const base = fmt.label.toLowerCase().replace(/\s+/g,'-');
+    const ts = new Date().toISOString().replace(/[:.]/g,'-');
+    return `ig-${base}-${fmt.w}x${fmt.h}-${ts}.jpg`;
+  }
+
+  // Botón descargar (duplica la acción del enlace por compatibilidad)
+  btnDownload.addEventListener('click', ()=>{
+    if(!dlLink.href) return;
+    dlLink.click();
+  });
+
+  btnCancelExport.addEventListener('click', ()=>{
+    setHidden(exportCard, true);
+  });
+
+  // Reconstruye cuando cambia el tamaño (rotación móvil, etc.)
+  window.addEventListener('resize', ()=>{
+    if(!state.image) return;
+    applyAspect();
+  });
+
+})();
+</script>
+</body>
+</html>
