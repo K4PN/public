@@ -555,43 +555,89 @@
                 const deltaX = clientX - startX;
                 const deltaY = clientY - startY;
                 
+                const previewImage = document.getElementById('previewImage');
+                const imageRect = previewImage.getBoundingClientRect();
+                
                 let newWidth = startWidth;
-                let newHeight = startHeight;
                 let newLeft = startLeft;
                 let newTop = startTop;
                 
+                // Calcular nuevo ancho basado en el handle que se está arrastrando
                 if (resizeHandle.includes('e')) {
                     newWidth = startWidth + deltaX;
                 }
                 if (resizeHandle.includes('w')) {
                     newWidth = startWidth - deltaX;
-                    newLeft = startLeft + deltaX;
                 }
-                if (resizeHandle.includes('s')) {
-                    newHeight = startHeight + deltaY;
-                }
-                if (resizeHandle.includes('n')) {
-                    newHeight = startHeight - deltaY;
-                    newTop = startTop + deltaY;
-                }
-                
-                // Mantener proporción
-                if (format.ratio > 1) {
-                    newHeight = newWidth / format.ratio;
-                } else {
+                if (resizeHandle.includes('s') || resizeHandle.includes('n')) {
+                    // Para handles verticales, calcular ancho basado en el cambio de altura
+                    const deltaHeight = resizeHandle.includes('s') ? deltaY : -deltaY;
+                    const newHeight = startHeight + deltaHeight;
                     newWidth = newHeight * format.ratio;
                 }
                 
-                // Limitar al área de la imagen
-                const previewImage = document.getElementById('previewImage');
-                const imageRect = previewImage.getBoundingClientRect();
+                // Calcular altura manteniendo la proporción
+                const newHeight = newWidth / format.ratio;
                 
-                newWidth = Math.max(50, Math.min(newWidth, imageRect.width));
-                newHeight = Math.max(50, Math.min(newHeight, imageRect.height));
-                newLeft = Math.max(0, Math.min(newLeft, imageRect.width - newWidth));
-                newTop = Math.max(0, Math.min(newTop, imageRect.height - newHeight));
+                // Aplicar límites
+                const maxWidth = imageRect.width;
+                const maxHeight = imageRect.height;
+                const minSize = 50;
                 
-                updateCropOverlay(newLeft, newTop, newWidth, newHeight);
+                if (newWidth < minSize || newHeight < minSize || 
+                    newWidth > maxWidth || newHeight > maxHeight) {
+                    return; // No permitir el redimensionado si excede límites
+                }
+                
+                // Ajustar posición para handles izquierdos y superiores
+                if (resizeHandle.includes('w')) {
+                    newLeft = startLeft + (startWidth - newWidth);
+                }
+                if (resizeHandle.includes('n')) {
+                    newTop = startTop + (startHeight - newHeight);
+                }
+                
+                // Verificar que no se salga de los bordes
+                if (newLeft < 0) {
+                    const adjustWidth = newWidth + newLeft;
+                    const adjustHeight = adjustWidth / format.ratio;
+                    newLeft = 0;
+                    newWidth = adjustWidth;
+                    if (resizeHandle.includes('n')) {
+                        newTop = startTop + (startHeight - adjustHeight);
+                    }
+                }
+                
+                if (newTop < 0) {
+                    const adjustHeight = newHeight + newTop;
+                    const adjustWidth = adjustHeight * format.ratio;
+                    newTop = 0;
+                    newWidth = adjustWidth;
+                    if (resizeHandle.includes('w')) {
+                        newLeft = startLeft + (startWidth - adjustWidth);
+                    }
+                }
+                
+                if (newLeft + newWidth > imageRect.width) {
+                    newWidth = imageRect.width - newLeft;
+                    const adjustedHeight = newWidth / format.ratio;
+                    if (resizeHandle.includes('n')) {
+                        const heightDiff = newHeight - adjustedHeight;
+                        newTop = Math.max(0, newTop + heightDiff);
+                    }
+                }
+                
+                if (newTop + newHeight > imageRect.height) {
+                    const maxAvailableHeight = imageRect.height - newTop;
+                    const adjustedWidth = maxAvailableHeight * format.ratio;
+                    newWidth = adjustedWidth;
+                    if (resizeHandle.includes('w')) {
+                        const widthDiff = startWidth - newWidth;
+                        newLeft = Math.max(0, startLeft + widthDiff);
+                    }
+                }
+                
+                updateCropOverlay(newLeft, newTop, newWidth, newWidth / format.ratio);
             }
         }
         
