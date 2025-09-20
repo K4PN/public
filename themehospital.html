@@ -1,525 +1,493 @@
 <!DOCTYPE html><html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Recordatorios — Local (HTML único)</title>
-  <meta name="description" content="Página de recordatorios en un solo archivo HTML. Almacena datos en localStorage. Panel izquierdo: fecha y acciones. Panel derecho: filtros y lista enriquecida."/>
-  <style>
-    :root{
-      --bg:#0b0c10;
-      --panel:#11131a;
-      --muted:#cbd5e1;
-      --text:#e5e7eb;
-      --accent:#60a5fa;
-      --accent-2:#34d399;
-      --danger:#ef4444;
-      --warning:#f59e0b;
-      --ok:#22c55e;
-      --card:#0f172a;
-      --chip:#1f2937;
-      --shadow:0 10px 25px rgba(0,0,0,.35);
-      --border:1px solid rgba(255,255,255,.08);
-    }
-    [data-theme="light"]{
-      --bg:#f6f7fb;
-      --panel:#ffffff;
-      --muted:#475569;
-      --text:#0f172a;
-      --accent:#2563eb;
-      --accent-2:#059669;
-      --danger:#dc2626;
-      --warning:#d97706;
-      --ok:#16a34a;
-      --card:#ffffff;
-      --chip:#e5e7eb;
-      --shadow:0 8px 20px rgba(2,6,23,.08);
-      --border:1px solid rgba(2,6,23,.08);
-    }*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0; font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  background:var(--bg); color:var(--text);
-  display:grid; grid-template-columns:1fr 2fr; gap:16px; padding:16px; 
-}
-@media (max-width: 980px){
-  body{grid-template-columns:1fr;}
-  .left{position:static}
-}
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Explorador de Archivos · Futurista</title>
+<style>
+  :root{
+    --bg:#0b0f17;
+    --panel:#0e1525cc;
+    --panel-opaque:#0e1525;
+    --card:#10192ccc;
+    --text:#e6eefc;
+    --muted:#9bb0d6;
+    --accent:#66e0ff;
+    --accent-2:#8a6cff;
+    --danger:#ff5c8a;
+    --ok:#3be8b0;
+    --warning:#ffd166;
+    --grid:rgba(255,255,255,0.04);
+    --border:rgba(102,224,255,0.25);
+    --shadow:0 10px 30px rgba(0,0,0,0.5), 0 0 40px rgba(102,224,255,0.07) inset;
+    --radius:18px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f8fbff; --panel:#eaf1ffcc; --panel-opaque:#eaf1ff; --card:#ffffffcc; --text:#102033; --muted:#536582; --grid:rgba(0,0,0,0.05); --border:rgba(138,108,255,0.25); }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:radial-gradient(1200px 1200px at 80% -20%, rgba(102,224,255,0.15),transparent 60%),
+    radial-gradient(800px 800px at -10% 110%, rgba(138,108,255,0.18),transparent 60%),
+    var(--bg);
+    color:var(--text); font:500 15px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu; letter-spacing:.2px; 
+    overflow:hidden;
+  }
+  /* Subtle grid */
+  body::before{content:""; position:fixed; inset:0; background:linear-gradient(var(--grid) 1px, transparent 1px) 0 0/ 28px 28px,
+  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/ 28px 28px; pointer-events:none; mask:radial-gradient(1200px 600px at 50% 0%, black, transparent 80%);}.app{ display:grid; grid-template-rows:64px 1fr; height:100%; }
 
-.panel{background:var(--panel); border-radius:18px; box-shadow:var(--shadow); border:var(--border)}
+/* Topbar */ .topbar{ display:flex; align-items:center; gap:14px; padding:8px 14px; backdrop-filter: blur(10px) saturate(140%); background:linear-gradient(180deg, #0e1525cc, #0e1525a0), repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(102,224,255,0.06) 10px, rgba(102,224,255,0.06) 20px); border-bottom:1px solid var(--border); box-shadow: var(--shadow); } .brand{ display:flex; align-items:center; gap:10px; margin-right:8px; } .logo{ width:28px; height:28px; position:relative; } .logo::before, .logo::after{ content:""; position:absolute; inset:0; border-radius:10px; border:2px solid var(--accent); filter: drop-shadow(0 0 8px rgba(102,224,255,.7)); transform:skewX(-10deg);} .logo::after{ border-color:var(--accent-2); inset:4px; filter: drop-shadow(0 0 10px rgba(138,108,255,.7));} .title{ font-size:15px; letter-spacing:1.6px; text-transform:uppercase; color:var(--muted) }
 
-.left{position:sticky; top:16px; align-self:start; height:calc(100dvh - 32px); display:flex; flex-direction:column; overflow:hidden}
-.left .date{padding:24px; border-bottom:var(--border)}
-.date h1{margin:0; font-weight:800; letter-spacing:.4px; font-size:clamp(24px,3.5vw,42px)}
-.date .today{opacity:.8; margin-top:6px}
+.searchbar{ flex:1; display:flex; align-items:center; gap:8px; } .input{ flex:1; background:var(--panel); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:12px; outline:none; box-shadow: inset 0 0 0 1px transparent; transition:.25s; } .input:focus{ box-shadow: inset 0 0 0 1px var(--accent); } .k{ font:600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono"; color:var(--muted); background:#00000030; padding:6px 8px; border:1px solid var(--border); border-radius:8px; }
 
-.actions{padding:16px; display:grid; gap:12px; grid-auto-rows:minmax(44px,auto); overflow:auto}
-.btn{display:flex; align-items:center; gap:10px; padding:12px 14px; background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(0,0,0,.04)); border:var(--border); border-radius:12px; cursor:pointer; user-select:none; transition:transform .06s ease, box-shadow .2s ease, background .2s ease}
-.btn:hover{transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.btn .i{font-size:18px; opacity:.9}
-.btn.primary{background:linear-gradient(180deg, rgba(96,165,250,.18), rgba(96,165,250,.06)); border-color:rgba(96,165,250,.35)}
-.btn.danger{background:linear-gradient(180deg, rgba(239,68,68,.18), rgba(239,68,68,.06)); border-color:rgba(239,68,68,.35)}
+.btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:linear-gradient(180deg, var(--panel), #0e15251a); color:var(--text); cursor:pointer; transition:.2s; box-shadow: var(--shadow)} .btn:hover{ transform: translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.35), 0 0 18px rgba(102,224,255,.25) inset; } .btn.primary{ background:linear-gradient(180deg, rgba(102,224,255,.2), rgba(102,224,255,.08));} .btn.danger{ background:linear-gradient(180deg, rgba(255,92,138,.18), rgba(255,92,138,.06)); }
 
-.right{display:flex; flex-direction:column; min-height:0}
-.filters{padding:12px 16px; display:grid; grid-template-columns:1.4fr .9fr .9fr .9fr .9fr .9fr auto; gap:10px; border-bottom:var(--border)}
-@media (max-width: 1200px){
-  .filters{grid-template-columns:1fr 1fr 1fr 1fr;}
-  .filters .compact{grid-column:1 / -1}
-}
-@media (max-width: 720px){
-  .filters{grid-template-columns:1fr 1fr;}
-}
+/* Layout */ .layout{ display:grid; grid-template-columns:280px 1fr 320px; gap:12px; padding:12px; height: calc(100vh - 64px); } .panel{ background:var(--panel); border:1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow:hidden; min-height:0; }
 
-.input, select{width:100%; padding:10px 12px; border-radius:10px; border:var(--border); background:var(--card); color:var(--text); outline:none}
-label.small{font-size:12px; opacity:.8; margin-bottom:6px; display:block}
+/* Sidebar tree */ .sidebar{ display:flex; flex-direction:column; } .section-title{ font-size:12px; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--border); } .tree{ padding:6px 8px 20px 8px; overflow:auto; } .node{ display:flex; align-items:center; gap:8px; padding:8px; border-radius:10px; cursor:pointer; user-select:none; } .node:hover{ background:rgba(102,224,255,0.06); } .node.active{ outline:1px solid var(--accent); background: linear-gradient(90deg, rgba(102,224,255,0.08), transparent); } .twist{ width:16px; height:16px; display:inline-grid; place-items:center; } .twist svg{ width:12px; height:12px; transition:.2s; } .collapsed>.twist svg{ transform: rotate(-90deg); } .indent{ margin-left:22px; border-left:1px dashed var(--border); padding-left:8px; }
 
-.list{padding:16px; display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:14px; overflow:auto}
+/* Main */ .main{ display:grid; grid-template-rows:auto 1fr; } .toolbar{ display:flex; gap:8px; padding:10px; border-bottom:1px solid var(--border); flex-wrap:wrap; } .crumbs{ display:flex; align-items:center; gap:6px; padding:8px 12px; color:var(--muted); } .crumbs span, .crumbs a{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; } .crumbs a{ color:var(--text); border:1px solid transparent; cursor:pointer; } .crumbs a:hover{ border-color:var(--border); background:rgba(138,108,255,0.08) }
 
-.card{background:var(--card); border:var(--border); border-left:6px solid var(--accent); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px; position:relative}
-.card.done{opacity:.7; filter:saturate(.6)}
-.title{font-weight:700; font-size:18px}
-.desc{opacity:.9; white-space:pre-wrap}
-.meta{display:flex; flex-wrap:wrap; gap:8px}
-.chip{background:var(--chip); color:var(--text); border-radius:999px; padding:6px 10px; font-size:12px; border:var(--border)}
-.chip.badge{font-weight:700}
-.row{display:flex; align-items:center; justify-content:space-between; gap:12px}
-.row .leftx{display:flex; align-items:center; gap:8px}
+.view{ overflow:auto; padding:12px; }
 
-.actions-inline{display:flex; gap:8px}
-.icon-btn{padding:8px 10px; border-radius:10px; border:var(--border); background:transparent; cursor:pointer}
-.icon-btn:hover{background:rgba(255,255,255,.06)}
+.grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:12px; } .tile{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; display:grid; grid-template-rows:90px auto; gap:8px; cursor:pointer; transition:.2s; position:relative; } .tile:hover{ transform: translateY(-2px); box-shadow:0 10px 25px rgba(0,0,0,.35), 0 0 24px rgba(138,108,255,.22) inset; } .tile.selected{ outline:2px solid var(--accent-2); } .thumb{ background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.2)); border:1px dashed var(--border); border-radius:10px; display:grid; place-items:center; overflow:hidden } .thumb img{ width:100%; height:100%; object-fit:cover } .name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis } .meta{ color:var(--muted); font-size:12px; }
 
-.priority-1{--accent:var(--danger)}
-.priority-2{--accent:var(--warning)}
-.priority-3{--accent:var(--ok)}
+.list{ width:100%; border-collapse:collapse; } .list th, .list td{ padding:10px 12px; border-bottom:1px dashed var(--border); text-align:left; } .list tr{ cursor:pointer; } .list tr:hover{ background:rgba(102,224,255,0.06) } .list tr.selected{ outline:2px solid var(--accent-2); }
 
-.status-toggle{display:flex; align-items:center; gap:8px}
-.status-toggle input{accent-color:var(--accent)}
+/* Preview */ .preview{ display:grid; grid-template-rows:auto 1fr auto; } .preview .header{ padding:10px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px } .preview .body{ padding:12px; overflow:auto } .preview .footer{ padding:10px 12px; border-top:1px solid var(--border); color:var(--muted) } .kv{ display:grid; grid-template-columns:120px 1fr; gap:8px; margin-bottom:8px } .kv div:nth-child(odd){ color:var(--muted) }
 
-/* Modal */
-dialog{border:none; border-radius:16px; width:min(680px, 94vw); background:var(--panel); color:var(--text); box-shadow:var(--shadow); padding:0}
-dialog::backdrop{background:rgba(2,6,23,.55)}
-.modal-header{padding:16px 18px; border-bottom:var(--border); display:flex; align-items:center; justify-content:space-between}
-.modal-body{padding:16px 18px; display:grid; gap:12px}
-.modal-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
-@media (max-width:720px){.modal-grid{grid-template-columns:1fr}}
-.modal-footer{padding:14px 18px; border-top:var(--border); display:flex; gap:10px; justify-content:flex-end}
+/* Context menu */ .menu{ position:fixed; background:var(--panel-opaque); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:6px; display:none; min-width:200px; z-index:50 } .menu .mi{ padding:8px 10px; border-radius:8px; cursor:pointer; display:flex; gap:8px; align-items:center } .menu .mi:hover{ background:rgba(102,224,255,0.1) } .menu .sep{ height:1px; background:var(--border); margin:6px 4px }
 
-.save{background:var(--accent); color:white; border:none}
-.outline{background:transparent; border:var(--border); color:var(--text)}
+/* Floating toasts */ .toastBox{ position:fixed; right:12px; bottom:12px; display:grid; gap:8px; z-index:60 } .toast{ background:var(--panel-opaque); border:1px solid var(--border); border-radius:10px; padding:10px 12px; box-shadow:var(--shadow) }
 
-/* Toast (flash) */
-.toast{position:fixed; right:20px; bottom:20px; display:grid; gap:8px; z-index:50}
-.toast .t{background:var(--panel); border-left:4px solid var(--accent); padding:12px 14px; border-radius:12px; box-shadow:var(--shadow); border:var(--border); animation:slideIn .18s ease}
-.toast .t.err{border-left-color:var(--danger)}
-@keyframes slideIn{from{transform:translateY(12px); opacity:0} to{transform:translateY(0); opacity:1}}
+/* Responsive */ @media (max-width: 1080px){ .layout{ grid-template-columns: 1fr; grid-template-rows: auto auto 280px; } .sidebar{ order:2 } .preview{ order:3 } }
 
-/* Header badges */
-.tiny{font-size:12px; opacity:.8}
-.muted{color:var(--muted)}
+/* Futuristic focus ring */ :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:8px } </style>
 
-.sticky-top{position:sticky; top:16px; z-index:2}
-
-  </style>
 </head>
-<body data-theme="dark">
-  <!-- LEFT PANEL -->
-  <aside class="panel left">
-    <div class="date sticky-top">
-      <h1 id="dateText">—</h1>
-      <div class="today muted tiny" id="weekdayText">—</div>
-    </div><div class="actions" id="leftActions">
-  <div class="btn primary" id="btnNew"><span class="i">➕</span><span>Nuevo recordatorio</span></div>
-  <div class="btn" id="btnQuick"><span class="i">⚡</span><span>Rápido para hoy</span></div>
-  <div class="btn" id="btnExport"><span class="i">📤</span><span>Exportar (.json)</span></div>
-  <label class="btn" for="importFile" title="Importar JSON">
-    <span class="i">📥</span><span>Importar (.json)</span>
-    <input id="importFile" type="file" accept="application/json" hidden>
-  </label>
-  <div class="btn danger" id="btnWipe"><span class="i">🗑️</span><span>Vaciar todo (local)</span></div>
-  <div class="btn" id="btnTheme"><span class="i">🌓</span><span>Tema claro/oscuro</span></div>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="title">NeoFS · Explorador</div>
+      </div>
+      <div class="searchbar">
+        <input id="search" class="input" placeholder="Buscar (Ctrl/Cmd + K)…"/>
+        <span class="k" title="Selecciona todo">Ctrl/Cmd + A</span>
+        <span class="k" title="Renombrar">F2</span>
+        <span class="k" title="Eliminar">Supr</span>
+      </div>
+      <button class="btn primary" id="btnNew">+ Nuevo</button>
+      <button class="btn" id="btnUpload">Subir</button>
+      <button class="btn" id="btnDownload">Descargar</button>
+      <button class="btn" id="btnView">Vista: <span id="viewModeLbl">Grilla</span></button>
+    </div><div class="layout">
+  <!-- Sidebar / Tree -->
+  <aside class="panel sidebar">
+    <div class="section-title">Carpetas</div>
+    <div id="tree" class="tree" role="tree"></div>
+  </aside>
+
+  <!-- Main -->
+  <main class="panel main">
+    <div class="toolbar">
+      <div class="crumbs" id="crumbs"></div>
+      <div style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <label style="color:var(--muted); font-size:12px">Ordenar por</label>
+        <select id="sort" class="input" style="width:180px; padding:8px 10px">
+          <option value="name">Nombre</option>
+          <option value="type">Tipo</option>
+          <option value="size">Tamaño</option>
+          <option value="modified">Modificado</option>
+        </select>
+      </div>
+    </div>
+    <div class="view" id="view"></div>
+  </main>
+
+  <!-- Preview -->
+  <aside class="panel preview">
+    <div class="header"><strong>Vista previa</strong><span id="previewTitle" style="color:var(--muted)"></span></div>
+    <div class="body" id="previewBody"></div>
+    <div class="footer">Persistencia local: <code>localStorage</code>. <button class="btn" id="btnSaveState">Guardar</button> <button class="btn" id="btnLoadState">Cargar</button> <button class="btn danger" id="btnReset">Reiniciar</button></div>
+  </aside>
 </div>
 
-  </aside>  <!-- RIGHT PANEL -->  <main class="panel right">
-    <!-- FILTERS -->
-    <section class="filters sticky-top" aria-label="Filtros">
-      <div>
-        <label class="small" for="q">Buscar</label>
-        <input class="input" id="q" placeholder="🔎 título, descripción, etiquetas...">
-      </div>
-      <div>
-        <label class="small" for="fStatus">Estado</label>
-        <select id="fStatus">
-          <option value="">Todos</option>
-          <option value="open">Pendientes</option>
-          <option value="done">Completados</option>
-        </select>
-      </div>
-      <div>
-        <label class="small" for="fPriority">Prioridad</label>
-        <select id="fPriority">
-          <option value="">Todas</option>
-          <option value="1">Alta</option>
-          <option value="2">Media</option>
-          <option value="3">Baja</option>
-        </select>
-      </div>
-      <div>
-        <label class="small" for="fCategory">Categoría</label>
-        <select id="fCategory">
-          <option value="">Todas</option>
-        </select>
-      </div>
-      <div>
-        <label class="small" for="fFrom">Desde</label>
-        <input class="input" id="fFrom" type="date">
-      </div>
-      <div>
-        <label class="small" for="fTo">Hasta</label>
-        <input class="input" id="fTo" type="date">
-      </div>
-      <div class="compact">
-        <label class="small" for="fSort">Orden</label>
-        <select id="fSort">
-          <option value="due_asc">Vencimiento ⭡</option>
-          <option value="due_desc">Vencimiento ⭣</option>
-          <option value="prio">Prioridad</option>
-          <option value="created_desc">Reciente</option>
-          <option value="created_asc">Antiguo</option>
-          <option value="title">Título A→Z</option>
-        </select>
-      </div>
-    </section><!-- LIST -->
-<section class="list" id="list"></section>
+  </div>  <!-- Hidden inputs -->  <input id="fileInput" type="file" multiple hidden>
+  <input id="jsonInput" type="file" accept="application/json" hidden>  <!-- Context menu -->  <div class="menu" id="ctx">
+    <div class="mi" data-act="open">Abrir</div>
+    <div class="mi" data-act="rename">Renombrar</div>
+    <div class="mi" data-act="duplicate">Duplicar</div>
+    <div class="mi" data-act="download">Descargar</div>
+    <div class="sep"></div>
+    <div class="mi" data-act="newfile">Nuevo archivo</div>
+    <div class="mi" data-act="newfolder">Nueva carpeta</div>
+    <div class="sep"></div>
+    <div class="mi" data-act="delete" style="color:var(--danger)">Eliminar</div>
+  </div>
+  <div class="toastBox" id="toasts"></div><script>
+/**
+ * NeoFS – Explorador futurista en un único archivo
+ * - Árbol de carpetas + vista principal (grilla/lista)
+ * - CRUD (nuevo, renombrar, eliminar), duplicar, arrastrar-soltar mover
+ * - Subir archivos (FileReader) y descargarlos (Blob)
+ * - Búsqueda instantánea, ordenación y migas de pan
+ * - Vista previa (texto, imagen, JSON)
+ * - Estado persistente en localStorage (export/import)
+ * - Atajos de teclado (Enter, F2, Supr, Ctrl/Cmd+K, Ctrl/Cmd+N)
+ */
+(function(){
+  const $ = (sel, el=document)=> el.querySelector(sel);
+  const $$ = (sel, el=document)=> Array.from(el.querySelectorAll(sel));
+  const state = {
+    fs: null,            // sistema de archivos (árbol)
+    openPath: ['Raíz'],  // ruta actual
+    selection: null,     // nodo seleccionado en vista
+    viewMode: 'grid',    // grid | list
+    sortBy: 'name',
+    filter: ''
+  };
 
-  </main>  <!-- MODAL: CREATE/EDIT -->  <dialog id="editor">
-    <form method="dialog" id="form">
-      <div class="modal-header">
-        <strong id="modalTitle">Nuevo recordatorio</strong>
-        <button class="icon-btn outline" type="button" id="closeModal" title="Cerrar">✖</button>
-      </div>
-      <div class="modal-body">
-        <div>
-          <label class="small" for="title">Título *</label>
-          <input class="input" id="title" required placeholder="Por ejemplo: Llamar a Juan"/>
-        </div>
-        <div>
-          <label class="small" for="category">Categoría</label>
-          <input class="input" id="category" placeholder="Trabajo, Familia, Salud..."/>
-        </div>
-        <div class="modal-grid">
-          <div>
-            <label class="small" for="due">Vencimiento</label>
-            <input class="input" id="due" type="datetime-local"/>
-          </div>
-          <div>
-            <label class="small" for="priority">Prioridad</label>
-            <select id="priority">
-              <option value="2">Media</option>
-              <option value="1">Alta</option>
-              <option value="3">Baja</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="small" for="tags">Etiquetas (coma ,)</label>
-          <input class="input" id="tags" placeholder="llamada, urgente, informe"/>
-        </div>
-        <div>
-          <label class="small" for="notes">Descripción</label>
-          <textarea class="input" id="notes" rows="5" placeholder="Detalles, enlaces, teléfonos..."></textarea>
-        </div>
-        <input type="hidden" id="rid">
-      </div>
-      <div class="modal-footer">
-        <button class="icon-btn outline" value="cancel" type="button" id="cancelEdit">Cancelar</button>
-        <button class="icon-btn save" id="saveBtn" value="default" type="submit">Guardar</button>
-      </div>
-    </form>
-  </dialog>  <!-- TOASTS -->  <div class="toast" id="toast"></div>  <script>
-  ;(()=>{
-    const D = document;
-    const $ = sel => D.querySelector(sel);
-    const $$ = sel => Array.from(D.querySelectorAll(sel));
+  const sampleFS = {
+    id: uid(), type:'folder', name:'Raíz', modified:Date.now(), children:[
+      { id:uid(), type:'folder', name:'Documentos', modified:Date.now()-86400000, children:[
+        file('Informe_Neo.txt','Texto de ejemplo con vibra ciberpunk.\nEdítame con doble clic.'),
+        file('ideas.json', JSON.stringify({proyecto:'NeoFS', tareas:['UI glow','Atajos','Preview']}, null, 2)),
+      ]},
+      { id:uid(), type:'folder', name:'Imágenes', modified:Date.now()-3600000, children:[] },
+      { id:uid(), type:'folder', name:'Proyectos', modified:Date.now()-2600000, children:[
+        { id:uid(), type:'folder', name:'Flux', modified:Date.now()-1600000, children:[] }
+      ]},
+      file('leeme.txt','Bienvenido a NeoFS — tu explorador futurista.\n\n• Click para seleccionar, Enter para abrir\n• F2 renombra, Supr elimina\n• Arrastra archivos/carpeta para mover\n• Clic derecho para menú contextual\n• Ctrl/Cmd+K para buscar\n• Guarda tu estado en la derecha'),
+    ]
+  };
 
-    const STORAGE_KEY = 'reminders_v1';
-    /** @type {Array<{id:string,title:string,notes:string,priority:1|2|3,due:number|null,created:number,done:boolean,category:string,tags:string[]}>} */
-    let items = [];
+  function file(name, content=''){
+    const ext = (name.split('.').pop()||'').toLowerCase();
+    return { id:uid(), type:'file', name, ext, size: content.length, modified: Date.now(), content };
+  }
 
-    const state = {
-      q:'', status:'', prio:'', cat:'', from:'', to:'', sort:'due_asc'
-    };
+  // Utils
+  function uid(){ return Math.random().toString(36).slice(2,9) }
+  function fmtBytes(n){ if(!n && n!==0) return ''; const u=['B','KB','MB','GB']; let i=0; while(n>=1024 && i<u.length-1){n/=1024;i++} return (Math.round(n*10)/10)+" "+u[i] }
+  function fmtDate(ts){ const d=new Date(ts); return d.toLocaleString() }
 
-    const fmtDate = (ms)=>{
-      if(!ms) return '—';
-      const d = new Date(ms);
-      const pad = n=> String(n).padStart(2,'0');
-      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`
-    };
+  // Persistencia
+  const STORAGE_KEY='neofs_state_v1';
+  function saveLS(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({fs: state.fs, viewMode: state.viewMode})) ; toast('Estado guardado.'); }
+  function loadLS(){ const raw=localStorage.getItem(STORAGE_KEY); if(raw){ const {fs, viewMode}=JSON.parse(raw); state.fs=fs; if(viewMode) state.viewMode=viewMode; renderAll(); toast('Estado cargado.'); } else toast('No hay estado guardado.'); }
+  function resetLS(){ localStorage.removeItem(STORAGE_KEY); toast('Estado local borrado.'); }
 
-    const todayHeader = ()=>{
-      const d = new Date();
-      const dias = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-      const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-      $('#dateText').textContent = `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
-      $('#weekdayText').textContent = `${dias[d.getDay()]}`;
-    };
+  // Inicialización
+  function init(){
+    state.fs = sampleFS;
+    bindUI();
+    renderAll();
+  }
 
-    const uid = ()=>'r_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
+  // Navegación
+  function getNodeByPath(path){
+    let node = state.fs; if(path[0]!==state.fs.name) return null; for(let i=1;i<path.length;i++){
+      if(!node.children) return null; node = node.children.find(c=>c.name===path[i] && c.type==='folder'); if(!node) return null;
+    } return node;
+  }
+  function getCwd(){ return getNodeByPath(state.openPath) }
+  function setPath(path){ state.openPath = path; state.selection = null; renderAll(); }
 
-    const save = ()=>{ localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); };
-    const load = ()=>{
-      try{ items = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }
-      catch{ items = []; }
-    };
-
-    const toast = (msg, {error=false}={})=>{
-      const t = D.createElement('div');
-      t.className = 't'+(error?' err':'');
-      t.textContent = msg;
-      $('#toast').appendChild(t);
-      setTimeout(()=>{ t.style.opacity = '0'; t.style.transform='translateY(6px)'; }, 2600);
-      setTimeout(()=> t.remove(), 3000);
-    };
-
-    const humanPrio = p => p==1?'Alta':(p==2?'Media':'Baja');
-
-    const buildFilters = ()=>{
-      // categorías dinámicas
-      const cats = Array.from(new Set(items.map(i=>i.category).filter(Boolean))).sort((a,b)=>a.localeCompare(b));
-      const sel = $('#fCategory');
-      const current = sel.value;
-      sel.innerHTML = '<option value="">Todas</option>' + cats.map(c=>`<option>${c}</option>`).join('');
-      if(cats.includes(current)) sel.value = current;
-    };
-
-    const applyFilters = (list)=>{
-      const q = state.q.trim().toLowerCase();
-      const f = list.filter(it=>{
-        if(state.status==='open' && it.done) return false;
-        if(state.status==='done' && !it.done) return false;
-        if(state.prio && String(it.priority)!==state.prio) return false;
-        if(state.cat && it.category!==state.cat) return false;
-        if(state.from){ const t = new Date(state.from).getTime(); if(!it.due || it.due < t) return false; }
-        if(state.to){ const t = new Date(state.to).getTime(); if(!it.due || it.due > (t+24*60*60*1000-1)) return false; }
-        if(q){
-          const hay = (it.title+' '+(it.notes||'')+' '+(it.tags||[]).join(' ')).toLowerCase();
-          if(!hay.includes(q)) return false;
-        }
-        return true;
+  // Árbol
+  function renderTree(){
+    const el=$('#tree'); el.innerHTML='';
+    function render(node, container){
+      const row=document.createElement('div'); row.className='node'; row.tabIndex=0; row.role='treeitem';
+      const isFolder = node.type==='folder';
+      row.innerHTML=`<div class="twist">${isFolder?svgChevron():''}</div>${isFolder?svgFolder():svgFile(node.ext)}<div class="name">${escapeHTML(node.name)}</div>`;
+      row.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        if(isFolder){ setPath(pathTo(node)); highlightTree(node); }
       });
-      const sort = state.sort;
-      f.sort((a,b)=>{
-        switch(sort){
-          case 'due_asc': return (a.due||Infinity) - (b.due||Infinity);
-          case 'due_desc': return (b.due||0) - (a.due||0);
-          case 'prio': return a.priority - b.priority;
-          case 'created_desc': return b.created - a.created;
-          case 'created_asc': return a.created - b.created;
-          case 'title': return a.title.localeCompare(b.title, 'es');
-        }
-        return 0;
-      });
-      return f;
-    };
-
-    const render = ()=>{
-      buildFilters();
-      const list = $('#list');
-      list.innerHTML = '';
-      const arr = applyFilters(items);
-      if(arr.length===0){
-        const empty = D.createElement('div');
-        empty.className = 'card';
-        empty.innerHTML = '<div class="title">No hay recordatorios</div><div class="muted">Crea uno con “Nuevo recordatorio”.</div>';
-        list.appendChild(empty); return;
+      row.addEventListener('contextmenu', (e)=> openCtx(e, node));
+      container.appendChild(row);
+      if(isFolder && node.children?.length){
+        const wrap=document.createElement('div'); wrap.className='indent'; container.appendChild(wrap);
+        node.children.filter(c=>c.type==='folder').forEach(child=> render(child, wrap));
       }
-      arr.forEach(it=>{
-        const c = D.createElement('article');
-        c.className = `card priority-${it.priority} ${it.done?'done':''}`;
-        c.dataset.id = it.id;
-        c.innerHTML = `
-          <div class="row">
-            <div class="leftx">
-              <div class="title">${escapeHTML(it.title)}</div>
-            </div>
-            <div class="actions-inline">
-              <button class="icon-btn" data-act="edit" title="Editar">✏️</button>
-              <button class="icon-btn" data-act="dup" title="Duplicar">🗂️</button>
-              <button class="icon-btn" data-act="del" title="Eliminar">🗑️</button>
-            </div>
-          </div>
-          <div class="meta">
-            <span class="chip badge">${humanPrio(it.priority)}</span>
-            ${ it.category ? `<span class="chip">#${escapeHTML(it.category)}</span>` : '' }
-            ${ it.due ? `<span class="chip">⏰ ${fmtDate(it.due)}</span>` : '' }
-            <span class="chip muted">Creado ${fmtDate(it.created)}</span>
-          </div>
-          ${ it.tags && it.tags.length ? `<div class="meta">${it.tags.map(t=>`<span class='chip'>${escapeHTML(t)}</span>`).join('')}</div>` : '' }
-          ${ it.notes ? `<div class="desc">${linkify(escapeHTML(it.notes))}</div>` : '' }
-          <div class="row">
-            <label class="status-toggle"><input type="checkbox" ${it.done?'checked':''} data-act="toggle"> <span>${it.done?'Completado':'Pendiente'}</span></label>
-          </div>
-        `;
-        list.appendChild(c);
-      });
-    };
-
-    function escapeHTML(str){
-      return (str||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
     }
-    function linkify(text){
-      const urlRegex = /(https?:\/\/[\w.-]+(?:\/[\w\-.~:?#@!$&'()*+,;=%]*)?)/gi;
-      return text.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener">$1</a>');
+    render(state.fs, el);
+    highlightTree(getCwd());
+  }
+  function highlightTree(folder){
+    $$('#tree .node').forEach(n=>n.classList.remove('active'));
+    // crude match by name path walk
+    const names = pathTo(folder).join('/');
+    $$('#tree .node').forEach(n=>{ if(n.textContent.trim().includes(folder.name)) n.classList.add('active') });
+  }
+
+  function pathTo(node){ const p=[]; function dfs(n, trail){ if(n===node){ p.push(...trail.map(x=>x.name)); return true } if(n.children){ for(const c of n.children){ if(dfs(c, [...trail, c])) return true } } return false } dfs(state.fs,[state.fs]); return p }
+
+  // Migas
+  function renderCrumbs(){
+    const el=$('#crumbs'); el.innerHTML='';
+    let acc=[]; state.openPath.forEach((name,i)=>{ acc.push(name); const a=document.createElement('a'); a.textContent=name; a.addEventListener('click', ()=> setPath(acc.slice())); el.appendChild(a); if(i<state.openPath.length-1){ const sep=document.createElement('span'); sep.textContent='›'; el.appendChild(sep) } });
+  }
+
+  // Vista principal
+  function renderView(){
+    $('#view').innerHTML='';
+    const cwd = getCwd(); if(!cwd) return;
+    let items = [...(cwd.children||[])];
+    // filtro búsqueda
+    if(state.filter){ const q=state.filter.toLowerCase(); items = items.filter(i=> i.name.toLowerCase().includes(q)) }
+    // orden
+    items.sort((a,b)=>{
+      const key=state.sortBy; if(key==='name') return a.name.localeCompare(b.name);
+      if(key==='type') return (a.type+a.ext).localeCompare(b.type+b.ext);
+      if(key==='size') return (a.size||0)-(b.size||0);
+      if(key==='modified') return (a.modified||0)-(b.modified||0);
+      return 0;
+    });
+    const view=$('#view');
+    if(state.viewMode==='grid'){
+      const grid=document.createElement('div'); grid.className='grid';
+      items.forEach(it=> grid.appendChild(tile(it)) );
+      view.appendChild(grid);
+    } else {
+      const table=document.createElement('table'); table.className='list';
+      table.innerHTML=`<thead><tr><th>Nombre</th><th>Tipo</th><th>Tamaño</th><th>Modificado</th></tr></thead><tbody></tbody>`;
+      const tb = $('tbody', table);
+      items.forEach(it=> tb.appendChild(row(it)) );
+      view.appendChild(table);
     }
+  }
 
-    // Modal helpers
-    const openModal = (data)=>{
-      $('#modalTitle').textContent = data? 'Editar recordatorio' : 'Nuevo recordatorio';
-      $('#rid').value = data?.id || '';
-      $('#title').value = data?.title || '';
-      $('#notes').value = data?.notes || '';
-      $('#priority').value = String(data?.priority || 2);
-      $('#category').value = data?.category || '';
-      $('#tags').value = (data?.tags||[]).join(', ');
-      $('#due').value = data?.due ? toLocalInput(data.due) : '';
-      $('#editor').showModal();
-      setTimeout(()=>$('#title').focus(), 30);
-    };
-    const closeModal = ()=> $('#editor').close();
+  function tile(it){
+    const d=document.createElement('div'); d.className='tile'; d.draggable=true;
+    const thumb = (it.type==='folder'? svgFolder(48): iconThumb(it));
+    d.innerHTML = `<div class="thumb">${thumb}</div><div class="name" title="${it.name}">${escapeHTML(it.name)}</div><div class="meta">${it.type}${it.ext?'.'+it.ext:''} • ${it.size?fmtBytes(it.size):''}</div>`;
+    d.addEventListener('click', e=> select(it, d));
+    d.addEventListener('dblclick', e=> openItem(it));
+    d.addEventListener('contextmenu', e=> openCtx(e, it));
+    dragHandlers(d, it);
+    return d;
+  }
+  function row(it){
+    const tr=document.createElement('tr'); tr.draggable=true;
+    tr.innerHTML = `<td>${svgSmall(it)} ${escapeHTML(it.name)}</td><td>${it.type}${it.ext?'.'+it.ext:''}</td><td>${it.size?fmtBytes(it.size):''}</td><td>${fmtDate(it.modified)}</td>`;
+    tr.addEventListener('click', e=> select(it, tr));
+    tr.addEventListener('dblclick', e=> openItem(it));
+    tr.addEventListener('contextmenu', e=> openCtx(e, it));
+    dragHandlers(tr, it);
+    return tr;
+  }
 
-    const toLocalInput = (ms)=>{
-      const d = new Date(ms); d.setMinutes(d.getMinutes()-d.getTimezoneOffset());
-      return d.toISOString().slice(0,16);
-    };
+  function svgSmall(it){ return (it.type==='folder'? '<span style="margin-right:6px">📁</span>':'<span style="margin-right:6px">📄</span>') }
 
-    const fromLocalInput = (val)=>{
-      if(!val) return null;
-      const d = new Date(val);
-      // val is already local time; store as epoch ms
-      return d.getTime();
-    };
+  function iconThumb(it){
+    if(['png','jpg','jpeg','gif','webp','bmp','svg'].includes(it.ext) && it.content){
+      const src = (it.ext==='svg' && !it.content.startsWith('data:')) ? 'data:image/svg+xml;base64,'+btoa(it.content) : it.content;
+      return `<img alt="${escapeHTML(it.name)}" src="${src}">`;
+    }
+    if(['txt','md','json','js','css','html'].includes(it.ext)) return svgCode();
+    return svgFile(it.ext);
+  }
 
-    // Event bindings
-    $('#btnNew').addEventListener('click', ()=> openModal());
-    $('#btnQuick').addEventListener('click', ()=>{
-      const now = Date.now();
-      const due = new Date(); due.setHours(23,59,0,0);
-      const it = {id:uid(), title:'Recordatorio rápido', notes:'', priority:2, due: due.getTime(), created:now, done:false, category:'', tags:[]};
-      items.unshift(it); save(); render(); toast('Añadido para hoy ✅');
-    });
-    $('#btnExport').addEventListener('click', ()=>{
-      const blob = new Blob([JSON.stringify(items,null,2)], {type:'application/json'});
-      const a = D.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `recordatorios_${new Date().toISOString().slice(0,10)}.json`; a.click();
-    });
-    $('#importFile').addEventListener('change', (e)=>{
-      const file = e.target.files[0]; if(!file) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const data = JSON.parse(reader.result);
-          if(Array.isArray(data)){
-            // Merge by id; if id clashes, generate new id
-            const map = new Map(items.map(i=>[i.id,i]));
-            data.forEach(o=>{
-              if(!o || typeof o!=='object') return;
-              if(map.has(o.id)) o.id = uid();
-              items.push({
-                id:o.id||uid(),
-                title:String(o.title||'Importado'),
-                notes:String(o.notes||''),
-                priority:Number(o.priority)||2,
-                due:o.due||null,
-                created:Number(o.created)||Date.now(),
-                done:Boolean(o.done),
-                category:String(o.category||''),
-                tags:Array.isArray(o.tags)?o.tags.map(String):[]
-              });
-            });
-            save(); render(); toast('Importación completada');
-          } else throw new Error('Formato no válido');
-        }catch(err){ toast('Error al importar', {error:true}); }
+  // Selección + preview
+  function select(it, el){
+    state.selection = it; $$('#view .selected').forEach(x=>x.classList.remove('selected')); el?.classList.add('selected'); renderPreview(it);
+  }
+  function openItem(it){ if(it.type==='folder'){ setPath([...state.openPath, it.name]) } else { renderPreview(it, true) } }
+
+  function renderPreview(it, focus=false){
+    $('#previewTitle').textContent = it? '— '+it.name : '';
+    const body=$('#previewBody'); body.innerHTML=''; if(!it){ body.innerHTML='<em>Selecciona un elemento para ver detalles.</em>'; return; }
+    const meta = document.createElement('div'); meta.innerHTML = `
+      <div class="kv"><div>Nombre</div><div>${escapeHTML(it.name)}</div></div>
+      <div class="kv"><div>Tipo</div><div>${it.type}${it.ext?'.'+it.ext:''}</div></div>
+      <div class="kv"><div>Tamaño</div><div>${it.size?fmtBytes(it.size):'—'}</div></div>
+      <div class="kv"><div>Modificado</div><div>${fmtDate(it.modified)}</div></div>
+    `;
+    body.appendChild(meta);
+    if(it.type==='file'){
+      if(['png','jpg','jpeg','gif','webp','bmp'].includes(it.ext) && it.content){
+        const img = new Image(); img.src = it.content; img.style.maxWidth='100%'; img.style.borderRadius='12px'; img.style.border='1px solid var(--border)'; body.appendChild(img);
+      } else if(it.ext==='svg' && it.content){
+        const pre = document.createElement('div'); pre.innerHTML=it.content; pre.style.border='1px solid var(--border)'; pre.style.borderRadius='12px'; pre.style.padding='10px'; pre.style.background='var(--card)'; body.appendChild(pre);
+      } else if(['txt','md','json','js','css','html'].includes(it.ext) || !it.ext){
+        const ta=document.createElement('textarea'); ta.value= it.content || ''; ta.style.width='100%'; ta.style.minHeight='220px'; ta.style.background='var(--card)'; ta.style.color='var(--text)'; ta.style.border='1px solid var(--border)'; ta.style.borderRadius='10px'; ta.style.padding='10px';
+        body.appendChild(ta);
+        const save=document.createElement('button'); save.className='btn'; save.textContent='Guardar cambios'; save.onclick=()=>{ it.content=ta.value; it.size=ta.value.length; it.modified=Date.now(); renderView(); toast('Archivo guardado.'); };
+        body.appendChild(save);
+      }
+      const dl=document.createElement('button'); dl.className='btn'; dl.textContent='Descargar archivo'; dl.onclick=()=> downloadFile(it); body.appendChild(document.createTextNode(' ')); body.appendChild(dl);
+    }
+  }
+
+  // Acciones
+  function newItem(type){
+    const cwd=getCwd();
+    const base = type==='folder'? 'Nueva carpeta' : 'nuevo.txt';
+    const name = uniqueName(cwd, base);
+    const node = (type==='folder')? {id:uid(), type:'folder', name, modified:Date.now(), children:[]} : file(name, '');
+    cwd.children.push(node); cwd.modified=Date.now(); renderAll(); select(node, findRendered(node));
+    rename(node);
+  }
+  function uniqueName(folder, base){
+    const exists = n => (folder.children||[]).some(c=>c.name===n);
+    if(!exists(base)) return base; let i=2; let name;
+    const [stem, ext] = base.includes('.')? [base.replace(/\.[^.]+$/,''), base.match(/\.[^.]+$/)[0]] : [base, ''];
+    while(exists(name = `${stem} (${i})${ext}`)) i++; return name;
+  }
+  function rename(node){
+    const newName = prompt('Nuevo nombre', node.name); if(!newName || !newName.trim()) return;
+    node.name = newName.trim(); if(node.type==='file'){ node.ext=(newName.split('.').pop()||'').toLowerCase(); }
+    node.modified=Date.now(); renderAll(); select(node, findRendered(node));
+  }
+  function remove(node){
+    if(node===state.fs){ alert('No puedes eliminar la raíz.'); return; }
+    if(!confirm('¿Eliminar "'+node.name+'"?')) return;
+    const parent = findParent(state.fs, node); if(!parent) return; parent.children = parent.children.filter(c=>c!==node); parent.modified=Date.now();
+    if(state.selection===node) state.selection=null; renderAll(); toast('Eliminado.');
+  }
+  function duplicate(node){
+    const parent = findParent(state.fs, node) || getCwd();
+    const clone = JSON.parse(JSON.stringify(node)); clone.id=uid(); clone.name=uniqueName(parent, node.name); parent.children.push(clone); parent.modified=Date.now(); renderAll(); toast('Duplicado.');
+  }
+
+  function findParent(cur, target){ if(!cur.children) return null; for(const c of cur.children){ if(c===target) return cur; const p=findParent(c,target); if(p) return p } return null }
+
+  function findRendered(node){ // best-effort
+    const items = $$('#view .tile, #view tr');
+    return items.find(el=> (el.textContent||'').trim().startsWith(node.name)) || null;
+  }
+
+  // Upload / Download
+  function uploadFiles(files){
+    if(!files?.length) return; const cwd=getCwd();
+    const readers = Array.from(files).map(f=> new Promise(res=>{
+      const r=new FileReader(); r.onload=()=>{
+        const isText = /^text\//.test(f.type) || /json|javascript|xml/.test(f.type);
+        const ext = (f.name.split('.').pop()||'').toLowerCase();
+        const content = isText || /image\//.test(f.type) ? r.result : '';
+        const node = { id:uid(), type:'file', name:f.name, ext, size:f.size, modified:Date.now(), content };
+        res(node);
       };
-      reader.readAsText(file);
-      e.target.value = '';
-    });
+      if(/^image\//.test(f.type)) r.readAsDataURL(f); else r.readAsText(f);
+    }));
+    Promise.all(readers).then(nodes=>{ cwd.children.push(...nodes); cwd.modified=Date.now(); renderAll(); toast(`${nodes.length} archivo(s) subido(s).`); });
+  }
+  function downloadFile(node){
+    let blob, name=node.name;
+    if(['png','jpg','jpeg','gif','webp','bmp','svg'].includes(node.ext) && node.content?.startsWith('data:')){
+      // dataURL -> blob
+      const a = node.content.split(','); const b = atob(a[1]); const u8=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u8[i]=b.charCodeAt(i);
+      const mime = a[0].match(/:(.*?);/)[1]; blob=new Blob([u8],{type:mime});
+    } else {
+      const txt = node.content || '';
+      blob = new Blob([txt], {type: 'text/plain;charset=utf-8'});
+    }
+    triggerDownload(blob, name);
+  }
+  function exportJSON(){
+    const data = JSON.stringify(state.fs, null, 2);
+    triggerDownload(new Blob([data],{type:'application/json'}), 'neofs_export.json');
+  }
+  function importJSON(file){ const r=new FileReader(); r.onload=()=>{ try{ state.fs=JSON.parse(r.result); state.openPath=[state.fs.name]; renderAll(); toast('Importado.'); } catch(e){ alert('JSON inválido') } }; r.readAsText(file); }
 
-    $('#btnWipe').addEventListener('click', ()=>{
-      if(confirm('¿Seguro que quieres borrar TODOS los recordatorios locales?')){
-        items = []; save(); render(); toast('Datos borrados');
+  function triggerDownload(blob, name){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0); }
+
+  // Arrastrar y soltar (mover)
+  function dragHandlers(el, node){
+    el.addEventListener('dragstart', (e)=>{ e.dataTransfer.setData('text/neofs-id', node.id); e.dataTransfer.effectAllowed='move'; });
+    el.addEventListener('dragover', (e)=>{
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+    });
+    el.addEventListener('drop', (e)=>{
+      e.preventDefault(); const id=e.dataTransfer.getData('text/neofs-id'); if(!id) return; const src=findById(state.fs,id); if(!src) return;
+      const dst = node.type==='folder' ? node : (findParent(state.fs, node) || getCwd());
+      if(src===dst || isDescendant(src, dst)) return; // evitar mov. inválidos
+      const parent=findParent(state.fs, src); if(parent){ parent.children=parent.children.filter(c=>c!==src); }
+      dst.children = dst.children || []; dst.children.push(src); dst.modified=Date.now(); renderAll(); toast('Movido.');
+    });
+  }
+  function findById(node, id){ if(node.id===id) return node; for(const c of (node.children||[])){ const r=findById(c,id); if(r) return r } return null }
+  function isDescendant(node, potentialParent){ if(node===potentialParent) return true; const p=findParent(state.fs, node); if(!p) return false; if(p===potentialParent) return true; return isDescendant(p, potentialParent) }
+
+  // Búsqueda
+  function setFilter(q){ state.filter=q||''; renderView(); }
+
+  // Context menu
+  function openCtx(ev, node){ ev.preventDefault(); select(node, findRendered(node)); const m=$('#ctx'); m.style.display='block'; m.style.left=ev.clientX+'px'; m.style.top=ev.clientY+'px';
+    const close=()=> m.style.display='none'; const onClick=(e)=>{ const act=e.target?.dataset?.act; if(!act) return; handleAct(act, node); close(); document.removeEventListener('click', close, {once:true}); };
+    m.onclick=onClick; setTimeout(()=> document.addEventListener('click', close, {once:true}), 0);
+  }
+  function handleAct(act, node){
+    switch(act){
+      case 'open': openItem(node); break;
+      case 'rename': rename(node); break;
+      case 'duplicate': duplicate(node); break;
+      case 'download': if(node.type==='file') downloadFile(node); else exportJSON(); break;
+      case 'newfile': newItem('file'); break;
+      case 'newfolder': newItem('folder'); break;
+      case 'delete': remove(node); break;
+    }
+  }
+
+  // UI bindings
+  function bindUI(){
+    // botones
+    $('#btnNew').onclick=()=>{
+      const pick = prompt('¿Qué deseas crear? (carpeta/archivo)', 'carpeta');
+      if(!pick) return; newItem(pick.toLowerCase().startsWith('c')?'folder':'file');
+    };
+    $('#btnUpload').onclick=()=> $('#fileInput').click();
+    $('#fileInput').onchange=e=> uploadFiles(e.target.files);
+
+    $('#btnDownload').onclick=()=>{
+      const sel=state.selection; if(sel && sel.type==='file') downloadFile(sel); else exportJSON();
+    };
+    $('#btnView').onclick=()=>{ state.viewMode = state.viewMode==='grid'?'list':'grid'; $('#viewModeLbl').textContent= state.viewMode==='grid'?'Grilla':'Lista'; renderView(); };
+    $('#sort').onchange=e=>{ state.sortBy=e.target.value; renderView(); };
+
+    $('#btnSaveState').onclick=saveLS;
+    $('#btnLoadState').onclick=loadLS;
+    $('#btnReset').onclick=()=>{ if(confirm('Esto restaurará el contenido inicial y limpiará la vista.')){ resetLS(); state.fs=JSON.parse(JSON.stringify(sampleFS)); state.openPath=['Raíz']; renderAll(); } };
+
+    // búsqueda
+    const s=$('#search');
+    s.addEventListener('input', e=> setFilter(e.target.value));
+    window.addEventListener('keydown', e=>{
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); s.focus(); s.select(); }
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='n'){ e.preventDefault(); newItem('folder'); }
+      if(e.key==='Enter' && state.selection){ openItem(state.selection) }
+      if(e.key==='F2' && state.selection){ e.preventDefault(); rename(state.selection) }
+      if((e.key==='Delete' || e.key==='Backspace') && state.selection){ e.preventDefault(); remove(state.selection) }
+      if(e.key==='a' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); // select all
+        const cwd=getCwd(); if(!cwd) return; const first=(cwd.children||[])[0]; if(first){ select(first, findRendered(first)); }
       }
     });
 
-    $('#btnTheme').addEventListener('click', ()=>{
-      const cur = D.body.getAttribute('data-theme');
-      D.body.setAttribute('data-theme', cur==='dark'?'light':'dark');
-    });
+    // Arrastrar archivos del SO para subir
+    document.addEventListener('dragover', e=>{ e.preventDefault(); });
+    document.addEventListener('drop', e=>{ if(e.dataTransfer?.files?.length){ e.preventDefault(); uploadFiles(e.dataTransfer.files); } });
+  }
 
-    // Filters
-    $('#q').addEventListener('input', e=>{ state.q = e.target.value; render(); });
-    $('#fStatus').addEventListener('change', e=>{ state.status = e.target.value; render(); });
-    $('#fPriority').addEventListener('change', e=>{ state.prio = e.target.value; render(); });
-    $('#fCategory').addEventListener('change', e=>{ state.cat = e.target.value; render(); });
-    $('#fFrom').addEventListener('change', e=>{ state.from = e.target.value; render(); });
-    $('#fTo').addEventListener('change', e=>{ state.to = e.target.value; render(); });
-    $('#fSort').addEventListener('change', e=>{ state.sort = e.target.value; render(); });
+  function renderAll(){ renderTree(); renderCrumbs(); renderView(); if(state.selection) renderPreview(state.selection) else $('#previewBody').innerHTML='<em>Selecciona un elemento para ver detalles.</em>'; $('#viewModeLbl').textContent= state.viewMode==='grid'?'Grilla':'Lista'; }
 
-    // List actions (event delegation)
-    $('#list').addEventListener('click', (e)=>{
-      const btn = e.target.closest('button, input[type="checkbox"]');
-      const card = e.target.closest('.card');
-      if(!card) return;
-      const id = card.dataset.id;
-      const it = items.find(x=>x.id===id);
-      if(!it) return;
+  // SVG Icons (simple neon)
+  function svgChevron(){ return `<svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="${getComputedStyle(document.documentElement).getPropertyValue('--accent')}" stroke-width="2" stroke-linecap="round"/></svg>` }
+  function svgFolder(size=48){ return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" fill="none"><rect x="4" y="12" width="40" height="28" rx="8" ry="8" fill="url(#g1)" stroke="var(--border)"/><path d="M8 18h32" stroke="var(--accent)" opacity=".5"/><defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="rgba(138,108,255,.25)"/><stop offset="1" stop-color="rgba(102,224,255,.15)"/></linearGradient></defs></svg>` }
+  function svgFile(ext=''){ return `<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="10" y="6" width="28" height="36" rx="6" fill="rgba(255,255,255,.05)" stroke="var(--border)"/><text x="24" y="32" text-anchor="middle" font-size="10" fill="var(--accent-2)" font-family="ui-monospace,monospace">${(ext||'FILE').slice(0,4).toUpperCase()}</text></svg>` }
+  function svgCode(){ return `<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="28" rx="8" fill="rgba(255,255,255,.05)" stroke="var(--border)"/><path d="M18 24l-4 4 4 4M30 24l4 4-4 4M22 20l4 16" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>` }
 
-      const act = btn?.dataset?.act;
-      if(btn && act=== 'del'){
-        if(confirm('¿Eliminar este recordatorio?')){
-          items = items.filter(x=>x.id!==id); save(); render(); toast('Eliminado');
-        }
-      } else if(btn && act=== 'edit'){
-        openModal(it);
-      } else if(btn && act=== 'dup'){
-        const cpy = {...it, id:uid(), title: it.title + ' (copia)', created: Date.now(), done:false};
-        items.unshift(cpy); save(); render(); toast('Duplicado');
-      } else if(btn && btn.type==='checkbox' && btn.dataset.act==='toggle'){
-        it.done = !it.done; save(); render(); toast(it.done? 'Marcado como completado' : 'Marcado como pendiente');
-      }
-    });
+  // Toasts
+  function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('#toasts').appendChild(t); setTimeout(()=> t.remove(), 2500); }
 
-    // Modal buttons
-    $('#closeModal').addEventListener('click', closeModal);
-    $('#cancelEdit').addEventListener('click', closeModal);
+  // Go!
+  init();
+})();
 
-    $('#form').addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const id = $('#rid').value.trim();
-      const payload = {
-        title: $('#title').value.trim(),
-        notes: $('#notes').value.trim(),
-        priority: Number($('#priority').value||2),
-        category: $('#category').value.trim(),
-        tags: $('#tags').value.split(',').map(s=>s.trim()).filter(Boolean),
-        due: fromLocalInput($('#due').value)
-      };
-      if(!payload.title){ toast('El título es obligatorio',{error:true}); return; }
-
-      if(id){
-        const it = items.find(x=>x.id===id);
-        if(it){ Object.assign(it, payload); save(); toast('Actualizado'); }
-      } else {
-        items.unshift({ id:uid(), created:Date.now(), done:false, ...payload });
-        save(); toast('Guardado');
-      }
-      closeModal(); render();
-    });
-
-    // Initial
-    todayHeader();
-    load();
-    render();
-  })();
-  </script></body>
+// Helpers
+function escapeHTML(s){ return s.replace(/[&<>"]+/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])) }
+</script></body>
 </html>
