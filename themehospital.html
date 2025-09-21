@@ -1,493 +1,719 @@
-<!DOCTYPE html><html lang="es">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Explorador de Archivos · Futurista</title>
-<style>
-  :root{
-    --bg:#0b0f17;
-    --panel:#0e1525cc;
-    --panel-opaque:#0e1525;
-    --card:#10192ccc;
-    --text:#e6eefc;
-    --muted:#9bb0d6;
-    --accent:#66e0ff;
-    --accent-2:#8a6cff;
-    --danger:#ff5c8a;
-    --ok:#3be8b0;
-    --warning:#ffd166;
-    --grid:rgba(255,255,255,0.04);
-    --border:rgba(102,224,255,0.25);
-    --shadow:0 10px 30px rgba(0,0,0,0.5), 0 0 40px rgba(102,224,255,0.07) inset;
-    --radius:18px;
-  }
-  @media (prefers-color-scheme: light){
-    :root{ --bg:#f8fbff; --panel:#eaf1ffcc; --panel-opaque:#eaf1ff; --card:#ffffffcc; --text:#102033; --muted:#536582; --grid:rgba(0,0,0,0.05); --border:rgba(138,108,255,0.25); }
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; background:radial-gradient(1200px 1200px at 80% -20%, rgba(102,224,255,0.15),transparent 60%),
-    radial-gradient(800px 800px at -10% 110%, rgba(138,108,255,0.18),transparent 60%),
-    var(--bg);
-    color:var(--text); font:500 15px/1.45 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu; letter-spacing:.2px; 
-    overflow:hidden;
-  }
-  /* Subtle grid */
-  body::before{content:""; position:fixed; inset:0; background:linear-gradient(var(--grid) 1px, transparent 1px) 0 0/ 28px 28px,
-  linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0/ 28px 28px; pointer-events:none; mask:radial-gradient(1200px 600px at 50% 0%, black, transparent 80%);}.app{ display:grid; grid-template-rows:64px 1fr; height:100%; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubo de Memoria 3D - Almacén Seguro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* Topbar */ .topbar{ display:flex; align-items:center; gap:14px; padding:8px 14px; backdrop-filter: blur(10px) saturate(140%); background:linear-gradient(180deg, #0e1525cc, #0e1525a0), repeating-linear-gradient(90deg, transparent, transparent 10px, rgba(102,224,255,0.06) 10px, rgba(102,224,255,0.06) 20px); border-bottom:1px solid var(--border); box-shadow: var(--shadow); } .brand{ display:flex; align-items:center; gap:10px; margin-right:8px; } .logo{ width:28px; height:28px; position:relative; } .logo::before, .logo::after{ content:""; position:absolute; inset:0; border-radius:10px; border:2px solid var(--accent); filter: drop-shadow(0 0 8px rgba(102,224,255,.7)); transform:skewX(-10deg);} .logo::after{ border-color:var(--accent-2); inset:4px; filter: drop-shadow(0 0 10px rgba(138,108,255,.7));} .title{ font-size:15px; letter-spacing:1.6px; text-transform:uppercase; color:var(--muted) }
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: radial-gradient(circle, #0f0f23, #050510);
+            color: #00d4ff;
+            overflow: hidden;
+            height: 100vh;
+            cursor: grab;
+        }
 
-.searchbar{ flex:1; display:flex; align-items:center; gap:8px; } .input{ flex:1; background:var(--panel); border:1px solid var(--border); color:var(--text); padding:10px 12px; border-radius:12px; outline:none; box-shadow: inset 0 0 0 1px transparent; transition:.25s; } .input:focus{ box-shadow: inset 0 0 0 1px var(--accent); } .k{ font:600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono"; color:var(--muted); background:#00000030; padding:6px 8px; border:1px solid var(--border); border-radius:8px; }
+        body.dragging {
+            cursor: grabbing;
+        }
 
-.btn{ display:inline-flex; align-items:center; gap:8px; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:linear-gradient(180deg, var(--panel), #0e15251a); color:var(--text); cursor:pointer; transition:.2s; box-shadow: var(--shadow)} .btn:hover{ transform: translateY(-1px); box-shadow:0 6px 20px rgba(0,0,0,.35), 0 0 18px rgba(102,224,255,.25) inset; } .btn.primary{ background:linear-gradient(180deg, rgba(102,224,255,.2), rgba(102,224,255,.08));} .btn.danger{ background:linear-gradient(180deg, rgba(255,92,138,.18), rgba(255,92,138,.06)); }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
 
-/* Layout */ .layout{ display:grid; grid-template-columns:280px 1fr 320px; gap:12px; padding:12px; height: calc(100vh - 64px); } .panel{ background:var(--panel); border:1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow:hidden; min-height:0; }
+        .cube-container {
+            flex: 1;
+            position: relative;
+            perspective: 1200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-/* Sidebar tree */ .sidebar{ display:flex; flex-direction:column; } .section-title{ font-size:12px; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); padding:10px 14px; border-bottom:1px solid var(--border); } .tree{ padding:6px 8px 20px 8px; overflow:auto; } .node{ display:flex; align-items:center; gap:8px; padding:8px; border-radius:10px; cursor:pointer; user-select:none; } .node:hover{ background:rgba(102,224,255,0.06); } .node.active{ outline:1px solid var(--accent); background: linear-gradient(90deg, rgba(102,224,255,0.08), transparent); } .twist{ width:16px; height:16px; display:inline-grid; place-items:center; } .twist svg{ width:12px; height:12px; transition:.2s; } .collapsed>.twist svg{ transform: rotate(-90deg); } .indent{ margin-left:22px; border-left:1px dashed var(--border); padding-left:8px; }
+        .cube {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+        }
 
-/* Main */ .main{ display:grid; grid-template-rows:auto 1fr; } .toolbar{ display:flex; gap:8px; padding:10px; border-bottom:1px solid var(--border); flex-wrap:wrap; } .crumbs{ display:flex; align-items:center; gap:6px; padding:8px 12px; color:var(--muted); } .crumbs span, .crumbs a{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:8px; } .crumbs a{ color:var(--text); border:1px solid transparent; cursor:pointer; } .crumbs a:hover{ border-color:var(--border); background:rgba(138,108,255,0.08) }
+        .cube-face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border: 2px solid #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            backdrop-filter: blur(2px);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 2px;
+            padding: 8px;
+        }
 
-.view{ overflow:auto; padding:12px; }
+        .cube-face.front { transform: translateZ(150px); }
+        .cube-face.back { transform: rotateY(180deg) translateZ(150px); }
+        .cube-face.right { transform: rotateY(90deg) translateZ(150px); }
+        .cube-face.left { transform: rotateY(-90deg) translateZ(150px); }
+        .cube-face.top { transform: rotateX(90deg) translateZ(150px); }
+        .cube-face.bottom { transform: rotateX(-90deg) translateZ(150px); }
 
-.grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:12px; } .tile{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; display:grid; grid-template-rows:90px auto; gap:8px; cursor:pointer; transition:.2s; position:relative; } .tile:hover{ transform: translateY(-2px); box-shadow:0 10px 25px rgba(0,0,0,.35), 0 0 24px rgba(138,108,255,.22) inset; } .tile.selected{ outline:2px solid var(--accent-2); } .thumb{ background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.2)); border:1px dashed var(--border); border-radius:10px; display:grid; place-items:center; overflow:hidden } .thumb img{ width:100%; height:100%; object-fit:cover } .name{ white-space:nowrap; overflow:hidden; text-overflow:ellipsis } .meta{ color:var(--muted); font-size:12px; }
+        .section {
+            border: 1px solid #0099cc;
+            background: rgba(0, 153, 204, 0.05);
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 1px;
+            padding: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
 
-.list{ width:100%; border-collapse:collapse; } .list th, .list td{ padding:10px 12px; border-bottom:1px dashed var(--border); text-align:left; } .list tr{ cursor:pointer; } .list tr:hover{ background:rgba(102,224,255,0.06) } .list tr.selected{ outline:2px solid var(--accent-2); }
+        .section:hover {
+            background: rgba(0, 212, 255, 0.2);
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.3);
+            transform: scale(1.02);
+        }
 
-/* Preview */ .preview{ display:grid; grid-template-rows:auto 1fr auto; } .preview .header{ padding:10px 12px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px } .preview .body{ padding:12px; overflow:auto } .preview .footer{ padding:10px 12px; border-top:1px solid var(--border); color:var(--muted) } .kv{ display:grid; grid-template-columns:120px 1fr; gap:8px; margin-bottom:8px } .kv div:nth-child(odd){ color:var(--muted) }
+        .section.active {
+            background: rgba(255, 215, 0, 0.3);
+            border: 2px solid #ffd700;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        }
 
-/* Context menu */ .menu{ position:fixed; background:var(--panel-opaque); border:1px solid var(--border); border-radius:10px; box-shadow:var(--shadow); padding:6px; display:none; min-width:200px; z-index:50 } .menu .mi{ padding:8px 10px; border-radius:8px; cursor:pointer; display:flex; gap:8px; align-items:center } .menu .mi:hover{ background:rgba(102,224,255,0.1) } .menu .sep{ height:1px; background:var(--border); margin:6px 4px }
+        .cell {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #003d4d;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
 
-/* Floating toasts */ .toastBox{ position:fixed; right:12px; bottom:12px; display:grid; gap:8px; z-index:60 } .toast{ background:var(--panel-opaque); border:1px solid var(--border); border-radius:10px; padding:10px 12px; box-shadow:var(--shadow) }
+        .cell:hover {
+            background: rgba(0, 212, 255, 0.4);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
+        }
 
-/* Responsive */ @media (max-width: 1080px){ .layout{ grid-template-columns: 1fr; grid-template-rows: auto auto 280px; } .sidebar{ order:2 } .preview{ order:3 } }
+        .cell.has-data {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.4);
+            animation: data-pulse 3s infinite;
+        }
 
-/* Futuristic focus ring */ :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:8px } </style>
+        .cell.selected {
+            background: rgba(255, 255, 0, 0.6);
+            border: 2px solid #ffff00;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+        }
 
+        @keyframes data-pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+
+        .control-panel {
+            width: 400px;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px;
+            border-left: 2px solid #00d4ff;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            background: rgba(0, 212, 255, 0.05);
+            backdrop-filter: blur(5px);
+        }
+
+        .panel-section h3 {
+            color: #00d4ff;
+            margin-bottom: 12px;
+            font-size: 16px;
+            text-transform: uppercase;
+            text-align: center;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .coordinates {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .coord-input, .data-input, .encryption-select {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #00d4ff;
+            border-radius: 4px;
+            color: #00d4ff;
+            font-family: inherit;
+            font-size: 12px;
+        }
+
+        .data-input {
+            width: 100%;
+            min-height: 80px;
+            resize: vertical;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, rgba(0, 212, 255, 0.2), rgba(0, 150, 200, 0.3));
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            margin: 5px;
+            transition: all 0.3s ease;
+            border-radius: 6px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            background: linear-gradient(45deg, rgba(0, 212, 255, 0.4), rgba(0, 150, 200, 0.5));
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .data-display {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00d4ff;
+            border-radius: 6px;
+            padding: 15px;
+            min-height: 120px;
+            font-size: 12px;
+            word-wrap: break-word;
+            margin-bottom: 10px;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: rgba(0, 255, 100, 0.2);
+            border: 1px solid #00ff64;
+            color: #00ff64;
+        }
+
+        .status.error {
+            background: rgba(255, 50, 50, 0.2);
+            border: 1px solid #ff3232;
+            color: #ff6666;
+        }
+
+        .info-display {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .navigation-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            font-size: 11px;
+            backdrop-filter: blur(10px);
+        }
+
+        .face-labels {
+            position: absolute;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            z-index: 10;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .memory-stats {
+            background: rgba(0, 50, 100, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-  <div class="app">
-    <div class="topbar">
-      <div class="brand">
-        <div class="logo" aria-hidden="true"></div>
-        <div class="title">NeoFS · Explorador</div>
-      </div>
-      <div class="searchbar">
-        <input id="search" class="input" placeholder="Buscar (Ctrl/Cmd + K)…"/>
-        <span class="k" title="Selecciona todo">Ctrl/Cmd + A</span>
-        <span class="k" title="Renombrar">F2</span>
-        <span class="k" title="Eliminar">Supr</span>
-      </div>
-      <button class="btn primary" id="btnNew">+ Nuevo</button>
-      <button class="btn" id="btnUpload">Subir</button>
-      <button class="btn" id="btnDownload">Descargar</button>
-      <button class="btn" id="btnView">Vista: <span id="viewModeLbl">Grilla</span></button>
-    </div><div class="layout">
-  <!-- Sidebar / Tree -->
-  <aside class="panel sidebar">
-    <div class="section-title">Carpetas</div>
-    <div id="tree" class="tree" role="tree"></div>
-  </aside>
+    <div class="container">
+        <div class="cube-container" id="cubeContainer">
+            <div class="info-display">
+                <div><strong>Posición:</strong> Cara <span id="currentFace">Frontal</span></div>
+                <div><strong>Sección:</strong> <span id="currentSection">-</span></div>
+                <div><strong>Celda:</strong> <span id="currentCell">-</span></div>
+                <div><strong>Zoom:</strong> <span id="zoomLevel">100</span>%</div>
+            </div>
 
-  <!-- Main -->
-  <main class="panel main">
-    <div class="toolbar">
-      <div class="crumbs" id="crumbs"></div>
-      <div style="margin-left:auto; display:flex; gap:8px; align-items:center">
-        <label style="color:var(--muted); font-size:12px">Ordenar por</label>
-        <select id="sort" class="input" style="width:180px; padding:8px 10px">
-          <option value="name">Nombre</option>
-          <option value="type">Tipo</option>
-          <option value="size">Tamaño</option>
-          <option value="modified">Modificado</option>
-        </select>
-      </div>
+            <div class="navigation-info">
+                <div><strong>Controles:</strong></div>
+                <div>🖱️ Arrastrar: Rotar cubo</div>
+                <div>🎡 Rueda: Zoom in/out</div>
+                <div>🔍 Click: Seleccionar celda</div>
+            </div>
+
+            <div class="cube" id="cube">
+                <!-- Cara Frontal -->
+                <div class="cube-face front" data-face="front">
+                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">FRONTAL</div>
+                </div>
+                
+                <!-- Cara Trasera -->
+                <div class="cube-face back" data-face="back">
+                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">TRASERA</div>
+                </div>
+                
+                <!-- Cara Derecha -->
+                <div class="cube-face right" data-face="right">
+                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">DERECHA</div>
+                </div>
+                
+                <!-- Cara Izquierda -->
+                <div class="cube-face left" data-face="left">
+                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">IZQUIERDA</div>
+                </div>
+                
+                <!-- Cara Superior -->
+                <div class="cube-face top" data-face="top">
+                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">SUPERIOR</div>
+                </div>
+                
+                <!-- Cara Inferior -->
+                <div class="cube-face bottom" data-face="bottom">
+                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">INFERIOR</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-panel">
+            <div class="panel-section">
+                <h3>📊 Estado del Cubo</h3>
+                <div class="memory-stats">
+                    <div>Celdas Totales: <span id="totalCells">96</span></div>
+                    <div>Datos Almacenados: <span id="storedData">0</span></div>
+                    <div>Memoria Usada: <span id="memoryUsed">0</span>%</div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>💾 Almacenar Datos</h3>
+                <div class="coordinates">
+                    <select class="coord-input" id="faceSelect">
+                        <option value="front">Frontal</option>
+                        <option value="back">Trasera</option>
+                        <option value="right">Derecha</option>
+                        <option value="left">Izquierda</option>
+                        <option value="top">Superior</option>
+                        <option value="bottom">Inferior</option>
+                    </select>
+                    <input type="number" class="coord-input" id="sectionInput" placeholder="Sección (0-15)" min="0" max="15">
+                    <input type="number" class="coord-input" id="cellInput" placeholder="Celda (0-3)" min="0" max="3">
+                </div>
+                
+                <input type="text" class="data-input" id="dataLabel" placeholder="Etiqueta (ej: Gmail, Facebook...)" style="margin-bottom: 10px;">
+                
+                <textarea class="data-input" id="dataToStore" placeholder="Ingresa la contraseña o datos a almacenar..."></textarea>
+                
+                <select class="encryption-select" id="encryptionMethod">
+                    <option value="caesar">🔐 Cifrado César</option>
+                    <option value="base64">📊 Base64</option>
+                    <option value="reverse">🔄 Texto Invertido</option>
+                    <option value="xor">⚡ XOR Cipher</option>
+                    <option value="rot13">🌀 ROT13</option>
+                </select>
+                
+                <div class="controls-grid">
+                    <button class="btn" onclick="storeData()">💾 Almacenar</button>
+                    <button class="btn" onclick="autoSelect()">🎯 Auto-ubicar</button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>🔍 Acceder a Datos</h3>
+                <button class="btn" onclick="retrieveData()" style="width: 100%;">📖 Leer Celda Actual</button>
+                <div class="data-display" id="dataDisplay">Selecciona una celda con datos...</div>
+                <div class="controls-grid">
+                    <button class="btn" onclick="decryptData()">🔓 Desencriptar</button>
+                    <button class="btn" onclick="deleteData()">🗑️ Eliminar</button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>⚙️ Herramientas</h3>
+                <div class="controls-grid">
+                    <button class="btn" onclick="resetView()">🎯 Centrar Vista</button>
+                    <button class="btn" onclick="exportData()">📤 Exportar</button>
+                    <button class="btn" onclick="importData()">📥 Importar</button>
+                    <button class="btn" onclick="clearAllData()">🧹 Limpiar Todo</button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>📡 Estado del Sistema</h3>
+                <div id="statusDisplay"></div>
+            </div>
+        </div>
     </div>
-    <div class="view" id="view"></div>
-  </main>
 
-  <!-- Preview -->
-  <aside class="panel preview">
-    <div class="header"><strong>Vista previa</strong><span id="previewTitle" style="color:var(--muted)"></span></div>
-    <div class="body" id="previewBody"></div>
-    <div class="footer">Persistencia local: <code>localStorage</code>. <button class="btn" id="btnSaveState">Guardar</button> <button class="btn" id="btnLoadState">Cargar</button> <button class="btn danger" id="btnReset">Reiniciar</button></div>
-  </aside>
-</div>
+    <script>
+        // Estado del sistema
+        let cube = document.getElementById('cube');
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        let rotationX = -15, rotationY = 15;
+        let scale = 1;
+        let currentSelection = null;
+        let dataStorage = {};
+        let currentEncryptedData = null;
 
-  </div>  <!-- Hidden inputs -->  <input id="fileInput" type="file" multiple hidden>
-  <input id="jsonInput" type="file" accept="application/json" hidden>  <!-- Context menu -->  <div class="menu" id="ctx">
-    <div class="mi" data-act="open">Abrir</div>
-    <div class="mi" data-act="rename">Renombrar</div>
-    <div class="mi" data-act="duplicate">Duplicar</div>
-    <div class="mi" data-act="download">Descargar</div>
-    <div class="sep"></div>
-    <div class="mi" data-act="newfile">Nuevo archivo</div>
-    <div class="mi" data-act="newfolder">Nueva carpeta</div>
-    <div class="sep"></div>
-    <div class="mi" data-act="delete" style="color:var(--danger)">Eliminar</div>
-  </div>
-  <div class="toastBox" id="toasts"></div><script>
-/**
- * NeoFS – Explorador futurista en un único archivo
- * - Árbol de carpetas + vista principal (grilla/lista)
- * - CRUD (nuevo, renombrar, eliminar), duplicar, arrastrar-soltar mover
- * - Subir archivos (FileReader) y descargarlos (Blob)
- * - Búsqueda instantánea, ordenación y migas de pan
- * - Vista previa (texto, imagen, JSON)
- * - Estado persistente en localStorage (export/import)
- * - Atajos de teclado (Enter, F2, Supr, Ctrl/Cmd+K, Ctrl/Cmd+N)
- */
-(function(){
-  const $ = (sel, el=document)=> el.querySelector(sel);
-  const $$ = (sel, el=document)=> Array.from(el.querySelectorAll(sel));
-  const state = {
-    fs: null,            // sistema de archivos (árbol)
-    openPath: ['Raíz'],  // ruta actual
-    selection: null,     // nodo seleccionado en vista
-    viewMode: 'grid',    // grid | list
-    sortBy: 'name',
-    filter: ''
-  };
+        // Métodos de encriptación mejorados
+        const encryptionMethods = {
+            caesar: {
+                encrypt: (text, shift = 7) => {
+                    return text.replace(/[a-zA-Z0-9]/g, function(char) {
+                        if (/[0-9]/.test(char)) {
+                            return String.fromCharCode(((char.charCodeAt(0) - 48 + shift) % 10) + 48);
+                        }
+                        const start = char <= 'Z' ? 65 : 97;
+                        return String.fromCharCode(((char.charCodeAt(0) - start + shift) % 26) + start);
+                    });
+                },
+                decrypt: (text, shift = 7) => {
+                    return text.replace(/[a-zA-Z0-9]/g, function(char) {
+                        if (/[0-9]/.test(char)) {
+                            return String.fromCharCode(((char.charCodeAt(0) - 48 - shift + 10) % 10) + 48);
+                        }
+                        const start = char <= 'Z' ? 65 : 97;
+                        return String.fromCharCode(((char.charCodeAt(0) - start - shift + 26) % 26) + start);
+                    });
+                }
+            },
+            base64: {
+                encrypt: (text) => btoa(unescape(encodeURIComponent(text))),
+                decrypt: (text) => {
+                    try {
+                        return decodeURIComponent(escape(atob(text)));
+                    } catch (e) {
+                        return "❌ Error de desencriptación Base64";
+                    }
+                }
+            },
+            reverse: {
+                encrypt: (text) => text.split('').reverse().join(''),
+                decrypt: (text) => text.split('').reverse().join('')
+            },
+            xor: {
+                encrypt: (text, key = 123) => {
+                    return text.split('').map(char => 
+                        String.fromCharCode(char.charCodeAt(0) ^ key)
+                    ).join('');
+                },
+                decrypt: (text, key = 123) => {
+                    return text.split('').map(char => 
+                        String.fromCharCode(char.charCodeAt(0) ^ key)
+                    ).join('');
+                }
+            },
+            rot13: {
+                encrypt: (text) => {
+                    return text.replace(/[a-zA-Z]/g, function(char) {
+                        return String.fromCharCode(
+                            char <= 'Z' ? ((char.charCodeAt(0) - 65 + 13) % 26) + 65 :
+                            ((char.charCodeAt(0) - 97 + 13) % 26) + 97
+                        );
+                    });
+                },
+                decrypt: (text) => encryptionMethods.rot13.encrypt(text)
+            }
+        };
 
-  const sampleFS = {
-    id: uid(), type:'folder', name:'Raíz', modified:Date.now(), children:[
-      { id:uid(), type:'folder', name:'Documentos', modified:Date.now()-86400000, children:[
-        file('Informe_Neo.txt','Texto de ejemplo con vibra ciberpunk.\nEdítame con doble clic.'),
-        file('ideas.json', JSON.stringify({proyecto:'NeoFS', tareas:['UI glow','Atajos','Preview']}, null, 2)),
-      ]},
-      { id:uid(), type:'folder', name:'Imágenes', modified:Date.now()-3600000, children:[] },
-      { id:uid(), type:'folder', name:'Proyectos', modified:Date.now()-2600000, children:[
-        { id:uid(), type:'folder', name:'Flux', modified:Date.now()-1600000, children:[] }
-      ]},
-      file('leeme.txt','Bienvenido a NeoFS — tu explorador futurista.\n\n• Click para seleccionar, Enter para abrir\n• F2 renombra, Supr elimina\n• Arrastra archivos/carpeta para mover\n• Clic derecho para menú contextual\n• Ctrl/Cmd+K para buscar\n• Guarda tu estado en la derecha'),
-    ]
-  };
+        // Inicialización
+        function init() {
+            generateCubeFaces();
+            setupEventListeners();
+            updateView();
+            updateStats();
+            showStatus("🚀 Cubo de Memoria 3D iniciado. Explora las caras y almacena tus datos de forma segura.", "success");
+        }
 
-  function file(name, content=''){
-    const ext = (name.split('.').pop()||'').toLowerCase();
-    return { id:uid(), type:'file', name, ext, size: content.length, modified: Date.now(), content };
-  }
+        function generateCubeFaces() {
+            const faces = document.querySelectorAll('.cube-face');
+            
+            faces.forEach((face, faceIndex) => {
+                // Crear 16 secciones por cara (4x4)
+                for (let section = 0; section < 16; section++) {
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'section';
+                    sectionDiv.dataset.face = face.dataset.face;
+                    sectionDiv.dataset.section = section;
+                    
+                    // Crear 4 celdas por sección (2x2)
+                    for (let cell = 0; cell < 4; cell++) {
+                        const cellDiv = document.createElement('div');
+                        cellDiv.className = 'cell';
+                        cellDiv.dataset.face = face.dataset.face;
+                        cellDiv.dataset.section = section;
+                        cellDiv.dataset.cell = cell;
+                        cellDiv.textContent = cell;
+                        
+                        cellDiv.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            selectCell(face.dataset.face, section, cell);
+                        });
+                        
+                        sectionDiv.appendChild(cellDiv);
+                    }
+                    
+                    sectionDiv.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectSection(face.dataset.face, section);
+                    });
+                    
+                    face.appendChild(sectionDiv);
+                }
+            });
+        }
 
-  // Utils
-  function uid(){ return Math.random().toString(36).slice(2,9) }
-  function fmtBytes(n){ if(!n && n!==0) return ''; const u=['B','KB','MB','GB']; let i=0; while(n>=1024 && i<u.length-1){n/=1024;i++} return (Math.round(n*10)/10)+" "+u[i] }
-  function fmtDate(ts){ const d=new Date(ts); return d.toLocaleString() }
+        function setupEventListeners() {
+            const container = document.getElementById('cubeContainer');
+            
+            // Eventos del mouse para rotación
+            container.addEventListener('mousedown', (e) => {
+                isMouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                document.body.classList.add('dragging');
+            });
 
-  // Persistencia
-  const STORAGE_KEY='neofs_state_v1';
-  function saveLS(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({fs: state.fs, viewMode: state.viewMode})) ; toast('Estado guardado.'); }
-  function loadLS(){ const raw=localStorage.getItem(STORAGE_KEY); if(raw){ const {fs, viewMode}=JSON.parse(raw); state.fs=fs; if(viewMode) state.viewMode=viewMode; renderAll(); toast('Estado cargado.'); } else toast('No hay estado guardado.'); }
-  function resetLS(){ localStorage.removeItem(STORAGE_KEY); toast('Estado local borrado.'); }
+            document.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+                
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                
+                rotationY += deltaX * 0.5;
+                rotationX -= deltaY * 0.5;
+                
+                rotationX = Math.max(-90, Math.min(90, rotationX));
+                
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                updateView();
+            });
 
-  // Inicialización
-  function init(){
-    state.fs = sampleFS;
-    bindUI();
-    renderAll();
-  }
+            document.addEventListener('mouseup', () => {
+                isMouseDown = false;
+                document.body.classList.remove('dragging');
+            });
 
-  // Navegación
-  function getNodeByPath(path){
-    let node = state.fs; if(path[0]!==state.fs.name) return null; for(let i=1;i<path.length;i++){
-      if(!node.children) return null; node = node.children.find(c=>c.name===path[i] && c.type==='folder'); if(!node) return null;
-    } return node;
-  }
-  function getCwd(){ return getNodeByPath(state.openPath) }
-  function setPath(path){ state.openPath = path; state.selection = null; renderAll(); }
+            // Zoom con rueda del mouse
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                scale = Math.max(0.3, Math.min(3, scale * delta));
+                updateView();
+                document.getElementById('zoomLevel').textContent = Math.round(scale * 100);
+            });
+        }
 
-  // Árbol
-  function renderTree(){
-    const el=$('#tree'); el.innerHTML='';
-    function render(node, container){
-      const row=document.createElement('div'); row.className='node'; row.tabIndex=0; row.role='treeitem';
-      const isFolder = node.type==='folder';
-      row.innerHTML=`<div class="twist">${isFolder?svgChevron():''}</div>${isFolder?svgFolder():svgFile(node.ext)}<div class="name">${escapeHTML(node.name)}</div>`;
-      row.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        if(isFolder){ setPath(pathTo(node)); highlightTree(node); }
-      });
-      row.addEventListener('contextmenu', (e)=> openCtx(e, node));
-      container.appendChild(row);
-      if(isFolder && node.children?.length){
-        const wrap=document.createElement('div'); wrap.className='indent'; container.appendChild(wrap);
-        node.children.filter(c=>c.type==='folder').forEach(child=> render(child, wrap));
-      }
-    }
-    render(state.fs, el);
-    highlightTree(getCwd());
-  }
-  function highlightTree(folder){
-    $$('#tree .node').forEach(n=>n.classList.remove('active'));
-    // crude match by name path walk
-    const names = pathTo(folder).join('/');
-    $$('#tree .node').forEach(n=>{ if(n.textContent.trim().includes(folder.name)) n.classList.add('active') });
-  }
+        function updateView() {
+            cube.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(${scale})`;
+        }
 
-  function pathTo(node){ const p=[]; function dfs(n, trail){ if(n===node){ p.push(...trail.map(x=>x.name)); return true } if(n.children){ for(const c of n.children){ if(dfs(c, [...trail, c])) return true } } return false } dfs(state.fs,[state.fs]); return p }
+        function selectSection(face, section) {
+            // Limpiar selecciones anteriores
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            // Seleccionar nueva sección
+            const sectionElement = document.querySelector(`[data-face="${face}"][data-section="${section}"].section`);
+            if (sectionElement) {
+                sectionElement.classList.add('active');
+                currentSelection = {face, section, cell: null};
+                updateCurrentInfo();
+            }
+        }
 
-  // Migas
-  function renderCrumbs(){
-    const el=$('#crumbs'); el.innerHTML='';
-    let acc=[]; state.openPath.forEach((name,i)=>{ acc.push(name); const a=document.createElement('a'); a.textContent=name; a.addEventListener('click', ()=> setPath(acc.slice())); el.appendChild(a); if(i<state.openPath.length-1){ const sep=document.createElement('span'); sep.textContent='›'; el.appendChild(sep) } });
-  }
+        function selectCell(face, section, cell) {
+            // Limpiar selecciones anteriores
+            document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            
+            // Seleccionar nueva celda
+            const cellElement = document.querySelector(`[data-face="${face}"][data-section="${section}"][data-cell="${cell}"].cell`);
+            const sectionElement = document.querySelector(`[data-face="${face}"][data-section="${section}"].section`);
+            
+            if (cellElement && sectionElement) {
+                cellElement.classList.add('selected');
+                sectionElement.classList.add('active');
+                currentSelection = {face, section, cell};
+                updateCurrentInfo();
+                
+                // Auto-rellenar campos del formulario
+                document.getElementById('faceSelect').value = face;
+                document.getElementById('sectionInput').value = section;
+                document.getElementById('cellInput').value = cell;
+            }
+        }
 
-  // Vista principal
-  function renderView(){
-    $('#view').innerHTML='';
-    const cwd = getCwd(); if(!cwd) return;
-    let items = [...(cwd.children||[])];
-    // filtro búsqueda
-    if(state.filter){ const q=state.filter.toLowerCase(); items = items.filter(i=> i.name.toLowerCase().includes(q)) }
-    // orden
-    items.sort((a,b)=>{
-      const key=state.sortBy; if(key==='name') return a.name.localeCompare(b.name);
-      if(key==='type') return (a.type+a.ext).localeCompare(b.type+b.ext);
-      if(key==='size') return (a.size||0)-(b.size||0);
-      if(key==='modified') return (a.modified||0)-(b.modified||0);
-      return 0;
-    });
-    const view=$('#view');
-    if(state.viewMode==='grid'){
-      const grid=document.createElement('div'); grid.className='grid';
-      items.forEach(it=> grid.appendChild(tile(it)) );
-      view.appendChild(grid);
-    } else {
-      const table=document.createElement('table'); table.className='list';
-      table.innerHTML=`<thead><tr><th>Nombre</th><th>Tipo</th><th>Tamaño</th><th>Modificado</th></tr></thead><tbody></tbody>`;
-      const tb = $('tbody', table);
-      items.forEach(it=> tb.appendChild(row(it)) );
-      view.appendChild(table);
-    }
-  }
+        function updateCurrentInfo() {
+            const faceNames = {
+                front: 'Frontal', back: 'Trasera', right: 'Derecha',
+                left: 'Izquierda', top: 'Superior', bottom: 'Inferior'
+            };
+            
+            if (currentSelection) {
+                document.getElementById('currentFace').textContent = faceNames[currentSelection.face];
+                document.getElementById('currentSection').textContent = currentSelection.section;
+                document.getElementById('currentCell').textContent = currentSelection.cell ?? '-';
+            }
+        }
 
-  function tile(it){
-    const d=document.createElement('div'); d.className='tile'; d.draggable=true;
-    const thumb = (it.type==='folder'? svgFolder(48): iconThumb(it));
-    d.innerHTML = `<div class="thumb">${thumb}</div><div class="name" title="${it.name}">${escapeHTML(it.name)}</div><div class="meta">${it.type}${it.ext?'.'+it.ext:''} • ${it.size?fmtBytes(it.size):''}</div>`;
-    d.addEventListener('click', e=> select(it, d));
-    d.addEventListener('dblclick', e=> openItem(it));
-    d.addEventListener('contextmenu', e=> openCtx(e, it));
-    dragHandlers(d, it);
-    return d;
-  }
-  function row(it){
-    const tr=document.createElement('tr'); tr.draggable=true;
-    tr.innerHTML = `<td>${svgSmall(it)} ${escapeHTML(it.name)}</td><td>${it.type}${it.ext?'.'+it.ext:''}</td><td>${it.size?fmtBytes(it.size):''}</td><td>${fmtDate(it.modified)}</td>`;
-    tr.addEventListener('click', e=> select(it, tr));
-    tr.addEventListener('dblclick', e=> openItem(it));
-    tr.addEventListener('contextmenu', e=> openCtx(e, it));
-    dragHandlers(tr, it);
-    return tr;
-  }
+        function storeData() {
+            const face = document.getElementById('faceSelect').value;
+            const section = parseInt(document.getElementById('sectionInput').value);
+            const cell = parseInt(document.getElementById('cellInput').value);
+            const label = document.getElementById('dataLabel').value.trim();
+            const data = document.getElementById('dataToStore').value.trim();
+            const method = document.getElementById('encryptionMethod').value;
 
-  function svgSmall(it){ return (it.type==='folder'? '<span style="margin-right:6px">📁</span>':'<span style="margin-right:6px">📄</span>') }
+            if (isNaN(section) || isNaN(cell) || !data) {
+                showStatus("❌ Completa todos los campos requeridos.", "error");
+                return;
+            }
 
-  function iconThumb(it){
-    if(['png','jpg','jpeg','gif','webp','bmp','svg'].includes(it.ext) && it.content){
-      const src = (it.ext==='svg' && !it.content.startsWith('data:')) ? 'data:image/svg+xml;base64,'+btoa(it.content) : it.content;
-      return `<img alt="${escapeHTML(it.name)}" src="${src}">`;
-    }
-    if(['txt','md','json','js','css','html'].includes(it.ext)) return svgCode();
-    return svgFile(it.ext);
-  }
+            if (section < 0 || section > 15 || cell < 0 || cell > 3) {
+                showStatus("❌ Coordenadas fuera de rango.", "error");
+                return;
+            }
 
-  // Selección + preview
-  function select(it, el){
-    state.selection = it; $$('#view .selected').forEach(x=>x.classList.remove('selected')); el?.classList.add('selected'); renderPreview(it);
-  }
-  function openItem(it){ if(it.type==='folder'){ setPath([...state.openPath, it.name]) } else { renderPreview(it, true) } }
+            const encryptedData = encryptionMethods[method].encrypt(data);
+            const key = `${face}-${section}-${cell}`;
+            
+            dataStorage[key] = {
+                label: label || 'Datos sin etiqueta',
+                data: encryptedData,
+                original: data,
+                method: method,
+                timestamp: new Date().toISOString(),
+                face, section, cell
+            };
 
-  function renderPreview(it, focus=false){
-    $('#previewTitle').textContent = it? '— '+it.name : '';
-    const body=$('#previewBody'); body.innerHTML=''; if(!it){ body.innerHTML='<em>Selecciona un elemento para ver detalles.</em>'; return; }
-    const meta = document.createElement('div'); meta.innerHTML = `
-      <div class="kv"><div>Nombre</div><div>${escapeHTML(it.name)}</div></div>
-      <div class="kv"><div>Tipo</div><div>${it.type}${it.ext?'.'+it.ext:''}</div></div>
-      <div class="kv"><div>Tamaño</div><div>${it.size?fmtBytes(it.size):'—'}</div></div>
-      <div class="kv"><div>Modificado</div><div>${fmtDate(it.modified)}</div></div>
-    `;
-    body.appendChild(meta);
-    if(it.type==='file'){
-      if(['png','jpg','jpeg','gif','webp','bmp'].includes(it.ext) && it.content){
-        const img = new Image(); img.src = it.content; img.style.maxWidth='100%'; img.style.borderRadius='12px'; img.style.border='1px solid var(--border)'; body.appendChild(img);
-      } else if(it.ext==='svg' && it.content){
-        const pre = document.createElement('div'); pre.innerHTML=it.content; pre.style.border='1px solid var(--border)'; pre.style.borderRadius='12px'; pre.style.padding='10px'; pre.style.background='var(--card)'; body.appendChild(pre);
-      } else if(['txt','md','json','js','css','html'].includes(it.ext) || !it.ext){
-        const ta=document.createElement('textarea'); ta.value= it.content || ''; ta.style.width='100%'; ta.style.minHeight='220px'; ta.style.background='var(--card)'; ta.style.color='var(--text)'; ta.style.border='1px solid var(--border)'; ta.style.borderRadius='10px'; ta.style.padding='10px';
-        body.appendChild(ta);
-        const save=document.createElement('button'); save.className='btn'; save.textContent='Guardar cambios'; save.onclick=()=>{ it.content=ta.value; it.size=ta.value.length; it.modified=Date.now(); renderView(); toast('Archivo guardado.'); };
-        body.appendChild(save);
-      }
-      const dl=document.createElement('button'); dl.className='btn'; dl.textContent='Descargar archivo'; dl.onclick=()=> downloadFile(it); body.appendChild(document.createTextNode(' ')); body.appendChild(dl);
-    }
-  }
+            // Marcar celda visualmente
+            const cellElement = document.querySelector(`[data-face="${face}"][data-section="${section}"][data-cell="${cell}"].cell`);
+            if (cellElement) {
+                cellElement.classList.add('has-data');
+                cellElement.title = label || 'Datos almacenados';
+            }
 
-  // Acciones
-  function newItem(type){
-    const cwd=getCwd();
-    const base = type==='folder'? 'Nueva carpeta' : 'nuevo.txt';
-    const name = uniqueName(cwd, base);
-    const node = (type==='folder')? {id:uid(), type:'folder', name, modified:Date.now(), children:[]} : file(name, '');
-    cwd.children.push(node); cwd.modified=Date.now(); renderAll(); select(node, findRendered(node));
-    rename(node);
-  }
-  function uniqueName(folder, base){
-    const exists = n => (folder.children||[]).some(c=>c.name===n);
-    if(!exists(base)) return base; let i=2; let name;
-    const [stem, ext] = base.includes('.')? [base.replace(/\.[^.]+$/,''), base.match(/\.[^.]+$/)[0]] : [base, ''];
-    while(exists(name = `${stem} (${i})${ext}`)) i++; return name;
-  }
-  function rename(node){
-    const newName = prompt('Nuevo nombre', node.name); if(!newName || !newName.trim()) return;
-    node.name = newName.trim(); if(node.type==='file'){ node.ext=(newName.split('.').pop()||'').toLowerCase(); }
-    node.modified=Date.now(); renderAll(); select(node, findRendered(node));
-  }
-  function remove(node){
-    if(node===state.fs){ alert('No puedes eliminar la raíz.'); return; }
-    if(!confirm('¿Eliminar "'+node.name+'"?')) return;
-    const parent = findParent(state.fs, node); if(!parent) return; parent.children = parent.children.filter(c=>c!==node); parent.modified=Date.now();
-    if(state.selection===node) state.selection=null; renderAll(); toast('Eliminado.');
-  }
-  function duplicate(node){
-    const parent = findParent(state.fs, node) || getCwd();
-    const clone = JSON.parse(JSON.stringify(node)); clone.id=uid(); clone.name=uniqueName(parent, node.name); parent.children.push(clone); parent.modified=Date.now(); renderAll(); toast('Duplicado.');
-  }
+            showStatus(`✅ Datos "${label}" almacenados en ${face.toUpperCase()}-${section}-${cell}`, "success");
+            updateStats();
+            
+            // Limpiar formulario
+            document.getElementById('dataLabel').value = '';
+            document.getElementById('dataToStore').value = '';
+        }
 
-  function findParent(cur, target){ if(!cur.children) return null; for(const c of cur.children){ if(c===target) return cur; const p=findParent(c,target); if(p) return p } return null }
+        function retrieveData() {
+            if (!currentSelection || currentSelection.cell === null) {
+                showStatus("❌ Selecciona una celda específica primero.", "error");
+                return;
+            }
 
-  function findRendered(node){ // best-effort
-    const items = $$('#view .tile, #view tr');
-    return items.find(el=> (el.textContent||'').trim().startsWith(node.name)) || null;
-  }
+            const key = `${currentSelection.face}-${currentSelection.section}-${currentSelection.cell}`;
+            const storedData = dataStorage[key];
+            
+            if (!storedData) {
+                document.getElementById('dataDisplay').innerHTML = `
+                    <div style="text-align: center; color: #666;">
+                        📭 No hay datos en esta celda<br>
+                        <small>Celda: ${currentSelection.face.toUpperCase()}-${currentSelection.section}-${currentSelection.cell}</small>
+                    </div>
+                `;
+                showStatus("ℹ️ Celda vacía.", "error");
+                return;
+            }
+            
+            currentEncryptedData = storedData;
+            document.getElementById('dataDisplay').innerHTML = `
+                <div style="border-bottom: 1px solid #00d4ff; padding-bottom: 10px; margin-bottom: 10px;">
+                    <strong>🏷️ ${storedData.label}</strong>
+                </div>
+                <div><strong>📍 Ubicación:</strong> ${storedData.face.toUpperCase()}-${storedData.section}-${storedData.cell}</div>
+                <div><strong>🔐 Método:</strong> ${storedData.method.toUpperCase()}</div>
+                <div><strong>📅 Fecha:</strong> ${new Date(storedData.timestamp).toLocaleString()}</div>
+                <div style="margin-top: 15px; padding: 10px; background: rgba(255,0,0,0.1); border: 1px solid #ff6666; border-radius: 4px;">
+                    <strong>🔒 Datos Encriptados:</strong><br>
+                    <code style="word-break: break-all; font-size: 10px;">${storedData.data}</code>
+                </div>
+            `;
+            
+            showStatus("📖 Datos cargados. Usa 'Desencriptar' para ver el contenido.", "success");
+        }
 
-  // Upload / Download
-  function uploadFiles(files){
-    if(!files?.length) return; const cwd=getCwd();
-    const readers = Array.from(files).map(f=> new Promise(res=>{
-      const r=new FileReader(); r.onload=()=>{
-        const isText = /^text\//.test(f.type) || /json|javascript|xml/.test(f.type);
-        const ext = (f.name.split('.').pop()||'').toLowerCase();
-        const content = isText || /image\//.test(f.type) ? r.result : '';
-        const node = { id:uid(), type:'file', name:f.name, ext, size:f.size, modified:Date.now(), content };
-        res(node);
-      };
-      if(/^image\//.test(f.type)) r.readAsDataURL(f); else r.readAsText(f);
-    }));
-    Promise.all(readers).then(nodes=>{ cwd.children.push(...nodes); cwd.modified=Date.now(); renderAll(); toast(`${nodes.length} archivo(s) subido(s).`); });
-  }
-  function downloadFile(node){
-    let blob, name=node.name;
-    if(['png','jpg','jpeg','gif','webp','bmp','svg'].includes(node.ext) && node.content?.startsWith('data:')){
-      // dataURL -> blob
-      const a = node.content.split(','); const b = atob(a[1]); const u8=new Uint8Array(b.length); for(let i=0;i<b.length;i++) u8[i]=b.charCodeAt(i);
-      const mime = a[0].match(/:(.*?);/)[1]; blob=new Blob([u8],{type:mime});
-    } else {
-      const txt = node.content || '';
-      blob = new Blob([txt], {type: 'text/plain;charset=utf-8'});
-    }
-    triggerDownload(blob, name);
-  }
-  function exportJSON(){
-    const data = JSON.stringify(state.fs, null, 2);
-    triggerDownload(new Blob([data],{type:'application/json'}), 'neofs_export.json');
-  }
-  function importJSON(file){ const r=new FileReader(); r.onload=()=>{ try{ state.fs=JSON.parse(r.result); state.openPath=[state.fs.name]; renderAll(); toast('Importado.'); } catch(e){ alert('JSON inválido') } }; r.readAsText(file); }
-
-  function triggerDownload(blob, name){ const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 0); }
-
-  // Arrastrar y soltar (mover)
-  function dragHandlers(el, node){
-    el.addEventListener('dragstart', (e)=>{ e.dataTransfer.setData('text/neofs-id', node.id); e.dataTransfer.effectAllowed='move'; });
-    el.addEventListener('dragover', (e)=>{
-      e.preventDefault(); e.dataTransfer.dropEffect='move';
-    });
-    el.addEventListener('drop', (e)=>{
-      e.preventDefault(); const id=e.dataTransfer.getData('text/neofs-id'); if(!id) return; const src=findById(state.fs,id); if(!src) return;
-      const dst = node.type==='folder' ? node : (findParent(state.fs, node) || getCwd());
-      if(src===dst || isDescendant(src, dst)) return; // evitar mov. inválidos
-      const parent=findParent(state.fs, src); if(parent){ parent.children=parent.children.filter(c=>c!==src); }
-      dst.children = dst.children || []; dst.children.push(src); dst.modified=Date.now(); renderAll(); toast('Movido.');
-    });
-  }
-  function findById(node, id){ if(node.id===id) return node; for(const c of (node.children||[])){ const r=findById(c,id); if(r) return r } return null }
-  function isDescendant(node, potentialParent){ if(node===potentialParent) return true; const p=findParent(state.fs, node); if(!p) return false; if(p===potentialParent) return true; return isDescendant(p, potentialParent) }
-
-  // Búsqueda
-  function setFilter(q){ state.filter=q||''; renderView(); }
-
-  // Context menu
-  function openCtx(ev, node){ ev.preventDefault(); select(node, findRendered(node)); const m=$('#ctx'); m.style.display='block'; m.style.left=ev.clientX+'px'; m.style.top=ev.clientY+'px';
-    const close=()=> m.style.display='none'; const onClick=(e)=>{ const act=e.target?.dataset?.act; if(!act) return; handleAct(act, node); close(); document.removeEventListener('click', close, {once:true}); };
-    m.onclick=onClick; setTimeout(()=> document.addEventListener('click', close, {once:true}), 0);
-  }
-  function handleAct(act, node){
-    switch(act){
-      case 'open': openItem(node); break;
-      case 'rename': rename(node); break;
-      case 'duplicate': duplicate(node); break;
-      case 'download': if(node.type==='file') downloadFile(node); else exportJSON(); break;
-      case 'newfile': newItem('file'); break;
-      case 'newfolder': newItem('folder'); break;
-      case 'delete': remove(node); break;
-    }
-  }
-
-  // UI bindings
-  function bindUI(){
-    // botones
-    $('#btnNew').onclick=()=>{
-      const pick = prompt('¿Qué deseas crear? (carpeta/archivo)', 'carpeta');
-      if(!pick) return; newItem(pick.toLowerCase().startsWith('c')?'folder':'file');
-    };
-    $('#btnUpload').onclick=()=> $('#fileInput').click();
-    $('#fileInput').onchange=e=> uploadFiles(e.target.files);
-
-    $('#btnDownload').onclick=()=>{
-      const sel=state.selection; if(sel && sel.type==='file') downloadFile(sel); else exportJSON();
-    };
-    $('#btnView').onclick=()=>{ state.viewMode = state.viewMode==='grid'?'list':'grid'; $('#viewModeLbl').textContent= state.viewMode==='grid'?'Grilla':'Lista'; renderView(); };
-    $('#sort').onchange=e=>{ state.sortBy=e.target.value; renderView(); };
-
-    $('#btnSaveState').onclick=saveLS;
-    $('#btnLoadState').onclick=loadLS;
-    $('#btnReset').onclick=()=>{ if(confirm('Esto restaurará el contenido inicial y limpiará la vista.')){ resetLS(); state.fs=JSON.parse(JSON.stringify(sampleFS)); state.openPath=['Raíz']; renderAll(); } };
-
-    // búsqueda
-    const s=$('#search');
-    s.addEventListener('input', e=> setFilter(e.target.value));
-    window.addEventListener('keydown', e=>{
-      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); s.focus(); s.select(); }
-      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='n'){ e.preventDefault(); newItem('folder'); }
-      if(e.key==='Enter' && state.selection){ openItem(state.selection) }
-      if(e.key==='F2' && state.selection){ e.preventDefault(); rename(state.selection) }
-      if((e.key==='Delete' || e.key==='Backspace') && state.selection){ e.preventDefault(); remove(state.selection) }
-      if(e.key==='a' && (e.ctrlKey||e.metaKey)){ e.preventDefault(); // select all
-        const cwd=getCwd(); if(!cwd) return; const first=(cwd.children||[])[0]; if(first){ select(first, findRendered(first)); }
-      }
-    });
-
-    // Arrastrar archivos del SO para subir
-    document.addEventListener('dragover', e=>{ e.preventDefault(); });
-    document.addEventListener('drop', e=>{ if(e.dataTransfer?.files?.length){ e.preventDefault(); uploadFiles(e.dataTransfer.files); } });
-  }
-
-  function renderAll(){ renderTree(); renderCrumbs(); renderView(); if(state.selection) renderPreview(state.selection) else $('#previewBody').innerHTML='<em>Selecciona un elemento para ver detalles.</em>'; $('#viewModeLbl').textContent= state.viewMode==='grid'?'Grilla':'Lista'; }
-
-  // SVG Icons (simple neon)
-  function svgChevron(){ return `<svg viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="${getComputedStyle(document.documentElement).getPropertyValue('--accent')}" stroke-width="2" stroke-linecap="round"/></svg>` }
-  function svgFolder(size=48){ return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" fill="none"><rect x="4" y="12" width="40" height="28" rx="8" ry="8" fill="url(#g1)" stroke="var(--border)"/><path d="M8 18h32" stroke="var(--accent)" opacity=".5"/><defs><linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="rgba(138,108,255,.25)"/><stop offset="1" stop-color="rgba(102,224,255,.15)"/></linearGradient></defs></svg>` }
-  function svgFile(ext=''){ return `<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="10" y="6" width="28" height="36" rx="6" fill="rgba(255,255,255,.05)" stroke="var(--border)"/><text x="24" y="32" text-anchor="middle" font-size="10" fill="var(--accent-2)" font-family="ui-monospace,monospace">${(ext||'FILE').slice(0,4).toUpperCase()}</text></svg>` }
-  function svgCode(){ return `<svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="10" width="36" height="28" rx="8" fill="rgba(255,255,255,.05)" stroke="var(--border)"/><path d="M18 24l-4 4 4 4M30 24l4 4-4 4M22 20l4 16" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/></svg>` }
-
-  // Toasts
-  function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('#toasts').appendChild(t); setTimeout(()=> t.remove(), 2500); }
-
-  // Go!
-  init();
-})();
-
-// Helpers
-function escapeHTML(s){ return s.replace(/[&<>"]+/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m])) }
-</script></body>
-</html>
+        function decryptData() {
+            if (!currentEncryptedData) {
+                showStatus("❌ No hay datos para desencriptar.", "error");
+                return;
+            }
+            
+            const decrypted = encryptionMethods[currentEncryptedData.method].decrypt(currentEncryptedData.data);
+            
+            document.getElementById('dataDisplay').innerHTML = `
+                <div style="border-bottom: 1px solid #00d4ff; padding-bottom: 10px; margin-bottom: 10px;">
+                    <strong>🏷️ ${currentEncryptedData.label}</strong>
+                </div>
+                <div><strong>📍 Ubicación:</strong> ${currentEncryptedData.face.toUpperCase()}-${currentEncryptedData.section}-${currentEncryptedData.cell}</div>
+                <div style="margin-top: 15px; padding: 15px; background: rgba(0,255,0,0.15); border: 2px solid #00ff64; border-radius: 6px;">
+                    <div style="margin-bottom: 8px;"><strong>🔓 DATOS DESENCRIPTADOS:</strong></div>
+                    <div style="font-size: 14px; font-family: 'Courier New'; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; word-break: break-all;">
+                        ${decrypted}
+                    </div>
+                </div>
+                <div style="margin-top: 10px; font-size: 
