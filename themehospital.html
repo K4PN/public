@@ -2,718 +2,667 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cubo de Memoria 3D - Almacén Seguro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Plataforma Shooter Gameboy</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            touch-action: manipulation;
+            image-rendering: pixelated;
         }
 
         body {
-            font-family: 'Consolas', 'Monaco', monospace;
-            background: radial-gradient(circle, #0f0f23, #050510);
-            color: #00d4ff;
+            background-color: #0a0a0a;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
             overflow: hidden;
-            height: 100vh;
-            cursor: grab;
+            color: #8bac0f;
         }
 
-        body.dragging {
-            cursor: grabbing;
-        }
-
-        .container {
-            display: flex;
-            height: 100vh;
-        }
-
-        .cube-container {
-            flex: 1;
-            position: relative;
-            perspective: 1200px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .cube {
-            width: 300px;
-            height: 300px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.1s ease;
-        }
-
-        .cube-face {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            border: 2px solid #00d4ff;
-            background: rgba(0, 212, 255, 0.1);
-            backdrop-filter: blur(2px);
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(4, 1fr);
-            gap: 2px;
-            padding: 8px;
-        }
-
-        .cube-face.front { transform: translateZ(150px); }
-        .cube-face.back { transform: rotateY(180deg) translateZ(150px); }
-        .cube-face.right { transform: rotateY(90deg) translateZ(150px); }
-        .cube-face.left { transform: rotateY(-90deg) translateZ(150px); }
-        .cube-face.top { transform: rotateX(90deg) translateZ(150px); }
-        .cube-face.bottom { transform: rotateX(-90deg) translateZ(150px); }
-
-        .section {
-            border: 1px solid #0099cc;
-            background: rgba(0, 153, 204, 0.05);
-            position: relative;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
-            gap: 1px;
-            padding: 2px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .section:hover {
-            background: rgba(0, 212, 255, 0.2);
-            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.3);
-            transform: scale(1.02);
-        }
-
-        .section.active {
-            background: rgba(255, 215, 0, 0.3);
-            border: 2px solid #ffd700;
-            box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
-        }
-
-        .cell {
-            background: rgba(0, 0, 0, 0.7);
-            border: 1px solid #003d4d;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .cell:hover {
-            background: rgba(0, 212, 255, 0.4);
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.5);
-        }
-
-        .cell.has-data {
-            background: rgba(0, 255, 0, 0.3);
-            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.4);
-            animation: data-pulse 3s infinite;
-        }
-
-        .cell.selected {
-            background: rgba(255, 255, 0, 0.6);
-            border: 2px solid #ffff00;
-            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
-        }
-
-        @keyframes data-pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
-        }
-
-        .control-panel {
-            width: 400px;
-            background: rgba(0, 0, 0, 0.95);
-            padding: 20px;
-            border-left: 2px solid #00d4ff;
-            overflow-y: auto;
-            backdrop-filter: blur(10px);
-        }
-
-        .panel-section {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #00d4ff;
-            border-radius: 8px;
-            background: rgba(0, 212, 255, 0.05);
-            backdrop-filter: blur(5px);
-        }
-
-        .panel-section h3 {
-            color: #00d4ff;
-            margin-bottom: 12px;
-            font-size: 16px;
-            text-transform: uppercase;
-            text-align: center;
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-        }
-
-        .coordinates {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .coord-input, .data-input, .encryption-select {
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid #00d4ff;
-            border-radius: 4px;
-            color: #00d4ff;
-            font-family: inherit;
-            font-size: 12px;
-        }
-
-        .data-input {
+        #game-container {
             width: 100%;
-            min-height: 80px;
-            resize: vertical;
-            margin-bottom: 10px;
+            max-width: 500px;
+            position: relative;
         }
 
-        .btn {
-            background: linear-gradient(45deg, rgba(0, 212, 255, 0.2), rgba(0, 150, 200, 0.3));
-            border: 1px solid #00d4ff;
-            color: #00d4ff;
-            padding: 12px 20px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 12px;
-            margin: 5px;
-            transition: all 0.3s ease;
-            border-radius: 6px;
-            text-transform: uppercase;
-            font-weight: bold;
+        #game-screen {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 66.67%; /* Relación 2:3 para la pantalla superior */
+            background-color: #0f380f;
+            border: 8px solid #9bbc0f;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
         }
 
-        .btn:hover {
-            background: linear-gradient(45deg, rgba(0, 212, 255, 0.4), rgba(0, 150, 200, 0.5));
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.6);
-            transform: translateY(-2px);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .data-display {
-            background: rgba(0, 0, 0, 0.9);
-            border: 1px solid #00d4ff;
-            border-radius: 6px;
-            padding: 15px;
-            min-height: 120px;
-            font-size: 12px;
-            word-wrap: break-word;
-            margin-bottom: 10px;
-        }
-
-        .status {
-            padding: 10px;
-            margin: 8px 0;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status.success {
-            background: rgba(0, 255, 100, 0.2);
-            border: 1px solid #00ff64;
-            color: #00ff64;
-        }
-
-        .status.error {
-            background: rgba(255, 50, 50, 0.2);
-            border: 1px solid #ff3232;
-            color: #ff6666;
-        }
-
-        .info-display {
+        #game-canvas {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 15px;
-            border: 1px solid #00d4ff;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        #controls-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 10px;
+        }
+
+        #d-pad {
+            width: 150px;
+            height: 150px;
+            position: relative;
+        }
+
+        .d-pad-btn {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #9bbc0f;
+            border: none;
             border-radius: 8px;
-            font-size: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        .navigation-info {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.9);
-            padding: 15px;
-            border: 1px solid #00d4ff;
-            border-radius: 8px;
-            font-size: 11px;
-            backdrop-filter: blur(10px);
-        }
-
-        .face-labels {
-            position: absolute;
-            font-size: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #0f380f;
+            font-size: 20px;
             font-weight: bold;
-            color: #ffd700;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+            box-shadow: 0 4px #306230;
+            transition: all 0.05s;
+        }
+
+        .d-pad-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px #306230;
+        }
+
+        #up {
+            top: 0;
+            left: 50px;
+        }
+
+        #down {
+            bottom: 0;
+            left: 50px;
+        }
+
+        #left {
+            top: 50px;
+            left: 0;
+        }
+
+        #right {
+            top: 50px;
+            right: 0;
+        }
+
+        #action-buttons {
+            display: flex;
+            align-items: center;
+        }
+
+        #shoot-btn {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #ff4c4c;
+            border: none;
+            box-shadow: 0 6px #cc0000;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            transition: all 0.05s;
+        }
+
+        #shoot-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px #cc0000;
+        }
+
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 16px;
+            color: #9bbc0f;
             z-index: 10;
         }
 
-        .controls-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        #health {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 16px;
+            color: #9bbc0f;
+            z-index: 10;
         }
 
-        .memory-stats {
-            background: rgba(0, 50, 100, 0.3);
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 10px;
+        #game-over, #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(15, 56, 15, 0.9);
+            z-index: 20;
+            color: #9bbc0f;
+        }
+
+        #start-screen {
+            display: flex;
+        }
+
+        #game-over {
+            display: none;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
             text-align: center;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #9bbc0f;
+            border: none;
+            border-radius: 8px;
+            color: #0f380f;
+            font-weight: bold;
+            margin-top: 20px;
+            box-shadow: 0 4px #306230;
+        }
+
+        #instructions {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            padding: 0 20px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="cube-container" id="cubeContainer">
-            <div class="info-display">
-                <div><strong>Posición:</strong> Cara <span id="currentFace">Frontal</span></div>
-                <div><strong>Sección:</strong> <span id="currentSection">-</span></div>
-                <div><strong>Celda:</strong> <span id="currentCell">-</span></div>
-                <div><strong>Zoom:</strong> <span id="zoomLevel">100</span>%</div>
+    <div id="game-container">
+        <div id="game-screen">
+            <canvas id="game-canvas"></canvas>
+            <div id="score">Puntos: 0</div>
+            <div id="health">Vida: 100</div>
+            
+            <div id="start-screen">
+                <h1>PLATAFORMA SHOOTER</h1>
+                <button id="start-btn">JUGAR</button>
+                <div id="instructions">
+                    Usa la cruceta para moverte y el botón rojo para disparar. Elimina a todos los enemigos.
+                </div>
             </div>
-
-            <div class="navigation-info">
-                <div><strong>Controles:</strong></div>
-                <div>🖱️ Arrastrar: Rotar cubo</div>
-                <div>🎡 Rueda: Zoom in/out</div>
-                <div>🔍 Click: Seleccionar celda</div>
-            </div>
-
-            <div class="cube" id="cube">
-                <!-- Cara Frontal -->
-                <div class="cube-face front" data-face="front">
-                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">FRONTAL</div>
-                </div>
-                
-                <!-- Cara Trasera -->
-                <div class="cube-face back" data-face="back">
-                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">TRASERA</div>
-                </div>
-                
-                <!-- Cara Derecha -->
-                <div class="cube-face right" data-face="right">
-                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">DERECHA</div>
-                </div>
-                
-                <!-- Cara Izquierda -->
-                <div class="cube-face left" data-face="left">
-                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">IZQUIERDA</div>
-                </div>
-                
-                <!-- Cara Superior -->
-                <div class="cube-face top" data-face="top">
-                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">SUPERIOR</div>
-                </div>
-                
-                <!-- Cara Inferior -->
-                <div class="cube-face bottom" data-face="bottom">
-                    <div class="face-labels" style="top: -25px; left: 50%; transform: translateX(-50%);">INFERIOR</div>
-                </div>
+            
+            <div id="game-over">
+                <h1>GAME OVER</h1>
+                <div id="final-score">Puntos: 0</div>
+                <button id="restart-btn">REJUGAR</button>
             </div>
         </div>
         
-        <div class="control-panel">
-            <div class="panel-section">
-                <h3>📊 Estado del Cubo</h3>
-                <div class="memory-stats">
-                    <div>Celdas Totales: <span id="totalCells">96</span></div>
-                    <div>Datos Almacenados: <span id="storedData">0</span></div>
-                    <div>Memoria Usada: <span id="memoryUsed">0</span>%</div>
-                </div>
+        <div id="controls-container">
+            <div id="d-pad">
+                <button class="d-pad-btn" id="up">↑</button>
+                <button class="d-pad-btn" id="down">↓</button>
+                <button class="d-pad-btn" id="left">←</button>
+                <button class="d-pad-btn" id="right">→</button>
             </div>
-
-            <div class="panel-section">
-                <h3>💾 Almacenar Datos</h3>
-                <div class="coordinates">
-                    <select class="coord-input" id="faceSelect">
-                        <option value="front">Frontal</option>
-                        <option value="back">Trasera</option>
-                        <option value="right">Derecha</option>
-                        <option value="left">Izquierda</option>
-                        <option value="top">Superior</option>
-                        <option value="bottom">Inferior</option>
-                    </select>
-                    <input type="number" class="coord-input" id="sectionInput" placeholder="Sección (0-15)" min="0" max="15">
-                    <input type="number" class="coord-input" id="cellInput" placeholder="Celda (0-3)" min="0" max="3">
-                </div>
-                
-                <input type="text" class="data-input" id="dataLabel" placeholder="Etiqueta (ej: Gmail, Facebook...)" style="margin-bottom: 10px;">
-                
-                <textarea class="data-input" id="dataToStore" placeholder="Ingresa la contraseña o datos a almacenar..."></textarea>
-                
-                <select class="encryption-select" id="encryptionMethod">
-                    <option value="caesar">🔐 Cifrado César</option>
-                    <option value="base64">📊 Base64</option>
-                    <option value="reverse">🔄 Texto Invertido</option>
-                    <option value="xor">⚡ XOR Cipher</option>
-                    <option value="rot13">🌀 ROT13</option>
-                </select>
-                
-                <div class="controls-grid">
-                    <button class="btn" onclick="storeData()">💾 Almacenar</button>
-                    <button class="btn" onclick="autoSelect()">🎯 Auto-ubicar</button>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>🔍 Acceder a Datos</h3>
-                <button class="btn" onclick="retrieveData()" style="width: 100%;">📖 Leer Celda Actual</button>
-                <div class="data-display" id="dataDisplay">Selecciona una celda con datos...</div>
-                <div class="controls-grid">
-                    <button class="btn" onclick="decryptData()">🔓 Desencriptar</button>
-                    <button class="btn" onclick="deleteData()">🗑️ Eliminar</button>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>⚙️ Herramientas</h3>
-                <div class="controls-grid">
-                    <button class="btn" onclick="resetView()">🎯 Centrar Vista</button>
-                    <button class="btn" onclick="exportData()">📤 Exportar</button>
-                    <button class="btn" onclick="importData()">📥 Importar</button>
-                    <button class="btn" onclick="clearAllData()">🧹 Limpiar Todo</button>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>📡 Estado del Sistema</h3>
-                <div id="statusDisplay"></div>
+            
+            <div id="action-buttons">
+                <button id="shoot-btn">DISPARAR</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Estado del sistema
-        let cube = document.getElementById('cube');
-        let isMouseDown = false;
-        let mouseX = 0, mouseY = 0;
-        let rotationX = -15, rotationY = 15;
-        let scale = 1;
-        let currentSelection = null;
-        let dataStorage = {};
-        let currentEncryptedData = null;
+        // Variables globales del juego
+        let canvas, ctx;
+        let player;
+        let enemies = [];
+        let bullets = [];
+        let platforms = [];
+        let score = 0;
+        let gameRunning = false;
+        let keys = {};
+        let lastTime = 0;
+        let enemySpawnTimer = 0;
+        let backgroundPattern;
 
-        // Métodos de encriptación mejorados
-        const encryptionMethods = {
-            caesar: {
-                encrypt: (text, shift = 7) => {
-                    return text.replace(/[a-zA-Z0-9]/g, function(char) {
-                        if (/[0-9]/.test(char)) {
-                            return String.fromCharCode(((char.charCodeAt(0) - 48 + shift) % 10) + 48);
-                        }
-                        const start = char <= 'Z' ? 65 : 97;
-                        return String.fromCharCode(((char.charCodeAt(0) - start + shift) % 26) + start);
-                    });
-                },
-                decrypt: (text, shift = 7) => {
-                    return text.replace(/[a-zA-Z0-9]/g, function(char) {
-                        if (/[0-9]/.test(char)) {
-                            return String.fromCharCode(((char.charCodeAt(0) - 48 - shift + 10) % 10) + 48);
-                        }
-                        const start = char <= 'Z' ? 65 : 97;
-                        return String.fromCharCode(((char.charCodeAt(0) - start - shift + 26) % 26) + start);
-                    });
+        // Clase del jugador
+        class Player {
+            constructor() {
+                this.width = 30;
+                this.height = 40;
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = canvas.height - 150;
+                this.speed = 5;
+                this.velX = 0;
+                this.velY = 0;
+                this.jumping = false;
+                this.grounded = false;
+                this.health = 100;
+                this.facing = 'right';
+                this.shootCooldown = 0;
+            }
+            
+            update(deltaTime) {
+                // Movimiento horizontal
+                this.velX = 0;
+                
+                if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                    this.velX = -this.speed;
+                    this.facing = 'left';
                 }
-            },
-            base64: {
-                encrypt: (text) => btoa(unescape(encodeURIComponent(text))),
-                decrypt: (text) => {
-                    try {
-                        return decodeURIComponent(escape(atob(text)));
-                    } catch (e) {
-                        return "❌ Error de desencriptación Base64";
+                
+                if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                    this.velX = this.speed;
+                    this.facing = 'right';
+                }
+                
+                this.x += this.velX;
+                
+                // Gravedad y salto
+                this.velY += 0.5; // Gravedad
+                if (this.velY > 10) this.velY = 10; // Velocidad terminal
+                
+                if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' ']) && this.grounded) {
+                    this.velY = -12;
+                    this.grounded = false;
+                }
+                
+                this.y += this.velY;
+                
+                // Limites de pantalla
+                if (this.x < 0) this.x = 0;
+                if (this.x + this.width > canvas.width) this.x = canvas.width - this.width;
+                if (this.y < 0) this.y = 0;
+                if (this.y + this.height > canvas.height) {
+                    this.y = canvas.height - this.height;
+                    this.grounded = true;
+                    this.velY = 0;
+                }
+                
+                // Colisión con plataformas
+                this.grounded = false;
+                for (let platform of platforms) {
+                    if (this.velY > 0 && 
+                        this.x + this.width > platform.x && 
+                        this.x < platform.x + platform.width &&
+                        this.y + this.height > platform.y &&
+                        this.y + this.height < platform.y + platform.height) {
+                        this.y = platform.y - this.height;
+                        this.velY = 0;
+                        this.grounded = true;
                     }
                 }
-            },
-            reverse: {
-                encrypt: (text) => text.split('').reverse().join(''),
-                decrypt: (text) => text.split('').reverse().join('')
-            },
-            xor: {
-                encrypt: (text, key = 123) => {
-                    return text.split('').map(char => 
-                        String.fromCharCode(char.charCodeAt(0) ^ key)
-                    ).join('');
-                },
-                decrypt: (text, key = 123) => {
-                    return text.split('').map(char => 
-                        String.fromCharCode(char.charCodeAt(0) ^ key)
-                    ).join('');
+                
+                // Enfriamiento de disparo
+                if (this.shootCooldown > 0) {
+                    this.shootCooldown -= deltaTime;
                 }
-            },
-            rot13: {
-                encrypt: (text) => {
-                    return text.replace(/[a-zA-Z]/g, function(char) {
-                        return String.fromCharCode(
-                            char <= 'Z' ? ((char.charCodeAt(0) - 65 + 13) % 26) + 65 :
-                            ((char.charCodeAt(0) - 97 + 13) % 26) + 97
-                        );
-                    });
-                },
-                decrypt: (text) => encryptionMethods.rot13.encrypt(text)
+                
+                // Disparar
+                if ((keys['x'] || keys['X'] || keys['Enter']) && this.shootCooldown <= 0) {
+                    this.shoot();
+                    this.shootCooldown = 200; // 200 ms de enfriamiento
+                }
             }
-        };
+            
+            shoot() {
+                const bulletX = this.facing === 'right' ? this.x + this.width : this.x;
+                bullets.push(new Bullet(bulletX, this.y + this.height / 2 - 5, this.facing));
+            }
+            
+            draw() {
+                ctx.fillStyle = '#8bac0f';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Dibujar ojos según la dirección
+                ctx.fillStyle = '#0f380f';
+                if (this.facing === 'right') {
+                    ctx.fillRect(this.x + this.width - 10, this.y + 10, 5, 5);
+                } else {
+                    ctx.fillRect(this.x + 5, this.y + 10, 5, 5);
+                }
+            }
+            
+            takeDamage(amount) {
+                this.health -= amount;
+                document.getElementById('health').textContent = `Vida: ${this.health}`;
+                
+                if (this.health <= 0) {
+                    gameOver();
+                }
+            }
+        }
 
-        // Inicialización
+        // Clase de enemigos
+        class Enemy {
+            constructor(x, y) {
+                this.width = 30;
+                this.height = 30;
+                this.x = x;
+                this.y = y;
+                this.speed = 2;
+                this.health = 3;
+            }
+            
+            update() {
+                // Seguir al jugador
+                if (player.x < this.x) {
+                    this.x -= this.speed;
+                } else if (player.x > this.x) {
+                    this.x += this.speed;
+                }
+                
+                // Colisión con el jugador
+                if (this.collideWith(player)) {
+                    player.takeDamage(0.5);
+                }
+            }
+            
+            draw() {
+                ctx.fillStyle = '#ff4c4c';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Ojos
+                ctx.fillStyle = '#0f380f';
+                ctx.fillRect(this.x + 5, this.y + 10, 5, 5);
+                ctx.fillRect(this.x + 20, this.y + 10, 5, 5);
+            }
+            
+            collideWith(object) {
+                return this.x < object.x + object.width &&
+                       this.x + this.width > object.x &&
+                       this.y < object.y + object.height &&
+                       this.y + this.height > object.y;
+            }
+            
+            takeDamage() {
+                this.health--;
+                return this.health <= 0;
+            }
+        }
+
+        // Clase de balas
+        class Bullet {
+            constructor(x, y, direction) {
+                this.x = x;
+                this.y = y;
+                this.width = 10;
+                this.height = 5;
+                this.speed = 10;
+                this.direction = direction;
+            }
+            
+            update() {
+                if (this.direction === 'right') {
+                    this.x += this.speed;
+                } else {
+                    this.x -= this.speed;
+                }
+                
+                // Eliminar balas fuera de pantalla
+                return this.x > canvas.width || this.x + this.width < 0;
+            }
+            
+            draw() {
+                ctx.fillStyle = '#9bbc0f';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+            
+            collideWith(object) {
+                return this.x < object.x + object.width &&
+                       this.x + this.width > object.x &&
+                       this.y < object.y + object.height &&
+                       this.y + this.height > object.y;
+            }
+        }
+
+        // Clase de plataformas
+        class Platform {
+            constructor(x, y, width, height) {
+                this.x = x;
+                this.y = y;
+                this.width = width;
+                this.height = height;
+            }
+            
+            draw() {
+                ctx.fillStyle = '#306230';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        }
+
+        // Inicializar el juego
         function init() {
-            generateCubeFaces();
-            setupEventListeners();
-            updateView();
-            updateStats();
-            showStatus("🚀 Cubo de Memoria 3D iniciado. Explora las caras y almacena tus datos de forma segura.", "success");
+            canvas = document.getElementById('game-canvas');
+            ctx = canvas.getContext('2d');
+            
+            // Ajustar tamaño del canvas
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Crear patrón de fondo
+            createBackgroundPattern();
+            
+            // Configurar controles táctiles
+            setupTouchControls();
+            
+            // Event listeners para teclado
+            document.addEventListener('keydown', function(e) {
+                keys[e.key] = true;
+            });
+            
+            document.addEventListener('keyup', function(e) {
+                keys[e.key] = false;
+            });
+            
+            // Botones de inicio y reinicio
+            document.getElementById('start-btn').addEventListener('click', startGame);
+            document.getElementById('restart-btn').addEventListener('click', startGame);
+            
+            // Dibujar pantalla de inicio
+            drawStartScreen();
         }
 
-        function generateCubeFaces() {
-            const faces = document.querySelectorAll('.cube-face');
+        function resizeCanvas() {
+            const gameScreen = document.getElementById('game-screen');
+            canvas.width = gameScreen.offsetWidth;
+            canvas.height = gameScreen.offsetHeight;
             
-            faces.forEach((face, faceIndex) => {
-                // Crear 16 secciones por cara (4x4)
-                for (let section = 0; section < 16; section++) {
-                    const sectionDiv = document.createElement('div');
-                    sectionDiv.className = 'section';
-                    sectionDiv.dataset.face = face.dataset.face;
-                    sectionDiv.dataset.section = section;
-                    
-                    // Crear 4 celdas por sección (2x2)
-                    for (let cell = 0; cell < 4; cell++) {
-                        const cellDiv = document.createElement('div');
-                        cellDiv.className = 'cell';
-                        cellDiv.dataset.face = face.dataset.face;
-                        cellDiv.dataset.section = section;
-                        cellDiv.dataset.cell = cell;
-                        cellDiv.textContent = cell;
-                        
-                        cellDiv.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            selectCell(face.dataset.face, section, cell);
-                        });
-                        
-                        sectionDiv.appendChild(cellDiv);
-                    }
-                    
-                    sectionDiv.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        selectSection(face.dataset.face, section);
-                    });
-                    
-                    face.appendChild(sectionDiv);
-                }
-            });
+            if (backgroundPattern) {
+                drawBackground();
+            }
         }
 
-        function setupEventListeners() {
-            const container = document.getElementById('cubeContainer');
+        function createBackgroundPattern() {
+            // Crear un patrón de fondo con motivos retro
+            const patternCanvas = document.createElement('canvas');
+            const patternCtx = patternCanvas.getContext('2d');
+            patternCanvas.width = 20;
+            patternCanvas.height = 20;
             
-            // Eventos del mouse para rotación
-            container.addEventListener('mousedown', (e) => {
-                isMouseDown = true;
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                document.body.classList.add('dragging');
-            });
+            patternCtx.fillStyle = '#0f380f';
+            patternCtx.fillRect(0, 0, 20, 20);
+            
+            patternCtx.fillStyle = '#1a4d1a';
+            patternCtx.fillRect(0, 0, 10, 10);
+            patternCtx.fillRect(10, 10, 10, 10);
+            
+            backgroundPattern = ctx.createPattern(patternCanvas, 'repeat');
+        }
 
-            document.addEventListener('mousemove', (e) => {
-                if (!isMouseDown) return;
-                
-                const deltaX = e.clientX - mouseX;
-                const deltaY = e.clientY - mouseY;
-                
-                rotationY += deltaX * 0.5;
-                rotationX -= deltaY * 0.5;
-                
-                rotationX = Math.max(-90, Math.min(90, rotationX));
-                
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                
-                updateView();
-            });
+        function drawBackground() {
+            ctx.fillStyle = backgroundPattern;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Dibujar estrellas de fondo
+            ctx.fillStyle = '#9bbc0f';
+            for (let i = 0; i < 20; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * canvas.height / 2;
+                ctx.fillRect(x, y, 2, 2);
+            }
+        }
 
-            document.addEventListener('mouseup', () => {
-                isMouseDown = false;
-                document.body.classList.remove('dragging');
+        function setupTouchControls() {
+            // Controles táctiles para la cruceta
+            const dPadButtons = document.querySelectorAll('.d-pad-btn');
+            dPadButtons.forEach(button => {
+                button.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    const direction = this.id;
+                    keys['Arrow' + direction.charAt(0).toUpperCase() + direction.slice(1)] = true;
+                });
+                
+                button.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    const direction = this.id;
+                    keys['Arrow' + direction.charAt(0).toUpperCase() + direction.slice(1)] = false;
+                });
             });
-
-            // Zoom con rueda del mouse
-            container.addEventListener('wheel', (e) => {
+            
+            // Botón de disparo táctil
+            const shootBtn = document.getElementById('shoot-btn');
+            shootBtn.addEventListener('touchstart', function(e) {
                 e.preventDefault();
-                const delta = e.deltaY > 0 ? 0.9 : 1.1;
-                scale = Math.max(0.3, Math.min(3, scale * delta));
-                updateView();
-                document.getElementById('zoomLevel').textContent = Math.round(scale * 100);
+                keys['x'] = true;
+            });
+            
+            shootBtn.addEventListener('touchend', function(e) {
+                e.preventDefault();
+                keys['x'] = false;
             });
         }
 
-        function updateView() {
-            cube.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(${scale})`;
+        function startGame() {
+            // Ocultar pantallas de inicio/game over
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-over').style.display = 'none';
+            
+            // Reiniciar variables del juego
+            player = new Player();
+            enemies = [];
+            bullets = [];
+            score = 0;
+            gameRunning = true;
+            enemySpawnTimer = 0;
+            
+            document.getElementById('score').textContent = `Puntos: ${score}`;
+            document.getElementById('health').textContent = `Vida: ${player.health}`;
+            
+            // Crear plataformas
+            platforms = [
+                new Platform(100, canvas.height - 100, 200, 20),
+                new Platform(500, canvas.height - 150, 200, 20),
+                new Platform(300, canvas.height - 200, 150, 20),
+                new Platform(100, canvas.height - 250, 150, 20)
+            ];
+            
+            // Iniciar bucle del juego
+            requestAnimationFrame(gameLoop);
         }
 
-        function selectSection(face, section) {
-            // Limpiar selecciones anteriores
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('final-score').textContent = `Puntos: ${score}`;
+            document.getElementById('game-over').style.display = 'flex';
+        }
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
             
-            // Seleccionar nueva sección
-            const sectionElement = document.querySelector(`[data-face="${face}"][data-section="${section}"].section`);
-            if (sectionElement) {
-                sectionElement.classList.add('active');
-                currentSelection = {face, section, cell: null};
-                updateCurrentInfo();
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+            
+            // Limpiar canvas
+            drawBackground();
+            
+            // Actualizar y dibujar plataformas
+            platforms.forEach(platform => platform.draw());
+            
+            // Actualizar y dibujar jugador
+            player.update(deltaTime);
+            player.draw();
+            
+            // Generar enemigos
+            enemySpawnTimer += deltaTime;
+            if (enemySpawnTimer > 2000) { // Cada 2 segundos
+                const side = Math.random() > 0.5 ? 1 : -1;
+                const x = side > 0 ? -50 : canvas.width + 50;
+                const y = Math.random() * (canvas.height - 100);
+                enemies.push(new Enemy(x, y));
+                enemySpawnTimer = 0;
             }
-        }
-
-        function selectCell(face, section, cell) {
-            // Limpiar selecciones anteriores
-            document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             
-            // Seleccionar nueva celda
-            const cellElement = document.querySelector(`[data-face="${face}"][data-section="${section}"][data-cell="${cell}"].cell`);
-            const sectionElement = document.querySelector(`[data-face="${face}"][data-section="${section}"].section`);
-            
-            if (cellElement && sectionElement) {
-                cellElement.classList.add('selected');
-                sectionElement.classList.add('active');
-                currentSelection = {face, section, cell};
-                updateCurrentInfo();
+            // Actualizar y dibujar enemigos
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                enemies[i].update();
+                enemies[i].draw();
                 
-                // Auto-rellenar campos del formulario
-                document.getElementById('faceSelect').value = face;
-                document.getElementById('sectionInput').value = section;
-                document.getElementById('cellInput').value = cell;
+                // Eliminar enemigos fuera de pantalla
+                if (enemies[i].x < -100 || enemies[i].x > canvas.width + 100) {
+                    enemies.splice(i, 1);
+                }
             }
+            
+            // Actualizar y dibujar balas
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const removeBullet = bullets[i].update();
+                
+                // Comprobar colisiones con enemigos
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    if (bullets[i].collideWith(enemies[j])) {
+                        if (enemies[j].takeDamage()) {
+                            enemies.splice(j, 1);
+                            score += 10;
+                            document.getElementById('score').textContent = `Puntos: ${score}`;
+                        }
+                        removeBullet = true;
+                        break;
+                    }
+                }
+                
+                if (removeBullet) {
+                    bullets.splice(i, 1);
+                } else {
+                    bullets[i].draw();
+                }
+            }
+            
+            // Continuar bucle del juego
+            requestAnimationFrame(gameLoop);
         }
 
-        function updateCurrentInfo() {
-            const faceNames = {
-                front: 'Frontal', back: 'Trasera', right: 'Derecha',
-                left: 'Izquierda', top: 'Superior', bottom: 'Inferior'
-            };
-            
-            if (currentSelection) {
-                document.getElementById('currentFace').textContent = faceNames[currentSelection.face];
-                document.getElementById('currentSection').textContent = currentSelection.section;
-                document.getElementById('currentCell').textContent = currentSelection.cell ?? '-';
-            }
+        function drawStartScreen() {
+            drawBackground();
+            ctx.fillStyle = '#9bbc0f';
+            ctx.font = '20px "Courier New", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText('PLATAFORMA SHOOTER', canvas.width / 2, canvas.height / 2 - 30);
+            ctx.font = '14px "Courier New", monospace';
+            ctx.fillText('Toca JUGAR para comenzar', canvas.width / 2, canvas.height / 2 + 20);
         }
 
-        function storeData() {
-            const face = document.getElementById('faceSelect').value;
-            const section = parseInt(document.getElementById('sectionInput').value);
-            const cell = parseInt(document.getElementById('cellInput').value);
-            const label = document.getElementById('dataLabel').value.trim();
-            const data = document.getElementById('dataToStore').value.trim();
-            const method = document.getElementById('encryptionMethod').value;
-
-            if (isNaN(section) || isNaN(cell) || !data) {
-                showStatus("❌ Completa todos los campos requeridos.", "error");
-                return;
-            }
-
-            if (section < 0 || section > 15 || cell < 0 || cell > 3) {
-                showStatus("❌ Coordenadas fuera de rango.", "error");
-                return;
-            }
-
-            const encryptedData = encryptionMethods[method].encrypt(data);
-            const key = `${face}-${section}-${cell}`;
-            
-            dataStorage[key] = {
-                label: label || 'Datos sin etiqueta',
-                data: encryptedData,
-                original: data,
-                method: method,
-                timestamp: new Date().toISOString(),
-                face, section, cell
-            };
-
-            // Marcar celda visualmente
-            const cellElement = document.querySelector(`[data-face="${face}"][data-section="${section}"][data-cell="${cell}"].cell`);
-            if (cellElement) {
-                cellElement.classList.add('has-data');
-                cellElement.title = label || 'Datos almacenados';
-            }
-
-            showStatus(`✅ Datos "${label}" almacenados en ${face.toUpperCase()}-${section}-${cell}`, "success");
-            updateStats();
-            
-            // Limpiar formulario
-            document.getElementById('dataLabel').value = '';
-            document.getElementById('dataToStore').value = '';
-        }
-
-        function retrieveData() {
-            if (!currentSelection || currentSelection.cell === null) {
-                showStatus("❌ Selecciona una celda específica primero.", "error");
-                return;
-            }
-
-            const key = `${currentSelection.face}-${currentSelection.section}-${currentSelection.cell}`;
-            const storedData = dataStorage[key];
-            
-            if (!storedData) {
-                document.getElementById('dataDisplay').innerHTML = `
-                    <div style="text-align: center; color: #666;">
-                        📭 No hay datos en esta celda<br>
-                        <small>Celda: ${currentSelection.face.toUpperCase()}-${currentSelection.section}-${currentSelection.cell}</small>
-                    </div>
-                `;
-                showStatus("ℹ️ Celda vacía.", "error");
-                return;
-            }
-            
-            currentEncryptedData = storedData;
-            document.getElementById('dataDisplay').innerHTML = `
-                <div style="border-bottom: 1px solid #00d4ff; padding-bottom: 10px; margin-bottom: 10px;">
-                    <strong>🏷️ ${storedData.label}</strong>
-                </div>
-                <div><strong>📍 Ubicación:</strong> ${storedData.face.toUpperCase()}-${storedData.section}-${storedData.cell}</div>
-                <div><strong>🔐 Método:</strong> ${storedData.method.toUpperCase()}</div>
-                <div><strong>📅 Fecha:</strong> ${new Date(storedData.timestamp).toLocaleString()}</div>
-                <div style="margin-top: 15px; padding: 10px; background: rgba(255,0,0,0.1); border: 1px solid #ff6666; border-radius: 4px;">
-                    <strong>🔒 Datos Encriptados:</strong><br>
-                    <code style="word-break: break-all; font-size: 10px;">${storedData.data}</code>
-                </div>
-            `;
-            
-            showStatus("📖 Datos cargados. Usa 'Desencriptar' para ver el contenido.", "success");
-        }
-
-        function decryptData() {
-            if (!currentEncryptedData) {
-                showStatus("❌ No hay datos para desencriptar.", "error");
-                return;
-            }
-            
-            const decrypted = encryptionMethods[currentEncryptedData.method].decrypt(currentEncryptedData.data);
-            
-            document.getElementById('dataDisplay').innerHTML = `
-                <div style="border-bottom: 1px solid #00d4ff; padding-bottom: 10px; margin-bottom: 10px;">
-                    <strong>🏷️ ${currentEncryptedData.label}</strong>
-                </div>
-                <div><strong>📍 Ubicación:</strong> ${currentEncryptedData.face.toUpperCase()}-${currentEncryptedData.section}-${currentEncryptedData.cell}</div>
-                <div style="margin-top: 15px; padding: 15px; background: rgba(0,255,0,0.15); border: 2px solid #00ff64; border-radius: 6px;">
-                    <div style="margin-bottom: 8px;"><strong>🔓 DATOS DESENCRIPTADOS:</strong></div>
-                    <div style="font-size: 14px; font-family: 'Courier New'; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 4px; word-break: break-all;">
-                        ${decrypted}
-                    </div>
-                </div>
-                <div style="margin-top: 10px; font-size: 
+        // Iniciar cuando el documento esté cargado
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
