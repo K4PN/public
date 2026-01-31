@@ -433,6 +433,9 @@
       .evidence-actions { flex-direction: column; }
       .evidence-item { align-items: flex-start; }
     }
+      .button-group + .button-group{
+      margin-top: 12px;
+    }
   </style>
 </head>
 
@@ -488,7 +491,7 @@
       <button class="btn-add" id="btnOpenModal" type="button">Añadir evidencia</button>
       <button class="btn-export" id="btnExportTxt" type="button">Exportar TXT</button>
     </div>
-    <div class="button-group" style="margin-top: -10px;">
+    <div class="button-group">
       <button class="btn-export" id="btnExportJson" type="button">Exportar JSON</button>
       <button class="btn-export" id="btnExportPdf" type="button">Exportar PDF</button>
     </div>
