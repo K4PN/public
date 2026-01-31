@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro · Evidencias</title>
+
+  <!-- Fuentes (similar al estilo que has pasado) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1a1a2e;
+      --secondary: #16213e;
+      --accent: #c8986b;
+      --accent-light: #d4ab7f;
+      --text-light: #f5f5f5;
+      --text-muted: #a0a0a0;
+      --surface: #0f0f1e;
+      --border: rgba(200, 152, 107, 0.2);
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Crimson Pro', serif;
+      background: linear-gradient(135deg, var(--surface) 0%, var(--primary) 100%);
+      color: var(--text-light);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      animation: slideDown 0.8s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header .subtitle {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .info-card {
+      background: rgba(22, 33, 62, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 32px var(--shadow);
+      animation: scaleIn 0.6s ease-out 0.2s backwards;
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* Cabecera (inputs) */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 520px){
+      .grid { grid-template-columns: 1fr 1fr; }
+      .span2 { grid-column: 1 / -1; }
+    }
+
+    .form-group { margin-bottom: 0; }
+    .form-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+      display: block;
+      font-weight: 500;
+    }
+
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(15, 15, 30, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-light);
+      font-family: 'Crimson Pro', serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200, 152, 107, 0.1);
+    }
+
+    .form-textarea { min-height: 110px; resize: vertical; }
+
+    /* Botonera */
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      animation: scaleIn 0.6s ease-out 0.35s backwards;
+    }
+
+    .btn-add {
+      flex: 1;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: var(--primary);
+      border: none;
+      border-radius: 12px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(200, 152, 107, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(200, 152, 107, 0.5); }
+    .btn-add:active { transform: translateY(0); }
+
+    .btn-export {
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      justify-content: center;
+    }
+    .btn-export:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
+
+    .btn-danger {
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-light);
+      border: 1px solid rgba(255, 120, 120, 0.25);
+      border-radius: 12px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex: 1;
+      justify-content: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-danger:hover { background: rgba(255, 120, 120, 0.10); transform: translateY(-2px); }
+
+    /* Evidencias */
+    .evidences-section { margin-top: 26px; }
+
+    .evidences-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .evidences-title .left {
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .evidence-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(200, 152, 107, 0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    .evidence-item {
+      background: rgba(22, 33, 62, 0.4);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.3s ease;
+      animation: slideInLeft 0.4s ease-out;
+      display:flex;
+      gap: 12px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .evidence-item:hover { background: rgba(22, 33, 62, 0.6); transform: translateX(5px); }
+
+    .evidence-main { flex: 1; min-width: 0; }
+    .evidence-number {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .evidence-description {
+      font-size: 1rem;
+      color: var(--text-light);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .evidence-actions { display:flex; gap:10px; flex: 0 0 auto; }
+
+    .icon-btn {
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-1px); }
+
+    .icon-btn.danger {
+      border-color: rgba(255, 120, 120, 0.25);
+    }
+    .icon-btn.danger:hover {
+      background: rgba(255, 120, 120, 0.12);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 46px 16px;
+      color: var(--text-muted);
+      font-style: italic;
+      border: 1px dashed rgba(200, 152, 107, 0.25);
+      border-radius: 14px;
+      background: rgba(22,33,62,0.25);
+    }
+    .empty-state svg {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 14px;
+      opacity: 0.25;
+      display:block;
+      margin-left:auto;
+      margin-right:auto;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+      padding: 20px;
+    }
+    .modal-overlay.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      animation: modalSlideUp 0.4s ease-out;
+    }
+
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(50px) scale(0.9); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .modal h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: var(--primary);
+      box-shadow: 0 4px 15px rgba(200, 152, 107, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(200, 152, 107, 0.5); }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+
+    .hint {
+      margin-top: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.75);
+      border: 1px solid var(--border);
+      color: var(--text-light);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 2000;
+      max-width: calc(100% - 28px);
+      text-align: center;
+    }
+    .toast.show { display:block; }
+
+    @media (max-width: 480px) {
+      body { padding: 16px; }
+      .header h1 { font-size: 2rem; }
+      .modal { padding: 22px; }
+      .modal-buttons { flex-direction: column; }
+      .button-group { flex-direction: column; }
+      .btn-export, .btn-add, .btn-danger { justify-content: center; width: 100%; }
+      .evidence-actions { flex-direction: column; }
+      .evidence-item { align-items: flex-start; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Registro de Evidencias</h1>
+      <div class="subtitle">Mobile-first · Guardado local · Exporta TXT / JSON / PDF</div>
+    </div>
+
+    <!-- Datos del registro -->
+    <section class="info-card" aria-label="Datos del registro">
+      <div class="grid">
+        <div class="form-group">
+          <label class="form-label" for="asunto">Asunto</label>
+          <input class="form-input" id="asunto" placeholder="Ej: Estafa informática" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="grupo">Grupo de Investigación</label>
+          <input class="form-input" id="grupo" placeholder="Ej: Grupo / Unidad" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="juzgado">Juzgado</label>
+          <input class="form-input" id="juzgado" placeholder="Ej: J. Instrucción nº..." />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="procedimiento">Procedimiento</label>
+          <input class="form-input" id="procedimiento" placeholder="Ej: Diligencias Previas 123/2026" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="fechaHora">Fecha y hora del registro</label>
+          <input class="form-input" id="fechaHora" type="datetime-local" />
+        </div>
+
+        <div class="form-group span2">
+          <label class="form-label" for="direccion">Dirección</label>
+          <input class="form-input" id="direccion" placeholder="C/ ..., nº..., localidad" />
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-add" id="btnGuardarCabecera" type="button">Guardar datos</button>
+        <button class="btn-danger" id="btnResetAll" type="button">Borrar todo</button>
+      </div>
+    </section>
+
+    <!-- Botón principal: añadir evidencia -->
+    <div class="button-group">
+      <button class="btn-add" id="btnOpenModal" type="button">Añadir evidencia</button>
+      <button class="btn-export" id="btnExportTxt" type="button">Exportar TXT</button>
+    </div>
+    <div class="button-group" style="margin-top: -10px;">
+      <button class="btn-export" id="btnExportJson" type="button">Exportar JSON</button>
+      <button class="btn-export" id="btnExportPdf" type="button">Exportar PDF</button>
+    </div>
+
+    <!-- Evidencias -->
+    <section class="evidences-section">
+      <div class="evidences-title">
+        <div class="left">
+          <span>Evidencias</span>
+          <span class="evidence-count" id="count">0 elementos</span>
+        </div>
+      </div>
+
+      <div id="list"></div>
+
+      <div id="empty" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M7 3h8l2 2v16H7V3z" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M9 9h6M9 13h6M9 17h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Aún no has añadido evidencias. Pulsa “Añadir evidencia”.
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal (añadir / editar evidencia) -->
+  <div class="modal-overlay" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h2 id="modalTitle">Añadir evidencia</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="evNumero">Nº Evidencia</label>
+        <input class="form-input" id="evNumero" inputmode="numeric" placeholder="Ej: 001" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="evDesc">Descripción</label>
+        <textarea class="form-textarea" id="evDesc" placeholder="Ej: Teléfono móvil marca X, modelo Y, IMEI..., intervenido en..."></textarea>
+      </div>
+
+      <div class="hint">Tip: si dejas el Nº vacío, se asigna automáticamente el siguiente disponible.</div>
+
+      <div class="modal-buttons">
+        <button class="btn btn-secondary" id="btnCloseModal" type="button">Cerrar</button>
+        <button class="btn btn-secondary" id="btnClearFields" type="button">Limpiar</button>
+        <button class="btn btn-primary" id="btnAddEvidence" type="button" data-mode="add">Añadir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- jsPDF (exportar PDF) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+
+  <script>
+    // =============================
+    // Estado + Persistencia
+    // =============================
+    const LS_KEY = "evidencias_registro_v2_style";
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      header: {
+        asunto: "",
+        grupo: "",
+        juzgado: "",
+        procedimiento: "",
+        fechaHora: "",
+        direccion: ""
+      },
+      evidences: []
+    };
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return;
+        const parsed = JSON.parse(raw);
+        if(parsed && typeof parsed === "object"){
+          state.header = parsed.header || state.header;
+          state.evidences = Array.isArray(parsed.evidences) ? parsed.evidences : [];
+        }
+      }catch(_e){}
+    }
+
+    function saveState(){
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    }
+
+    // =============================
+    // Utilidades UI
+    // =============================
+    function toast(msg){
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(()=> t.classList.remove("show"), 1700);
+    }
+
+    function normalizeNumber(n){
+      const s = (n ?? "").toString().trim();
+      if(!s) return "";
+      if(/^\d+$/.test(s)){
+        const num = Math.min(parseInt(s,10), 999999);
+        return String(num).padStart(3, "0");
+      }
+      return s;
+    }
+
+    function nextAutoNumber(){
+      const nums = state.evidences
+        .map(e => e.numero)
+        .filter(n => /^\d+$/.test(n))
+        .map(n => parseInt(n,10));
+      const max = nums.length ? Math.max(...nums) : 0;
+      return String(max + 1).padStart(3, "0");
+    }
+
+    // =============================
+    // Render
+    // =============================
+    function renderHeader(){
+      $("asunto").value = state.header.asunto || "";
+      $("grupo").value = state.header.grupo || "";
+      $("juzgado").value = state.header.juzgado || "";
+      $("procedimiento").value = state.header.procedimiento || "";
+      $("fechaHora").value = state.header.fechaHora || "";
+      $("direccion").value = state.header.direccion || "";
+    }
+
+    function renderList(){
+      const list = $("list");
+      list.innerHTML = "";
+
+      $("count").textContent = `${state.evidences.length} elemento${state.evidences.length === 1 ? "" : "s"}`;
+
+      if(state.evidences.length === 0){
+        $("empty").style.display = "block";
+        return;
+      }
+      $("empty").style.display = "block";
+      $("empty").style.display = "none";
+
+      for(const ev of state.evidences){
+        const item = document.createElement("div");
+        item.className = "evidence-item";
+        item.innerHTML = `
+          <div class="evidence-main">
+            <div class="evidence-number">EVIDENCIA ${ev.numero}</div>
+            <div class="evidence-description">${escapeHtml(ev.descripcion)}</div>
+          </div>
+          <div class="evidence-actions">
+            <button class="icon-btn" data-act="edit" data-id="${ev.id}" type="button">Editar</button>
+            <button class="icon-btn danger" data-act="del" data-id="${ev.id}" type="button">Borrar</button>
+          </div>
+        `;
+        list.appendChild(item);
+      }
+    }
+
+    function escapeHtml(str){
+      return (str ?? "").toString()
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // =============================
+    // Modal
+    // =============================
+    function openModal(mode = "add", editId = ""){
+      $("backdrop").classList.add("active");
+      $("btnAddEvidence").dataset.mode = mode;
+      $("btnAddEvidence").dataset.editId = editId || "";
+      $("btnAddEvidence").textContent = (mode === "edit") ? "Guardar" : "Añadir";
+      $("modalTitle").textContent = (mode === "edit") ? "Editar evidencia" : "Añadir evidencia";
+
+      if(mode === "add" && !$("evNumero").value.trim()){
+        $("evNumero").value = nextAutoNumber();
+      }
+      setTimeout(()=> $("evDesc").focus(), 30);
+    }
+
+    function closeModal(){
+      $("backdrop").classList.remove("active");
+      $("btnAddEvidence").dataset.mode = "add";
+      $("btnAddEvidence").dataset.editId = "";
+      $("btnAddEvidence").textContent = "Añadir";
+      $("modalTitle").textContent = "Añadir evidencia";
+    }
+
+    function clearModalFields(){
+      $("evNumero").value = "";
+      $("evDesc").value = "";
+      toast("Campos limpiados");
+    }
+
+    // =============================
+    // Acciones
+    // =============================
+    function saveHeaderFromInputs(){
+      state.header.asunto = $("asunto").value.trim();
+      state.header.grupo = $("grupo").value.trim();
+      state.header.juzgado = $("juzgado").value.trim();
+      state.header.procedimiento = $("procedimiento").value.trim();
+      state.header.fechaHora = $("fechaHora").value;
+      state.header.direccion = $("direccion").value.trim();
+      saveState();
+      toast("Datos guardados");
+    }
+
+    function sortEvidences(){
+      state.evidences.sort((a,b)=>{
+        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero,10) : null;
+        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero,10) : null;
+        if(an !== null && bn !== null) return an - bn;
+        if(an !== null) return -1;
+        if(bn !== null) return 1;
+        return (a.createdAt || "").localeCompare(b.createdAt || "");
+      });
+    }
+
+    function addEvidence(){
+      const numeroRaw = $("evNumero").value;
+      const desc = $("evDesc").value.trim();
+
+      if(!desc){
+        toast("Añade una descripción");
+        $("evDesc").focus();
+        return;
+      }
+
+      const numero = normalizeNumber(numeroRaw) || nextAutoNumber();
+
+      const exists = state.evidences.some(e => e.numero === numero);
+      if(exists){
+        toast(`El Nº ${numero} ya existe`);
+        $("evNumero").focus();
+        return;
+      }
+
+      state.evidences.push({
+        id: (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
+        numero,
+        descripcion: desc,
+        createdAt: new Date().toISOString()
+      });
+
+      sortEvidences();
+      saveState();
+      renderList();
+
+      $("evNumero").value = nextAutoNumber();
+      $("evDesc").value = "";
+      toast("Evidencia añadida");
+      $("evDesc").focus();
+    }
+
+    function editEvidence(id){
+      const ev = state.evidences.find(e => e.id === id);
+      if(!ev) return;
+      $("evNumero").value = ev.numero;
+      $("evDesc").value = ev.descripcion;
+      openModal("edit", id);
+    }
+
+    function saveEditedEvidence(id){
+      const ev = state.evidences.find(e => e.id === id);
+      if(!ev) return;
+
+      const newNumero = normalizeNumber($("evNumero").value) || ev.numero;
+      const newDesc = $("evDesc").value.trim();
+
+      if(!newDesc){
+        toast("Añade una descripción");
+        $("evDesc").focus();
+        return;
+      }
+
+      const duplicate = state.evidences.some(e => e.id !== id && e.numero === newNumero);
+      if(duplicate){
+        toast(`El Nº ${newNumero} ya existe`);
+        $("evNumero").focus();
+        return;
+      }
+
+      ev.numero = newNumero;
+      ev.descripcion = newDesc;
+
+      sortEvidences();
+      saveState();
+      renderList();
+      closeModal();
+      clearModalFields();
+      toast("Cambios guardados");
+    }
+
+    function deleteEvidence(id){
+      const before = state.evidences.length;
+      state.evidences = state.evidences.filter(e => e.id !== id);
+      if(state.evidences.length !== before){
+        saveState();
+        renderList();
+        toast("Evidencia borrada");
+      }
+    }
+
+    function resetAll(){
+      if(!confirm("¿Borrar TODOS los datos y evidencias?")) return;
+      localStorage.removeItem(LS_KEY);
+      state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
+      state.evidences = [];
+      renderHeader();
+      renderList();
+      toast("Todo borrado");
+    }
+
+    function downloadFile(filename, content, mime){
+      const blob = new Blob([content], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast("Exportación generada");
+    }
+
+    function exportTxt(){
+      const h = state.header;
+      const lines = [];
+      lines.push("=== REGISTRO ===");
+      lines.push(`Asunto: ${h.asunto || "-"}`);
+      lines.push(`Grupo de Investigación: ${h.grupo || "-"}`);
+      lines.push(`Juzgado: ${h.juzgado || "-"}`);
+      lines.push(`Procedimiento: ${h.procedimiento || "-"}`);
+      lines.push(`Fecha y hora: ${h.fechaHora || "-"}`);
+      lines.push(`Dirección: ${h.direccion || "-"}`);
+      lines.push("");
+      lines.push("=== EVIDENCIAS ===");
+      if(state.evidences.length === 0){
+        lines.push("(sin evidencias)");
+      } else {
+        for(const ev of state.evidences){
+          lines.push(`- [${ev.numero}] ${ev.descripcion}`);
+        }
+      }
+      downloadFile("registro_evidencias.txt", lines.join("\n"), "text/plain;charset=utf-8");
+    }
+
+    function exportJson(){
+      downloadFile("registro_evidencias.json", JSON.stringify(state, null, 2), "application/json;charset=utf-8");
+    }
+
+    function exportPdf(){
+      if(!window.jspdf || !window.jspdf.jsPDF){
+        toast("No se pudo cargar jsPDF (¿sin internet?)");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+
+      const h = state.header;
+      let y = 16;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("REGISTRO DE EVIDENCIAS", 105, y, { align: "center" });
+
+      y += 9;
+      doc.setLineWidth(0.5);
+      doc.line(15, y, 195, y);
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+
+      const headerLines = [
+        ["Asunto", h.asunto],
+        ["Grupo de Investigación", h.grupo],
+        ["Juzgado", h.juzgado],
+        ["Procedimiento", h.procedimiento],
+        ["Fecha y hora", h.fechaHora],
+        ["Dirección", h.direccion]
+      ];
+
+      headerLines.forEach(([label, value]) => {
+        doc.setFont("helvetica", "bold");
+        doc.text(`${label}:`, 15, y);
+        doc.setFont("helvetica", "normal");
+        const v = (value && String(value).trim()) ? String(value) : "-";
+        const vv = doc.splitTextToSize(v, 120);
+        doc.text(vv, 70, y);
+        y += Math.max(7, vv.length * 6);
+      });
+
+      y += 4;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(13);
+      doc.text("EVIDENCIAS", 15, y);
+      y += 6;
+
+      doc.setLineWidth(0.3);
+      doc.line(15, y, 195, y);
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.setFont("helvetica", "normal");
+
+      if(state.evidences.length === 0){
+        doc.text("No se han registrado evidencias.", 15, y);
+      } else {
+        state.evidences.forEach((ev) => {
+          const block = `(${ev.numero}) ${ev.descripcion}`;
+          const lines = doc.splitTextToSize(block, 180);
+          if (y + lines.length * 6 > 285) {
+            doc.addPage();
+            y = 18;
+          }
+          doc.text(lines, 15, y);
+          y += lines.length * 6 + 4;
+        });
+      }
+
+      doc.save("registro_evidencias.pdf");
+      toast("PDF generado");
+    }
+
+    // =============================
+    // Eventos
+    // =============================
+    function wire(){
+      $("btnOpenModal").addEventListener("click", () => {
+        $("evNumero").value = "";
+        $("evDesc").value = "";
+        openModal("add");
+      });
+
+      $("btnCloseModal").addEventListener("click", closeModal);
+      $("btnClearFields").addEventListener("click", clearModalFields);
+
+      $("backdrop").addEventListener("click", (e)=>{
+        if(e.target === $("backdrop")) closeModal();
+      });
+
+      $("btnAddEvidence").addEventListener("click", ()=>{
+        const mode = $("btnAddEvidence").dataset.mode || "add";
+        if(mode === "edit"){
+          const id = $("btnAddEvidence").dataset.editId;
+          return saveEditedEvidence(id);
+        }
+        addEvidence();
+      });
+
+      // Enter: nº -> desc | Ctrl+Enter: guardar/añadir
+      $("evNumero").addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){
+          e.preventDefault();
+          $("evDesc").focus();
+        }
+      });
+      $("evDesc").addEventListener("keydown", (e)=>{
+        if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){
+          e.preventDefault();
+          const mode = $("btnAddEvidence").dataset.mode || "add";
+          if(mode === "edit"){
+            const id = $("btnAddEvidence").dataset.editId;
+            return saveEditedEvidence(id);
+          }
+          addEvidence();
+        }
+      });
+
+      $("btnGuardarCabecera").addEventListener("click", saveHeaderFromInputs);
+      $("btnResetAll").addEventListener("click", resetAll);
+
+      $("btnExportTxt").addEventListener("click", exportTxt);
+      $("btnExportJson").addEventListener("click", exportJson);
+      $("btnExportPdf").addEventListener("click", exportPdf);
+
+      // Delegación: editar/borrar evidencias
+      $("list").addEventListener("click", (e)=>{
+        const btn = e.target.closest("button");
+        if(!btn) return;
+        const act = btn.dataset.act;
+        const id = btn.dataset.id;
+        if(act === "del") return deleteEvidence(id);
+        if(act === "edit") return editEvidence(id);
+      });
+
+      // Autosave suave al cambiar cabecera
+      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id=>{
+        $(id).addEventListener("change", saveHeaderFromInputs);
+      });
+    }
+
+    // =============================
+    // Init
+    // =============================
+    loadState();
+    renderHeader();
+    renderList();
+    wire();
+  </script>
+</body>
+</html>
