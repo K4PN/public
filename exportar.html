@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Visor JSON → PDF</title>
+
+  <!-- jsPDF (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0f1220;
+      --card:#151a2d;
+      --muted:#9aa3b2;
+      --text:#eef2ff;
+      --accent:#c8986b;
+      --accent2:#d4ab7f;
+      --border:rgba(200,152,107,.25);
+      --shadow:rgba(0,0,0,.45);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 10% 0%, rgba(200,152,107,.12), transparent 55%),
+                  radial-gradient(900px 600px at 90% 10%, rgba(212,171,127,.10), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      padding:20px;
+    }
+    .wrap{
+      width:min(980px,100%);
+      display:grid;
+      gap:14px;
+    }
+    .top{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 16px;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow: 0 10px 26px var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      line-height:1.1;
+    }
+    .brand h1{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:0;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .btn{
+      appearance:none;
+      border:1px solid rgba(200,152,107,.45);
+      background: linear-gradient(180deg, rgba(200,152,107,.25), rgba(200,152,107,.10));
+      color:var(--text);
+      font-weight:650;
+      padding:11px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      transition: transform .08s ease, filter .15s ease, border-color .15s ease;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn:hover{filter:brightness(1.06); border-color: rgba(212,171,127,.7);}
+    .btn:active{transform: translateY(1px);}
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+      filter:saturate(.7);
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow: 0 10px 26px var(--shadow);
+      padding:14px 16px;
+    }
+    .empty{
+      color:var(--muted);
+      font-size:13px;
+      margin:0;
+    }
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px 14px;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .pill{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.18);
+      padding:6px 10px;
+      border-radius:999px;
+    }
+    .titleRow{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+    .titleRow h2{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .titleRow small{
+      color:var(--muted);
+      font-size:12px;
+    }
+    .list{
+      margin-top:12px;
+      display:grid;
+      gap:10px;
+    }
+    .item{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.18);
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .item .t{
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+    .item .txt{
+      margin:0;
+      white-space:pre-wrap;
+      word-wrap:break-word;
+      line-height:1.35;
+      font-size:14px;
+    }
+    .toast{
+      display:none;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.25);
+      color:var(--muted);
+      font-size:13px;
+    }
+    .toast.show{display:block;}
+    input[type="file"]{display:none;}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <h1>Visor de JSON → PDF</h1>
+        <p>Importa un JSON y exporta un PDF con toda la información.</p>
+      </div>
+
+      <button id="actionBtn" class="btn">Añadir JSON</button>
+      <input id="fileInput" type="file" accept="application/json,.json" />
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="view" class="card">
+      <p class="empty">Todavía no has cargado ningún JSON.</p>
+    </div>
+  </div>
+
+  <script>
+    // Estado
+    let loadedData = null;
+
+    const actionBtn = document.getElementById("actionBtn");
+    const fileInput = document.getElementById("fileInput");
+    const view = document.getElementById("view");
+    const toast = document.getElementById("toast");
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(()=>toast.classList.remove("show"), 2600);
+    }
+
+    function toDateStringFromUnixSeconds(sec){
+      if (!sec && sec !== 0) return "—";
+      const d = new Date(sec * 1000);
+      // Formato local (España) + hora
+      return d.toLocaleString("es-ES", {
+        year:"numeric", month:"2-digit", day:"2-digit",
+        hour:"2-digit", minute:"2-digit", second:"2-digit"
+      });
+    }
+
+    function validateAndNormalize(json){
+      // Espera estructura: { asunto: { id, titulo, created_at, items:[{texto, created_at}, ...] } }
+      if (!json || typeof json !== "object") throw new Error("JSON inválido (no es un objeto).");
+      if (!json.asunto || typeof json.asunto !== "object") throw new Error("Falta la clave 'asunto'.");
+      const a = json.asunto;
+
+      const asunto = {
+        id: a.id ?? null,
+        titulo: String(a.titulo ?? "Sin título"),
+        created_at: a.created_at ?? null,
+        items: Array.isArray(a.items) ? a.items.map((it, i) => ({
+          idx: i + 1,
+          texto: String(it?.texto ?? ""),
+          created_at: it?.created_at ?? null
+        })) : []
+      };
+
+      return { asunto };
+    }
+
+    function render(data){
+      const a = data.asunto;
+      const createdStr = toDateStringFromUnixSeconds(a.created_at);
+
+      const itemsHtml = (a.items?.length ? a.items : []).map(it => `
+        <div class="item">
+          <div class="t">#${it.idx} · ${toDateStringFromUnixSeconds(it.created_at)}</div>
+          <p class="txt">${escapeHtml(it.texto)}</p>
+        </div>
+      `).join("");
+
+      view.innerHTML = `
+        <div class="titleRow">
+          <h2>${escapeHtml(a.titulo)}</h2>
+          <small>${escapeHtml(createdStr)}</small>
+        </div>
+        <div class="meta">
+          <div class="pill">ID: <b>${escapeHtml(String(a.id ?? "—"))}</b></div>
+          <div class="pill">Items: <b>${escapeHtml(String(a.items?.length ?? 0))}</b></div>
+        </div>
+        <div class="list">
+          ${itemsHtml || `<p class="empty">El JSON no contiene items.</p>`}
+        </div>
+      `;
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // Flujo del botón único
+    actionBtn.addEventListener("click", () => {
+      if (!loadedData) {
+        fileInput.value = ""; // reset por si cargan el mismo
+        fileInput.click();
+      } else {
+        exportPdf(loadedData);
+      }
+    });
+
+    fileInput.addEventListener("change", async () => {
+      const file = fileInput.files?.[0];
+      if (!file) return;
+
+      try{
+        actionBtn.disabled = true;
+        const text = await file.text();
+        const json = JSON.parse(text);
+        loadedData = validateAndNormalize(json);
+
+        render(loadedData);
+
+        actionBtn.textContent = "Exportar PDF";
+        showToast("JSON cargado correctamente.");
+      } catch (e){
+        loadedData = null;
+        actionBtn.textContent = "Añadir JSON";
+        view.innerHTML = `<p class="empty">Todavía no has cargado ningún JSON.</p>`;
+        showToast("Error: " + (e?.message || "No se pudo cargar el JSON"));
+        console.error(e);
+      } finally {
+        actionBtn.disabled = false;
+      }
+    });
+
+    function exportPdf(data){
+      // jsPDF está en window.jspdf.jsPDF (UMD)
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF){
+        showToast("No se cargó jsPDF (sin internet o CDN bloqueado).");
+        return;
+      }
+
+      const doc = new jsPDF({ unit: "pt", format: "a4" });
+
+      const a = data.asunto;
+      const margin = 48;
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const maxW = pageW - margin * 2;
+
+      let y = margin;
+
+      // Encabezado
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text(a.titulo || "Sin título", margin, y, { maxWidth: maxW });
+
+      y += 18;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+
+      const metaLines = [
+        `ID: ${a.id ?? "—"}`,
+        `Creado: ${toDateStringFromUnixSeconds(a.created_at)}`,
+        `Número de items: ${a.items?.length ?? 0}`
+      ];
+
+      metaLines.forEach(line => {
+        y = ensureSpace(doc, y, pageH, margin, 14);
+        doc.text(line, margin, y);
+        y += 14;
+      });
+
+      y += 8;
+
+      // Separador
+      doc.setDrawColor(180);
+      doc.setLineWidth(0.6);
+      doc.line(margin, y, pageW - margin, y);
+      y += 18;
+
+      // Items
+      const items = a.items || [];
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Items", margin, y);
+      y += 16;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+
+      items.forEach((it, idx) => {
+        const head = `#${idx + 1} · ${toDateStringFromUnixSeconds(it.created_at)}`;
+        const body = (it.texto || "").trim() || "(sin texto)";
+
+        y = ensureSpace(doc, y, pageH, margin, 16);
+        doc.setFont("helvetica", "bold");
+        doc.text(head, margin, y);
+        y += 14;
+
+        doc.setFont("helvetica", "normal");
+        const wrapped = doc.splitTextToSize(body, maxW);
+
+        wrapped.forEach(line => {
+          y = ensureSpace(doc, y, pageH, margin, 14);
+          doc.text(line, margin, y);
+          y += 14;
+        });
+
+        y += 10;
+
+        // separador suave entre items
+        y = ensureSpace(doc, y, pageH, margin, 10);
+        doc.setDrawColor(220);
+        doc.setLineWidth(0.4);
+        doc.line(margin, y, pageW - margin, y);
+        y += 14;
+      });
+
+      const safeTitle = (a.titulo || "asunto").replace(/[\\/:*?"<>|]+/g, "_").slice(0, 60);
+      doc.save(`${safeTitle}.pdf`);
+    }
+
+    function ensureSpace(doc, y, pageH, margin, needed){
+      if (y + needed > pageH - margin){
+        doc.addPage();
+        return margin;
+      }
+      return y;
+    }
+
+    // --- Demo opcional: si quieres probar sin archivo, descomenta esto ---
+    /*
+    loadedData = validateAndNormalize({
+      "asunto": {
+        "id": 1,
+        "titulo": "Operación Ejemplo",
+        "created_at": 1770073772,
+        "items": [
+          { "texto": "Teléfono 638789493 - Según Bizum pertenece a Carlos A S. Truecaller Carlos", "created_at": 1770073822 },
+          { "texto": "Email ejemplo@ejemplo.com: foto de perfil en URL...", "created_at": 1770073851 }
+        ]
+      }
+    });
+    render(loadedData);
+    actionBtn.textContent = "Exportar PDF";
+    */
+  </script>
+</body>
+</html>
