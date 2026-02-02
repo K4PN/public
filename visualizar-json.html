@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visor JSON - Exportar PDF</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 28px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-label {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        button:disabled:hover {
+            transform: none;
+        }
+
+        .preview-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .preview-container.active {
+            display: block;
+        }
+
+        .info-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .item-list {
+            margin-top: 20px;
+        }
+
+        .item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #764ba2;
+        }
+
+        .item-date {
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .item-text {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .error {
+            background: #fee;
+            color: #c00;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #c00;
+        }
+
+        .success {
+            background: #efe;
+            color: #060;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #060;
+            display: none;
+        }
+
+        .success.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Visor de Datos JSON</h1>
+        
+        <div class="input-section">
+            <div class="input-label">Pega tu JSON aquí:</div>
+            <textarea id="jsonInput" placeholder='{"asunto": {"id": 1, "titulo": "Operación Ejemplo", ...}}'></textarea>
+        </div>
+
+        <div class="button-container">
+            <button id="btnCargar" onclick="cargarJSON()">✅ Cargar JSON</button>
+            <button id="btnExportar" onclick="exportarPDF()" disabled>📥 Exportar PDF</button>
+        </div>
+
+        <div id="success" class="success">
+            ✅ PDF exportado correctamente
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="preview" class="preview-container"></div>
+    </div>
+
+    <script>
+        let datosJSON = null;
+
+        function cargarJSON() {
+            try {
+                // Leer el contenido del textarea
+                const texto = document.getElementById('jsonInput').value.trim();
+                
+                if (!texto) {
+                    throw new Error('Por favor, pega un JSON en el área de texto');
+                }
+                
+                // Intentar parsear el JSON
+                datosJSON = JSON.parse(texto);
+                
+                // Verificar que tiene la estructura esperada
+                if (!datosJSON.asunto) {
+                    throw new Error('El JSON no tiene la estructura esperada (falta "asunto")');
+                }
+
+                // Mostrar vista previa
+                mostrarVistaPrevia();
+                
+                // Habilitar botón de exportar
+                document.getElementById('btnExportar').disabled = false;
+                
+                // Ocultar error si había uno
+                document.getElementById('error').style.display = 'none';
+                
+            } catch (error) {
+                mostrarError('Error al cargar JSON: ' + error.message);
+                datosJSON = null;
+                document.getElementById('btnExportar').disabled = true;
+                document.getElementById('preview').classList.remove('active');
+            }
+        }
+
+        function mostrarVistaPrevia() {
+            const preview = document.getElementById('preview');
+            const asunto = datosJSON.asunto;
+            
+            let html = `
+                <div class="info-item">
+                    <div class="info-label">ID</div>
+                    <div class="info-value">${asunto.id}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Título</div>
+                    <div class="info-value">${asunto.titulo}</div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-label">Fecha de creación</div>
+                    <div class="info-value">${formatearFecha(asunto.created_at)}</div>
+                </div>
+            `;
+            
+            if (asunto.items && asunto.items.length > 0) {
+                html += `
+                    <div class="item-list">
+                        <div class="info-label" style="margin-bottom: 15px;">Items (${asunto.items.length})</div>
+                `;
+                
+                asunto.items.forEach((item, index) => {
+                    html += `
+                        <div class="item">
+                            <div class="item-date">📅 ${formatearFecha(item.created_at)}</div>
+                            <div class="item-text">${item.texto}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `</div>`;
+            }
+            
+            preview.innerHTML = html;
+            preview.classList.add('active');
+        }
+
+        function formatearFecha(timestamp) {
+            const fecha = new Date(timestamp * 1000);
+            return fecha.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        function exportarPDF() {
+            if (!datosJSON) {
+                mostrarError('No hay datos para exportar');
+                return;
+            }
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const asunto = datosJSON.asunto;
+                
+                let y = 20;
+                const margenIzquierdo = 20;
+                const anchoPagina = 170;
+                
+                // Título del documento
+                doc.setFontSize(18);
+                doc.setFont(undefined, 'bold');
+                doc.text('Informe de Operación', margenIzquierdo, y);
+                y += 15;
+                
+                // Línea separadora
+                doc.setDrawColor(102, 126, 234);
+                doc.setLineWidth(0.5);
+                doc.line(margenIzquierdo, y, margenIzquierdo + anchoPagina, y);
+                y += 10;
+                
+                // ID
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'bold');
+                doc.text('ID:', margenIzquierdo, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(String(asunto.id), margenIzquierdo + 25, y);
+                y += 8;
+                
+                // Título
+                doc.setFont(undefined, 'bold');
+                doc.text('Título:', margenIzquierdo, y);
+                doc.setFont(undefined, 'normal');
+                const tituloLines = doc.splitTextToSize(asunto.titulo, anchoPagina - 30);
+                doc.text(tituloLines, margenIzquierdo + 25, y);
+                y += (tituloLines.length * 5) + 3;
+                
+                // Fecha de creación
+                doc.setFont(undefined, 'bold');
+                doc.text('Fecha de creación:', margenIzquierdo, y);
+                doc.setFont(undefined, 'normal');
+                doc.text(formatearFecha(asunto.created_at), margenIzquierdo + 45, y);
+                y += 15;
+                
+                // Items
+                if (asunto.items && asunto.items.length > 0) {
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`Items registrados (${asunto.items.length})`, margenIzquierdo, y);
+                    y += 10;
+                    
+                    doc.setFontSize(10);
+                    asunto.items.forEach((item, index) => {
+                        // Verificar si necesitamos una nueva página
+                        if (y > 270) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                        
+                        // Número de item
+                        doc.setFont(undefined, 'bold');
+                        doc.text(`Item ${index + 1}:`, margenIzquierdo, y);
+                        y += 6;
+                        
+                        // Fecha del item
+                        doc.setFont(undefined, 'italic');
+                        doc.setTextColor(100, 100, 100);
+                        doc.text(formatearFecha(item.created_at), margenIzquierdo + 5, y);
+                        doc.setTextColor(0, 0, 0);
+                        y += 6;
+                        
+                        // Texto del item
+                        doc.setFont(undefined, 'normal');
+                        const textoLines = doc.splitTextToSize(item.texto, anchoPagina - 10);
+                        doc.text(textoLines, margenIzquierdo + 5, y);
+                        y += (textoLines.length * 5) + 8;
+                        
+                        // Línea separadora entre items
+                        if (index < asunto.items.length - 1) {
+                            doc.setDrawColor(200, 200, 200);
+                            doc.setLineWidth(0.2);
+                            doc.line(margenIzquierdo, y, margenIzquierdo + anchoPagina, y);
+                            y += 8;
+                        }
+                    });
+                }
+                
+                // Pie de página en todas las páginas
+                const totalPaginas = doc.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPaginas; i++) {
+                    doc.setPage(i);
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text(
+                        `Página ${i} de ${totalPaginas} - Generado el ${new Date().toLocaleDateString('es-ES')}`,
+                        margenIzquierdo,
+                        287
+                    );
+                }
+                
+                // Guardar el PDF
+                const nombreArchivo = `operacion_${asunto.id}_${asunto.titulo.substring(0, 20).replace(/[^a-z0-9]/gi, '_')}.pdf`;
+                doc.save(nombreArchivo);
+                
+                // Mostrar mensaje de éxito
+                const successMsg = document.getElementById('success');
+                successMsg.classList.add('active');
+                setTimeout(() => {
+                    successMsg.classList.remove('active');
+                }, 3000);
+                
+            } catch (error) {
+                mostrarError('Error al generar PDF: ' + error.message);
+            }
+        }
+
+        function mostrarError(mensaje) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '❌ ' + mensaje;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
