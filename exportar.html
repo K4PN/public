@@ -3,416 +3,593 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Visor JSON → PDF</title>
+  <title>Asuntos → PDF</title>
 
-  <!-- jsPDF (CDN) -->
+  <!-- jsPDF + AutoTable (PDF en el navegador) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root{
       --bg:#0f1220;
-      --card:#151a2d;
-      --muted:#9aa3b2;
-      --text:#eef2ff;
+      --card:#151a2e;
+      --card2:#101528;
+      --text:#f3f4f6;
+      --muted:#b5b9c6;
+      --border:rgba(255,255,255,.12);
       --accent:#c8986b;
       --accent2:#d4ab7f;
-      --border:rgba(200,152,107,.25);
-      --shadow:rgba(0,0,0,.45);
+      --danger:#ff5a6a;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --radius: 18px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
-      background: radial-gradient(1200px 800px at 10% 0%, rgba(200,152,107,.12), transparent 55%),
-                  radial-gradient(900px 600px at 90% 10%, rgba(212,171,127,.10), transparent 55%),
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(200,152,107,.18), transparent 55%),
+                  radial-gradient(900px 700px at 80% 0%, rgba(212,171,127,.14), transparent 52%),
                   var(--bg);
       color:var(--text);
       min-height:100vh;
       display:flex;
-      align-items:flex-start;
-      justify-content:center;
-      padding:20px;
-    }
-    .wrap{
-      width:min(980px,100%);
-      display:grid;
-      gap:14px;
-    }
-    .top{
-      display:flex;
-      gap:12px;
       align-items:center;
-      justify-content:space-between;
-      padding:14px 16px;
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow: 0 10px 26px var(--shadow);
-      backdrop-filter: blur(8px);
+      justify-content:center;
+      padding:22px;
     }
-    .brand{
+
+    .wrap{
+      width:min(980px, 100%);
+      display:grid;
+      gap:16px;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    header{
+      padding:18px 18px 14px;
       display:flex;
-      flex-direction:column;
-      gap:4px;
-      line-height:1.1;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      background: linear-gradient(180deg, rgba(200,152,107,.10), transparent);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .brand{
+      display:flex; flex-direction:column; gap:4px;
     }
     .brand h1{
       margin:0;
-      font-size:16px;
+      font-size: 18px;
       letter-spacing:.2px;
     }
     .brand p{
       margin:0;
-      font-size:12px;
       color:var(--muted);
+      font-size: 13px;
+      line-height:1.3;
     }
-    .btn{
-      appearance:none;
-      border:1px solid rgba(200,152,107,.45);
-      background: linear-gradient(180deg, rgba(200,152,107,.25), rgba(200,152,107,.10));
-      color:var(--text);
-      font-weight:650;
-      padding:11px 14px;
-      border-radius:14px;
-      cursor:pointer;
-      box-shadow: 0 10px 20px rgba(0,0,0,.25);
-      transition: transform .08s ease, filter .15s ease, border-color .15s ease;
-      user-select:none;
-      white-space:nowrap;
+
+    .content{
+      padding:18px;
+      background: linear-gradient(180deg, rgba(0,0,0,.00), rgba(0,0,0,.10));
     }
-    .btn:hover{filter:brightness(1.06); border-color: rgba(212,171,127,.7);}
-    .btn:active{transform: translateY(1px);}
-    .btn:disabled{
-      opacity:.6;
-      cursor:not-allowed;
-      filter:saturate(.7);
-    }
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
-      border:1px solid var(--border);
-      border-radius:16px;
-      box-shadow: 0 10px 26px var(--shadow);
-      padding:14px 16px;
-    }
-    .empty{
-      color:var(--muted);
-      font-size:13px;
-      margin:0;
-    }
-    .meta{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px 14px;
-      margin-top:10px;
-      color:var(--muted);
-      font-size:13px;
-    }
-    .pill{
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.18);
-      padding:6px 10px;
-      border-radius:999px;
-    }
-    .titleRow{
+
+    .btnbar{
       display:flex;
       gap:10px;
-      align-items:flex-start;
-      justify-content:space-between;
+      flex-wrap:wrap;
+      justify-content:flex-end;
     }
-    .titleRow h2{
-      margin:0;
-      font-size:18px;
+
+    button{
+      appearance:none;
+      border:1px solid rgba(200,152,107,.38);
+      background: linear-gradient(180deg, rgba(200,152,107,.24), rgba(200,152,107,.12));
+      color:var(--text);
+      padding:10px 14px;
+      border-radius: 14px;
+      font-weight: 650;
       letter-spacing:.2px;
+      cursor:pointer;
+      transition: transform .08s ease, filter .15s ease, border-color .15s ease;
+      user-select:none;
     }
-    .titleRow small{
+    button:hover{ filter:brightness(1.06); border-color: rgba(212,171,127,.55); }
+    button:active{ transform: translateY(1px); }
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+      filter:saturate(.6);
+    }
+
+    .ghost{
+      background: transparent;
+      border:1px solid var(--border);
       color:var(--muted);
-      font-size:12px;
+      font-weight:600;
     }
-    .list{
-      margin-top:12px;
+
+    .grid{
+      display:grid;
+      gap:12px;
+    }
+
+    .panel{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding:14px;
+    }
+
+    .label{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .label span{
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    textarea{
+      width:100%;
+      min-height: 220px;
+      resize: vertical;
+      padding:12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10,12,22,.65);
+      color: var(--text);
+      outline: none;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12.5px;
+      line-height:1.45;
+    }
+    textarea:focus{ border-color: rgba(212,171,127,.55); }
+
+    .hint{
+      color:var(--muted);
+      font-size: 12.5px;
+      line-height:1.35;
+      margin-top:10px;
+    }
+
+    .error{
+      margin-top:10px;
+      color: #ffd1d6;
+      background: rgba(255,90,106,.14);
+      border:1px solid rgba(255,90,106,.35);
+      padding:10px 12px;
+      border-radius: 14px;
+      font-size: 13px;
+      display:none;
+      white-space: pre-wrap;
+    }
+
+    .report{
+      display:none;
+    }
+    .meta{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .kv{
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.16);
+      border-radius: 14px;
+      padding:10px 12px;
+    }
+    .kv .k{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom:6px;
+    }
+    .kv .v{
+      font-size: 14px;
+      font-weight: 650;
+      overflow-wrap:anywhere;
+    }
+
+    .items{
       display:grid;
       gap:10px;
     }
     .item{
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.18);
-      border-radius:14px;
-      padding:10px 12px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,.16);
+      border-radius: 14px;
+      padding:12px;
     }
     .item .t{
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:6px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom:8px;
     }
-    .item .txt{
-      margin:0;
-      white-space:pre-wrap;
-      word-wrap:break-word;
-      line-height:1.35;
-      font-size:14px;
+    .item .x{
+      font-size: 14px;
+      line-height:1.4;
+      overflow-wrap:anywhere;
     }
-    .toast{
-      display:none;
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-      color:var(--muted);
-      font-size:13px;
+
+    .footerline{
+      margin-top:12px;
+      color: var(--muted);
+      font-size: 12px;
     }
-    .toast.show{display:block;}
-    input[type="file"]{display:none;}
+
+    @media (max-width: 680px){
+      .meta{ grid-template-columns: 1fr; }
+      header{ flex-direction:column; align-items:stretch; }
+      .btnbar{ justify-content:stretch; }
+      button{ width:100%; }
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="top">
-      <div class="brand">
-        <h1>Visor de JSON → PDF</h1>
-        <p>Importa un JSON y exporta un PDF con toda la información.</p>
+    <div class="card">
+      <header>
+        <div class="brand">
+          <h1>Asuntos → Exportar a PDF</h1>
+          <p>Pega tu JSON exportado y genera un PDF con toda la información.</p>
+        </div>
+        <div class="btnbar">
+          <button id="mainBtn">Pegar JSON</button>
+          <button id="resetBtn" class="ghost" style="display:none;">Reset</button>
+        </div>
+      </header>
+
+      <div class="content">
+        <!-- Panel pegado JSON -->
+        <div id="pastePanel" class="panel grid" style="display:none;">
+          <div class="label">
+            <span>Pega aquí el JSON (objeto completo)</span>
+            <span id="statusText"></span>
+          </div>
+          <textarea id="jsonInput" spellcheck="false" placeholder='Ej:
+{
+  "asunto": {
+    "id": 1,
+    "titulo": "Operación Ejemplo",
+    "created_at": 1770073772,
+    "items": [
+      {"texto":"...", "created_at": 1770073822}
+    ]
+  }
+}'></textarea>
+
+          <div>
+            <button id="loadBtn">Cargar JSON</button>
+          </div>
+
+          <div class="hint">
+            Formato esperado: <code>{"asunto": {"id":..., "titulo":..., "created_at":..., "items":[...]}}</code><br/>
+            <b>created_at</b> puede venir como epoch (segundos) o como fecha ISO (si te llega así, también lo intento interpretar).
+          </div>
+
+          <div id="errorBox" class="error"></div>
+        </div>
+
+        <!-- Report -->
+        <div id="report" class="report">
+          <div class="meta">
+            <div class="kv">
+              <div class="k">Título</div>
+              <div class="v" id="rTitulo">—</div>
+            </div>
+            <div class="kv">
+              <div class="k">ID</div>
+              <div class="v" id="rId">—</div>
+            </div>
+            <div class="kv">
+              <div class="k">Creado</div>
+              <div class="v" id="rCreated">—</div>
+            </div>
+            <div class="kv">
+              <div class="k">Items</div>
+              <div class="v" id="rCount">—</div>
+            </div>
+          </div>
+
+          <div class="items" id="itemsBox"></div>
+
+          <div class="footerline">
+            Nota: el PDF se genera localmente en tu navegador. No se envía nada a ningún servidor.
+          </div>
+        </div>
       </div>
-
-      <button id="actionBtn" class="btn">Añadir JSON</button>
-      <input id="fileInput" type="file" accept="application/json,.json" />
-    </div>
-
-    <div id="toast" class="toast"></div>
-
-    <div id="view" class="card">
-      <p class="empty">Todavía no has cargado ningún JSON.</p>
     </div>
   </div>
 
   <script>
+    // ----------------------------
     // Estado
+    // ----------------------------
     let loadedData = null;
 
-    const actionBtn = document.getElementById("actionBtn");
-    const fileInput = document.getElementById("fileInput");
-    const view = document.getElementById("view");
-    const toast = document.getElementById("toast");
+    // ----------------------------
+    // Helpers
+    // ----------------------------
+    function show(el){ el.style.display = ""; }
+    function hide(el){ el.style.display = "none"; }
 
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      setTimeout(()=>toast.classList.remove("show"), 2600);
+    function setError(msg){
+      const box = document.getElementById("errorBox");
+      box.textContent = msg;
+      box.style.display = "block";
+    }
+    function clearError(){
+      const box = document.getElementById("errorBox");
+      box.textContent = "";
+      box.style.display = "none";
     }
 
-    function toDateStringFromUnixSeconds(sec){
-      if (!sec && sec !== 0) return "—";
-      const d = new Date(sec * 1000);
-      // Formato local (España) + hora
+    function isObject(v){
+      return v && typeof v === "object" && !Array.isArray(v);
+    }
+
+    function parseDateAny(value){
+      // Acepta:
+      // - number epoch en segundos
+      // - string número
+      // - ISO string
+      if (value === null || value === undefined) return null;
+
+      // número o string numérica
+      if (typeof value === "number" || (typeof value === "string" && /^\d+$/.test(value.trim()))) {
+        const n = (typeof value === "number") ? value : Number(value.trim());
+        // Si viene en ms (muy grande), lo convertimos:
+        const ms = n > 10_000_000_000 ? n : n * 1000;
+        const d = new Date(ms);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      if (typeof value === "string") {
+        const d = new Date(value);
+        return isNaN(d.getTime()) ? null : d;
+      }
+
+      return null;
+    }
+
+    function fmtDate(d){
+      if (!d) return "—";
+      // Formato local (España) con hora
       return d.toLocaleString("es-ES", {
         year:"numeric", month:"2-digit", day:"2-digit",
         hour:"2-digit", minute:"2-digit", second:"2-digit"
       });
     }
 
-    function validateAndNormalize(json){
-      // Espera estructura: { asunto: { id, titulo, created_at, items:[{texto, created_at}, ...] } }
-      if (!json || typeof json !== "object") throw new Error("JSON inválido (no es un objeto).");
-      if (!json.asunto || typeof json.asunto !== "object") throw new Error("Falta la clave 'asunto'.");
-      const a = json.asunto;
+    function safeStr(v){
+      if (v === null || v === undefined) return "";
+      return String(v);
+    }
 
-      const asunto = {
-        id: a.id ?? null,
-        titulo: String(a.titulo ?? "Sin título"),
-        created_at: a.created_at ?? null,
-        items: Array.isArray(a.items) ? a.items.map((it, i) => ({
-          idx: i + 1,
-          texto: String(it?.texto ?? ""),
-          created_at: it?.created_at ?? null
-        })) : []
+    function normalizeData(raw){
+      // Valida y normaliza el JSON a una estructura estándar
+      if (!isObject(raw)) throw new Error("El JSON debe ser un objeto raíz (no una lista).");
+
+      const asunto = raw.asunto;
+      if (!isObject(asunto)) throw new Error("Falta el objeto 'asunto' o no es válido.");
+
+      const id = asunto.id;
+      const titulo = asunto.titulo;
+      const created = parseDateAny(asunto.created_at);
+
+      if (id === undefined || id === null) throw new Error("Falta 'asunto.id'.");
+      if (!titulo) throw new Error("Falta 'asunto.titulo'.");
+      if (!created) throw new Error("No pude interpretar 'asunto.created_at' (epoch/ISO).");
+
+      const items = Array.isArray(asunto.items) ? asunto.items : [];
+      const normItems = items.map((it, idx) => {
+        if (!isObject(it)) {
+          return { texto: "[Item inválido]", created_at: null, idx };
+        }
+        const texto = safeStr(it.texto || "");
+        const d = parseDateAny(it.created_at);
+        return { texto, created_at: d, idx };
+      });
+
+      return {
+        id: safeStr(id),
+        titulo: safeStr(titulo),
+        created_at: created,
+        items: normItems
       };
-
-      return { asunto };
     }
 
-    function render(data){
-      const a = data.asunto;
-      const createdStr = toDateStringFromUnixSeconds(a.created_at);
+    // ----------------------------
+    // UI render
+    // ----------------------------
+    function renderReport(data){
+      document.getElementById("rTitulo").textContent = data.titulo;
+      document.getElementById("rId").textContent = data.id;
+      document.getElementById("rCreated").textContent = fmtDate(data.created_at);
+      document.getElementById("rCount").textContent = String(data.items.length);
 
-      const itemsHtml = (a.items?.length ? a.items : []).map(it => `
-        <div class="item">
-          <div class="t">#${it.idx} · ${toDateStringFromUnixSeconds(it.created_at)}</div>
-          <p class="txt">${escapeHtml(it.texto)}</p>
-        </div>
-      `).join("");
+      const box = document.getElementById("itemsBox");
+      box.innerHTML = "";
 
-      view.innerHTML = `
-        <div class="titleRow">
-          <h2>${escapeHtml(a.titulo)}</h2>
-          <small>${escapeHtml(createdStr)}</small>
-        </div>
-        <div class="meta">
-          <div class="pill">ID: <b>${escapeHtml(String(a.id ?? "—"))}</b></div>
-          <div class="pill">Items: <b>${escapeHtml(String(a.items?.length ?? 0))}</b></div>
-        </div>
-        <div class="list">
-          ${itemsHtml || `<p class="empty">El JSON no contiene items.</p>`}
-        </div>
-      `;
+      data.items.forEach((it, i) => {
+        const div = document.createElement("div");
+        div.className = "item";
+
+        const t = document.createElement("div");
+        t.className = "t";
+        t.textContent = `#${i+1} · ${it.created_at ? fmtDate(it.created_at) : "fecha desconocida"}`;
+
+        const x = document.createElement("div");
+        x.className = "x";
+        x.textContent = it.texto || "—";
+
+        div.appendChild(t);
+        div.appendChild(x);
+        box.appendChild(div);
+      });
+
+      show(document.getElementById("report"));
     }
 
-    function escapeHtml(str){
-      return String(str)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
+    function setModePaste(){
+      const mainBtn = document.getElementById("mainBtn");
+      mainBtn.textContent = "Pegar JSON";
+      mainBtn.disabled = false;
+      hide(document.getElementById("resetBtn"));
+      hide(document.getElementById("report"));
+      hide(document.getElementById("pastePanel"));
+      loadedData = null;
+      clearError();
+      document.getElementById("jsonInput").value = "";
     }
 
-    // Flujo del botón único
-    actionBtn.addEventListener("click", () => {
-      if (!loadedData) {
-        fileInput.value = ""; // reset por si cargan el mismo
-        fileInput.click();
-      } else {
-        exportPdf(loadedData);
-      }
-    });
+    function setModeExportReady(){
+      const mainBtn = document.getElementById("mainBtn");
+      mainBtn.textContent = "Exportar PDF";
+      mainBtn.disabled = false;
+      show(document.getElementById("resetBtn"));
+      hide(document.getElementById("pastePanel"));
+    }
 
-    fileInput.addEventListener("change", async () => {
-      const file = fileInput.files?.[0];
-      if (!file) return;
+    // ----------------------------
+    // PDF export
+    // ----------------------------
+    function exportPDF(data){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: "p",
+        unit: "pt",
+        format: "a4"
+      });
 
-      try{
-        actionBtn.disabled = true;
-        const text = await file.text();
-        const json = JSON.parse(text);
-        loadedData = validateAndNormalize(json);
-
-        render(loadedData);
-
-        actionBtn.textContent = "Exportar PDF";
-        showToast("JSON cargado correctamente.");
-      } catch (e){
-        loadedData = null;
-        actionBtn.textContent = "Añadir JSON";
-        view.innerHTML = `<p class="empty">Todavía no has cargado ningún JSON.</p>`;
-        showToast("Error: " + (e?.message || "No se pudo cargar el JSON"));
-        console.error(e);
-      } finally {
-        actionBtn.disabled = false;
-      }
-    });
-
-    function exportPdf(data){
-      // jsPDF está en window.jspdf.jsPDF (UMD)
-      const { jsPDF } = window.jspdf || {};
-      if (!jsPDF){
-        showToast("No se cargó jsPDF (sin internet o CDN bloqueado).");
-        return;
-      }
-
-      const doc = new jsPDF({ unit: "pt", format: "a4" });
-
-      const a = data.asunto;
-      const margin = 48;
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      const maxW = pageW - margin * 2;
-
+      const margin = 44;
       let y = margin;
 
-      // Encabezado
+      // Header
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text(a.titulo || "Sin título", margin, y, { maxWidth: maxW });
-
+      doc.text(data.titulo, margin, y);
       y += 18;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-
-      const metaLines = [
-        `ID: ${a.id ?? "—"}`,
-        `Creado: ${toDateStringFromUnixSeconds(a.created_at)}`,
-        `Número de items: ${a.items?.length ?? 0}`
-      ];
-
-      metaLines.forEach(line => {
-        y = ensureSpace(doc, y, pageH, margin, 14);
-        doc.text(line, margin, y);
-        y += 14;
-      });
-
-      y += 8;
-
-      // Separador
-      doc.setDrawColor(180);
-      doc.setLineWidth(0.6);
-      doc.line(margin, y, pageW - margin, y);
+      doc.text(`ID: ${data.id}`, margin, y);
+      y += 14;
+      doc.text(`Creado: ${fmtDate(data.created_at)}`, margin, y);
       y += 18;
 
-      // Items
-      const items = a.items || [];
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text("Items", margin, y);
-      y += 16;
+      doc.setDrawColor(200);
+      doc.line(margin, y, 595 - margin, y);
+      y += 14;
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
+      // Items table
+      const rows = data.items.map((it, idx) => ([
+        String(idx + 1),
+        it.created_at ? fmtDate(it.created_at) : "—",
+        it.texto || "—"
+      ]));
 
-      items.forEach((it, idx) => {
-        const head = `#${idx + 1} · ${toDateStringFromUnixSeconds(it.created_at)}`;
-        const body = (it.texto || "").trim() || "(sin texto)";
-
-        y = ensureSpace(doc, y, pageH, margin, 16);
-        doc.setFont("helvetica", "bold");
-        doc.text(head, margin, y);
-        y += 14;
-
-        doc.setFont("helvetica", "normal");
-        const wrapped = doc.splitTextToSize(body, maxW);
-
-        wrapped.forEach(line => {
-          y = ensureSpace(doc, y, pageH, margin, 14);
-          doc.text(line, margin, y);
-          y += 14;
-        });
-
-        y += 10;
-
-        // separador suave entre items
-        y = ensureSpace(doc, y, pageH, margin, 10);
-        doc.setDrawColor(220);
-        doc.setLineWidth(0.4);
-        doc.line(margin, y, pageW - margin, y);
-        y += 14;
+      doc.autoTable({
+        startY: y,
+        head: [["#", "Fecha", "Texto"]],
+        body: rows,
+        theme: "grid",
+        styles: {
+          font: "helvetica",
+          fontSize: 9.5,
+          cellPadding: 6,
+          overflow: "linebreak"
+        },
+        headStyles: {
+          fontStyle: "bold"
+        },
+        columnStyles: {
+          0: { cellWidth: 26 },
+          1: { cellWidth: 120 },
+          2: { cellWidth: 595 - (margin*2) - 26 - 120 }
+        },
+        margin: { left: margin, right: margin }
       });
 
-      const safeTitle = (a.titulo || "asunto").replace(/[\\/:*?"<>|]+/g, "_").slice(0, 60);
+      // Footer
+      const pages = doc.getNumberOfPages();
+      for (let p = 1; p <= pages; p++) {
+        doc.setPage(p);
+        doc.setFontSize(9);
+        doc.setTextColor(120);
+        doc.text(
+          `Generado localmente · Página ${p} / ${pages}`,
+          margin,
+          842 - 26
+        );
+      }
+
+      const safeTitle = (data.titulo || "asunto")
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .replace(/\s+/g, " ")
+        .trim();
+
       doc.save(`${safeTitle}.pdf`);
     }
 
-    function ensureSpace(doc, y, pageH, margin, needed){
-      if (y + needed > pageH - margin){
-        doc.addPage();
-        return margin;
-      }
-      return y;
-    }
+    // ----------------------------
+    // Eventos
+    // ----------------------------
+    document.getElementById("mainBtn").addEventListener("click", () => {
+      const mainBtn = document.getElementById("mainBtn");
 
-    // --- Demo opcional: si quieres probar sin archivo, descomenta esto ---
-    /*
-    loadedData = validateAndNormalize({
-      "asunto": {
-        "id": 1,
-        "titulo": "Operación Ejemplo",
-        "created_at": 1770073772,
-        "items": [
-          { "texto": "Teléfono 638789493 - Según Bizum pertenece a Carlos A S. Truecaller Carlos", "created_at": 1770073822 },
-          { "texto": "Email ejemplo@ejemplo.com: foto de perfil en URL...", "created_at": 1770073851 }
-        ]
+      if (mainBtn.textContent === "Pegar JSON") {
+        show(document.getElementById("pastePanel"));
+        document.getElementById("jsonInput").focus();
+        return;
+      }
+
+      if (mainBtn.textContent === "Exportar PDF") {
+        if (!loadedData) return;
+        exportPDF(loadedData);
       }
     });
-    render(loadedData);
-    actionBtn.textContent = "Exportar PDF";
-    */
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      setModePaste();
+    });
+
+    document.getElementById("loadBtn").addEventListener("click", () => {
+      clearError();
+      const text = document.getElementById("jsonInput").value.trim();
+      if (!text) return setError("Pega el JSON antes de cargar.");
+
+      try{
+        const raw = JSON.parse(text);
+        const norm = normalizeData(raw);
+
+        loadedData = norm;
+        renderReport(norm);
+        setModeExportReady();
+
+      }catch(e){
+        setError(
+          "No pude cargar el JSON.\n\n" +
+          (e && e.message ? e.message : String(e))
+        );
+      }
+    });
+
+    // Inicia en modo "Pegar JSON"
+    setModePaste();
   </script>
 </body>
 </html>
