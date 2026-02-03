@@ -3,49 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MAPACHE OSINT BOT · Asuntos → PDF</title>
+  <title>Asuntos → PDF</title>
 
-  <!-- jsPDF + AutoTable -->
+  <!-- jsPDF + AutoTable (PDF en el navegador) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
 
   <style>
     :root{
-      --bg0:#070912;
-      --bg1:#0b1022;
-      --card:#0f1631;
-      --card2:#0a1027;
-      --text:#eef2ff;
-      --muted:#aeb6d6;
-      --border:rgba(255,255,255,.10);
-
+      --bg:#0f1220;
+      --card:#151a2e;
+      --card2:#101528;
+      --text:#f3f4f6;
+      --muted:#b5b9c6;
+      --border:rgba(255,255,255,.12);
       --accent:#c8986b;
       --accent2:#d4ab7f;
-
-      --shadow: 0 20px 60px rgba(0,0,0,.55);
-      --radius: 20px;
-
-      --ok: rgba(85, 255, 170, .18);
-      --warn: rgba(255, 215, 120, .16);
-      --danger: rgba(255, 90, 106, .16);
+      --danger:#ff5a6a;
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --radius: 18px;
     }
-
     *{box-sizing:border-box}
     body{
       margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(200,152,107,.18), transparent 55%),
+                  radial-gradient(900px 700px at 80% 0%, rgba(212,171,127,.14), transparent 52%),
+                  var(--bg);
       color:var(--text);
       min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
       padding:22px;
-
-      background:
-        radial-gradient(1100px 700px at 15% 10%, rgba(200,152,107,.18), transparent 55%),
-        radial-gradient(900px 700px at 85% 0%, rgba(212,171,127,.12), transparent 52%),
-        radial-gradient(900px 600px at 60% 120%, rgba(110,160,255,.10), transparent 55%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
     }
 
     .wrap{
@@ -55,78 +45,41 @@
     }
 
     .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid var(--border);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       overflow:hidden;
-      border:1px solid var(--border);
-      background:
-        linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      position:relative;
-    }
-
-    /* brillo suave */
-    .card:before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      background: radial-gradient(700px 240px at 30% -20%, rgba(212,171,127,.16), transparent 60%);
-      pointer-events:none;
     }
 
     header{
-      position:relative;
       padding:18px 18px 14px;
       display:flex;
       align-items:flex-start;
       justify-content:space-between;
       gap:14px;
-      background:
-        linear-gradient(180deg, rgba(200,152,107,.13), transparent 65%),
-        linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,0));
+      background: linear-gradient(180deg, rgba(200,152,107,.10), transparent);
       border-bottom: 1px solid var(--border);
     }
 
     .brand{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
+      display:flex; flex-direction:column; gap:4px;
     }
-
-    .logo{
-      width:38px; height:38px;
-      border-radius: 14px;
-      display:grid; place-items:center;
-      background: linear-gradient(180deg, rgba(200,152,107,.26), rgba(200,152,107,.10));
-      border:1px solid rgba(200,152,107,.35);
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-      flex: 0 0 auto;
-    }
-
     .brand h1{
       margin:0;
-      font-size: 16px;
-      letter-spacing:.3px;
-      line-height:1.25;
+      font-size: 18px;
+      letter-spacing:.2px;
     }
     .brand p{
-      margin:4px 0 0 0;
+      margin:0;
       color:var(--muted);
       font-size: 13px;
-      line-height:1.35;
-      max-width: 58ch;
+      line-height:1.3;
     }
-    .pill{
-      display:inline-flex;
-      gap:8px;
-      align-items:center;
-      margin-top:8px;
-      padding:6px 10px;
-      border-radius: 999px;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.22);
-      color: var(--muted);
-      font-size: 12px;
-      width: fit-content;
+
+    .content{
+      padding:18px;
+      background: linear-gradient(180deg, rgba(0,0,0,.00), rgba(0,0,0,.10));
     }
 
     .btnbar{
@@ -134,57 +87,47 @@
       gap:10px;
       flex-wrap:wrap;
       justify-content:flex-end;
-      align-items:flex-start;
-      position:relative;
-      z-index:2;
     }
 
     button{
       appearance:none;
-      border:1px solid rgba(200,152,107,.40);
-      background: linear-gradient(180deg, rgba(200,152,107,.26), rgba(200,152,107,.10));
+      border:1px solid rgba(200,152,107,.38);
+      background: linear-gradient(180deg, rgba(200,152,107,.24), rgba(200,152,107,.12));
       color:var(--text);
       padding:10px 14px;
       border-radius: 14px;
-      font-weight: 700;
+      font-weight: 650;
       letter-spacing:.2px;
       cursor:pointer;
       transition: transform .08s ease, filter .15s ease, border-color .15s ease;
       user-select:none;
-      box-shadow: 0 10px 30px rgba(0,0,0,.30);
     }
-    button:hover{ filter:brightness(1.07); border-color: rgba(212,171,127,.65); }
+    button:hover{ filter:brightness(1.06); border-color: rgba(212,171,127,.55); }
     button:active{ transform: translateY(1px); }
     button:disabled{
       opacity:.55;
       cursor:not-allowed;
       filter:saturate(.6);
-      box-shadow:none;
     }
 
     .ghost{
-      background: rgba(0,0,0,.18);
+      background: transparent;
       border:1px solid var(--border);
       color:var(--muted);
-      font-weight:650;
-      box-shadow:none;
+      font-weight:600;
     }
 
-    .content{
-      padding:18px;
-      background: linear-gradient(180deg, rgba(0,0,0,.00), rgba(0,0,0,.16));
-      position:relative;
-      z-index:1;
+    .grid{
+      display:grid;
+      gap:12px;
     }
 
     .panel{
       border:1px solid var(--border);
-      background: linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.10));
+      background: rgba(0,0,0,.18);
       border-radius: 16px;
       padding:14px;
     }
-
-    .grid{ display:grid; gap:12px; }
 
     .label{
       display:flex;
@@ -205,14 +148,14 @@
       padding:12px;
       border-radius: 14px;
       border:1px solid rgba(255,255,255,.10);
-      background: rgba(6, 8, 16, .60);
+      background: rgba(10,12,22,.65);
       color: var(--text);
       outline: none;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
       font-size: 12.5px;
       line-height:1.45;
     }
-    textarea:focus{ border-color: rgba(212,171,127,.65); }
+    textarea:focus{ border-color: rgba(212,171,127,.55); }
 
     .hint{
       color:var(--muted);
@@ -224,7 +167,7 @@
     .error{
       margin-top:10px;
       color: #ffd1d6;
-      background: var(--danger);
+      background: rgba(255,90,106,.14);
       border:1px solid rgba(255,90,106,.35);
       padding:10px 12px;
       border-radius: 14px;
@@ -233,94 +176,51 @@
       white-space: pre-wrap;
     }
 
-    .report{ display:none; }
-
+    .report{
+      display:none;
+    }
     .meta{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:10px;
       margin-bottom:12px;
     }
-
     .kv{
       border:1px solid var(--border);
       background: rgba(0,0,0,.16);
       border-radius: 14px;
       padding:10px 12px;
-      position:relative;
-      overflow:hidden;
     }
-    .kv:before{
-      content:"";
-      position:absolute;
-      inset:-2px;
-      background: radial-gradient(400px 120px at 20% 0%, rgba(200,152,107,.14), transparent 60%);
-      pointer-events:none;
-    }
-
     .kv .k{
       font-size: 12px;
       color: var(--muted);
       margin-bottom:6px;
-      position:relative;
-      z-index:1;
     }
     .kv .v{
       font-size: 14px;
-      font-weight: 750;
+      font-weight: 650;
       overflow-wrap:anywhere;
-      position:relative;
-      z-index:1;
     }
 
     .items{
       display:grid;
       gap:10px;
     }
-
     .item{
       border:1px solid var(--border);
       background: rgba(0,0,0,.16);
-      border-radius: 16px;
+      border-radius: 14px;
       padding:12px;
     }
-
     .item .t{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      font-size: 12.5px;
+      font-size: 13px;
       color: var(--muted);
-      margin-bottom:10px;
+      margin-bottom:8px;
     }
-
     .item .x{
       font-size: 14px;
-      line-height:1.45;
+      line-height:1.4;
       overflow-wrap:anywhere;
-      white-space:pre-wrap;
-    }
-
-    .imgwrap{
-      margin-top:10px;
-      border-radius: 14px;
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-    }
-    .imgwrap img{
-      display:block;
-      width:100%;
-      height:auto;
-      max-height: 360px;
-      object-fit: contain;
-    }
-    .imgnote{
-      padding:8px 10px;
-      font-size:12px;
-      color: var(--muted);
-      border-top:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.22);
     }
 
     .footerline{
@@ -328,25 +228,6 @@
       color: var(--muted);
       font-size: 12px;
     }
-
-    .statusPill{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      padding:6px 10px;
-      border-radius:999px;
-      border:1px solid var(--border);
-      background: rgba(0,0,0,.20);
-      color: var(--muted);
-      font-size:12px;
-    }
-    .dot{
-      width:8px; height:8px; border-radius: 99px;
-      background: rgba(255,255,255,.25);
-      box-shadow: 0 0 0 4px rgba(255,255,255,.06);
-    }
-    .dot.ok{ background: rgba(85,255,170,.75); box-shadow: 0 0 0 4px rgba(85,255,170,.12); }
-    .dot.warn{ background: rgba(255,215,120,.85); box-shadow: 0 0 0 4px rgba(255,215,120,.12); }
 
     @media (max-width: 680px){
       .meta{ grid-template-columns: 1fr; }
@@ -362,14 +243,9 @@
     <div class="card">
       <header>
         <div class="brand">
-          <div class="logo" aria-hidden="true">🦝</div>
-          <div>
-            <h1>MAPACHE OSINT BOT · Asuntos → Exportar a PDF</h1>
-            <p>Pega tu JSON exportado y genera un PDF con toda la información. Vista previa incluida (con imágenes si detecta enlaces directos).</p>
-            <div class="pill">🔒 Todo se procesa localmente en tu navegador</div>
-          </div>
+          <h1>Asuntos → Exportar a PDF</h1>
+          <p>Pega tu JSON exportado y genera un PDF con toda la información.</p>
         </div>
-
         <div class="btnbar">
           <button id="mainBtn">Pegar JSON</button>
           <button id="resetBtn" class="ghost" style="display:none;">Reset</button>
@@ -381,12 +257,8 @@
         <div id="pastePanel" class="panel grid" style="display:none;">
           <div class="label">
             <span>Pega aquí el JSON (objeto completo)</span>
-            <span class="statusPill" id="statusPill">
-              <span class="dot" id="statusDot"></span>
-              <span id="statusText">Esperando JSON</span>
-            </span>
+            <span id="statusText"></span>
           </div>
-
           <textarea id="jsonInput" spellcheck="false" placeholder='Ej:
 {
   "asunto": {
@@ -394,18 +266,18 @@
     "titulo": "Operación Ejemplo",
     "created_at": 1770073772,
     "items": [
-      {"texto":"https://sitio/foto.jpg", "created_at": 1770073822}
+      {"texto":"...", "created_at": 1770073822}
     ]
   }
 }'></textarea>
 
-          <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <div>
             <button id="loadBtn">Cargar JSON</button>
           </div>
 
           <div class="hint">
-            Formato esperado: <code>{"asunto":{"id":...,"titulo":...,"created_at":...,"items":[...]}}</code><br/>
-            <b>created_at</b> puede venir como epoch (segundos/ms) o ISO.
+            Formato esperado: <code>{"asunto": {"id":..., "titulo":..., "created_at":..., "items":[...]}}</code><br/>
+            <b>created_at</b> puede venir como epoch (segundos) o como fecha ISO (si te llega así, también lo intento interpretar).
           </div>
 
           <div id="errorBox" class="error"></div>
@@ -435,7 +307,7 @@
           <div class="items" id="itemsBox"></div>
 
           <div class="footerline">
-            Nota: el PDF se genera localmente. Si una imagen externa no permite CORS, se verá en la vista previa, pero puede que en el PDF quede solo el enlace.
+            Nota: el PDF se genera localmente en tu navegador. No se envía nada a ningún servidor.
           </div>
         </div>
       </div>
@@ -449,44 +321,38 @@
     let loadedData = null;
 
     // ----------------------------
-    // Helpers UI
+    // Helpers
     // ----------------------------
     function show(el){ el.style.display = ""; }
     function hide(el){ el.style.display = "none"; }
-
-    function setStatus(type, text){
-      const dot = document.getElementById("statusDot");
-      const t = document.getElementById("statusText");
-      dot.className = "dot" + (type ? (" " + type) : "");
-      t.textContent = text || "";
-    }
 
     function setError(msg){
       const box = document.getElementById("errorBox");
       box.textContent = msg;
       box.style.display = "block";
-      setStatus("warn", "Error en JSON");
     }
     function clearError(){
       const box = document.getElementById("errorBox");
       box.textContent = "";
       box.style.display = "none";
-      setStatus("", "Esperando JSON");
     }
 
-    // ----------------------------
-    // Helpers datos
-    // ----------------------------
     function isObject(v){
       return v && typeof v === "object" && !Array.isArray(v);
     }
 
     function parseDateAny(value){
+      // Acepta:
+      // - number epoch en segundos
+      // - string número
+      // - ISO string
       if (value === null || value === undefined) return null;
 
+      // número o string numérica
       if (typeof value === "number" || (typeof value === "string" && /^\d+$/.test(value.trim()))) {
         const n = (typeof value === "number") ? value : Number(value.trim());
-        const ms = n > 10_000_000_000 ? n : n * 1000; // ms o sec
+        // Si viene en ms (muy grande), lo convertimos:
+        const ms = n > 10_000_000_000 ? n : n * 1000;
         const d = new Date(ms);
         return isNaN(d.getTime()) ? null : d;
       }
@@ -495,11 +361,13 @@
         const d = new Date(value);
         return isNaN(d.getTime()) ? null : d;
       }
+
       return null;
     }
 
     function fmtDate(d){
       if (!d) return "—";
+      // Formato local (España) con hora
       return d.toLocaleString("es-ES", {
         year:"numeric", month:"2-digit", day:"2-digit",
         hour:"2-digit", minute:"2-digit", second:"2-digit"
@@ -511,30 +379,8 @@
       return String(v);
     }
 
-    // Detecta URLs dentro de un texto (simple pero eficaz)
-    function extractUrls(text){
-      if (!text) return [];
-      const re = /\bhttps?:\/\/[^\s<>"')\]]+/gi;
-      const m = text.match(re);
-      return m ? m : [];
-    }
-
-    function isImageUrl(url){
-      try{
-        const u = new URL(url);
-        const p = u.pathname.toLowerCase();
-        return (
-          p.endsWith(".png") || p.endsWith(".jpg") || p.endsWith(".jpeg") ||
-          p.endsWith(".webp") || p.endsWith(".gif")
-        );
-      }catch{
-        // fallback por si no es URL válida
-        const s = url.toLowerCase();
-        return /\.(png|jpe?g|webp|gif)(\?|#|$)/i.test(s);
-      }
-    }
-
     function normalizeData(raw){
+      // Valida y normaliza el JSON a una estructura estándar
       if (!isObject(raw)) throw new Error("El JSON debe ser un objeto raíz (no una lista).");
 
       const asunto = raw.asunto;
@@ -551,16 +397,11 @@
       const items = Array.isArray(asunto.items) ? asunto.items : [];
       const normItems = items.map((it, idx) => {
         if (!isObject(it)) {
-          return { texto: "[Item inválido]", created_at: null, idx, imageUrl: null };
+          return { texto: "[Item inválido]", created_at: null, idx };
         }
         const texto = safeStr(it.texto || "");
         const d = parseDateAny(it.created_at);
-
-        // Si hay URLs, y alguna es imagen, nos quedamos con la primera imagen
-        const urls = extractUrls(texto);
-        const img = urls.find(u => isImageUrl(u)) || null;
-
-        return { texto, created_at: d, idx, imageUrl: img };
+        return { texto, created_at: d, idx };
       });
 
       return {
@@ -589,12 +430,7 @@
 
         const t = document.createElement("div");
         t.className = "t";
-        const left = document.createElement("div");
-        left.textContent = `#${i+1} · ${it.created_at ? fmtDate(it.created_at) : "fecha desconocida"}`;
-        const right = document.createElement("div");
-        right.textContent = it.imageUrl ? "🖼️ imagen detectada" : "—";
-        t.appendChild(left);
-        t.appendChild(right);
+        t.textContent = `#${i+1} · ${it.created_at ? fmtDate(it.created_at) : "fecha desconocida"}`;
 
         const x = document.createElement("div");
         x.className = "x";
@@ -602,27 +438,6 @@
 
         div.appendChild(t);
         div.appendChild(x);
-
-        // Si hay imagen, la mostramos debajo
-        if (it.imageUrl){
-          const wrap = document.createElement("div");
-          wrap.className = "imgwrap";
-
-          const img = document.createElement("img");
-          img.alt = "Imagen detectada";
-          img.loading = "lazy";
-          img.referrerPolicy = "no-referrer"; // ayuda en algunos hosts
-          img.src = it.imageUrl;
-
-          const note = document.createElement("div");
-          note.className = "imgnote";
-          note.textContent = it.imageUrl;
-
-          wrap.appendChild(img);
-          wrap.appendChild(note);
-          div.appendChild(wrap);
-        }
-
         box.appendChild(div);
       });
 
@@ -639,7 +454,6 @@
       loadedData = null;
       clearError();
       document.getElementById("jsonInput").value = "";
-      setStatus("", "Esperando JSON");
     }
 
     function setModeExportReady(){
@@ -648,54 +462,23 @@
       mainBtn.disabled = false;
       show(document.getElementById("resetBtn"));
       hide(document.getElementById("pastePanel"));
-      setStatus("ok", "Listo para exportar");
     }
 
     // ----------------------------
-    // Imagen → dataURL (para PDF)
+    // PDF export
     // ----------------------------
-    async function imageUrlToDataUrl(url, maxW = 360){
-      // OJO: puede fallar por CORS. En ese caso devolvemos null.
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous"; // si el host permite CORS, funcionará
-        img.onload = () => {
-          try{
-            const scale = Math.min(1, maxW / img.width);
-            const w = Math.round(img.width * scale);
-            const h = Math.round(img.height * scale);
-
-            const c = document.createElement("canvas");
-            c.width = w; c.height = h;
-            const ctx = c.getContext("2d");
-            ctx.drawImage(img, 0, 0, w, h);
-            const dataUrl = c.toDataURL("image/jpeg", 0.85);
-            resolve({ dataUrl, w, h });
-          }catch{
-            resolve(null);
-          }
-        };
-        img.onerror = () => resolve(null);
-        img.src = url;
-      });
-    }
-
-    // ----------------------------
-    // PDF export (con intento de imágenes)
-    // ----------------------------
-    async function exportPDF(data){
+    function exportPDF(data){
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation:"p", unit:"pt", format:"a4" });
+      const doc = new jsPDF({
+        orientation: "p",
+        unit: "pt",
+        format: "a4"
+      });
 
       const margin = 44;
       let y = margin;
 
-      // Header (branding)
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.text("MAPACHE OSINT BOT", margin, y);
-      y += 14;
-
+      // Header
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
       doc.text(data.titulo, margin, y);
@@ -712,32 +495,12 @@
       doc.line(margin, y, 595 - margin, y);
       y += 14;
 
-      // Pre-cargar imágenes (si hay) para poder insertarlas en el PDF
-      const imageMap = new Map(); // key: rowIndex -> {dataUrl,w,h} | null
-      const rows = [];
-
-      for (let idx = 0; idx < data.items.length; idx++){
-        const it = data.items[idx];
-
-        let textoCell = it.texto || "—";
-        if (it.imageUrl){
-          // intentamos convertir a dataURL
-          const imgData = await imageUrlToDataUrl(it.imageUrl, 360);
-          imageMap.set(idx, imgData); // puede ser null si CORS falla
-
-          if (imgData){
-            textoCell = "[imagen incrustada]";
-          } else {
-            textoCell = `${it.texto}\n\n[No se pudo incrustar imagen por CORS]\n${it.imageUrl}`;
-          }
-        }
-
-        rows.push([
-          String(idx + 1),
-          it.created_at ? fmtDate(it.created_at) : "—",
-          textoCell
-        ]);
-      }
+      // Items table
+      const rows = data.items.map((it, idx) => ([
+        String(idx + 1),
+        it.created_at ? fmtDate(it.created_at) : "—",
+        it.texto || "—"
+      ]));
 
       doc.autoTable({
         startY: y,
@@ -748,59 +511,17 @@
           font: "helvetica",
           fontSize: 9.5,
           cellPadding: 6,
-          overflow: "linebreak",
-          valign: "top"
+          overflow: "linebreak"
         },
-        headStyles: { fontStyle: "bold" },
+        headStyles: {
+          fontStyle: "bold"
+        },
         columnStyles: {
           0: { cellWidth: 26 },
           1: { cellWidth: 120 },
           2: { cellWidth: 595 - (margin*2) - 26 - 120 }
         },
-        margin: { left: margin, right: margin },
-
-        // Insertar imagen dentro de la celda "Texto" si existe dataURL
-        didDrawCell: function (hook){
-          const col = hook.column.index;
-          const row = hook.row.index; // 0..n-1 en body
-          if (hook.section !== "body") return;
-          if (col !== 2) return;
-
-          const imgData = imageMap.get(row);
-          if (!imgData) return; // null o undefined -> no hay imagen embebible
-
-          // La celda donde dibujar
-          const cell = hook.cell;
-          const pad = 6;
-
-          // Calculamos tamaño para que quepa
-          const maxW = cell.width - pad*2;
-          const maxH = 120; // altura máxima razonable dentro de la celda
-          const ratio = Math.min(maxW / imgData.w, maxH / imgData.h, 1);
-
-          const drawW = imgData.w * ratio;
-          const drawH = imgData.h * ratio;
-
-          const x = cell.x + pad;
-          const y = cell.y + pad + 10;
-
-          try{
-            doc.addImage(imgData.dataUrl, "JPEG", x, y, drawW, drawH);
-          }catch{
-            // si falla por cualquier motivo, no hacemos nada (queda el texto)
-          }
-        },
-
-        // Ajustamos altura mínima de filas con imagen embebida
-        didParseCell: function (hook){
-          if (hook.section !== "body") return;
-          if (hook.column.index !== 2) return;
-          const row = hook.row.index;
-          const imgData = imageMap.get(row);
-          if (imgData){
-            hook.cell.styles.minCellHeight = 150;
-          }
-        }
+        margin: { left: margin, right: margin }
       });
 
       // Footer
@@ -809,7 +530,11 @@
         doc.setPage(p);
         doc.setFontSize(9);
         doc.setTextColor(120);
-        doc.text(`MAPACHE OSINT BOT · Generado localmente · Página ${p} / ${pages}`, margin, 842 - 26);
+        doc.text(
+          `Generado localmente · Página ${p} / ${pages}`,
+          margin,
+          842 - 26
+        );
       }
 
       const safeTitle = (data.titulo || "asunto")
@@ -823,26 +548,18 @@
     // ----------------------------
     // Eventos
     // ----------------------------
-    document.getElementById("mainBtn").addEventListener("click", async () => {
+    document.getElementById("mainBtn").addEventListener("click", () => {
       const mainBtn = document.getElementById("mainBtn");
 
       if (mainBtn.textContent === "Pegar JSON") {
         show(document.getElementById("pastePanel"));
         document.getElementById("jsonInput").focus();
-        setStatus("", "Pegando JSON…");
         return;
       }
 
       if (mainBtn.textContent === "Exportar PDF") {
         if (!loadedData) return;
-        mainBtn.disabled = true;
-        mainBtn.textContent = "Generando…";
-        try{
-          await exportPDF(loadedData);
-        } finally {
-          mainBtn.disabled = false;
-          mainBtn.textContent = "Exportar PDF";
-        }
+        exportPDF(loadedData);
       }
     });
 
@@ -856,7 +573,6 @@
       if (!text) return setError("Pega el JSON antes de cargar.");
 
       try{
-        setStatus("", "Cargando…");
         const raw = JSON.parse(text);
         const norm = normalizeData(raw);
 
@@ -865,7 +581,10 @@
         setModeExportReady();
 
       }catch(e){
-        setError("No pude cargar el JSON.\n\n" + (e && e.message ? e.message : String(e)));
+        setError(
+          "No pude cargar el JSON.\n\n" +
+          (e && e.message ? e.message : String(e))
+        );
       }
     });
 
