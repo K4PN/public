@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Registro · Evidencias</title>
 
-  <!-- Fuentes (similar al estilo que has pasado) -->
+  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -433,8 +433,44 @@
       .evidence-actions { flex-direction: column; }
       .evidence-item { align-items: flex-start; }
     }
-      .button-group + .button-group{
+
+    .button-group + .button-group{
       margin-top: 12px;
+    }
+
+    /* =========================================================
+       FIX MÓVIL + TECLADO (IMPORTANTE)
+       - Modal se pega arriba
+       - Scroll dentro del modal
+       - Botonera sticky (siempre visible)
+       ========================================================= */
+    .modal-overlay.active{
+      align-items: flex-start;         /* antes estaba centrado */
+      justify-content: center;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    .modal{
+      max-height: calc(100dvh - 24px); /* viewport dinámico, funciona mejor con teclado */
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-buttons{
+      position: sticky;
+      bottom: 0;
+      background: var(--secondary);
+      padding-top: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      z-index: 5;
+    }
+
+    /* Un poco menos de alto del textarea en móvil para que se vean botones */
+    @media (max-width: 480px){
+      .form-textarea{ min-height: 80px; }
     }
   </style>
 </head>
@@ -534,10 +570,12 @@
 
       <div class="hint">Tip: si dejas el Nº vacío, se asigna automáticamente el siguiente disponible.</div>
 
+      <!-- Botonera: "Añadir" sigue aquí, pero al ser sticky siempre se ve -->
       <div class="modal-buttons">
-        <button class="btn btn-secondary" id="btnCloseModal" type="button">Cerrar</button>
-        <button class="btn btn-secondary" id="btnClearFields" type="button">Limpiar</button>
+        <!-- Orden recomendado: AÑADIR primero -->
         <button class="btn btn-primary" id="btnAddEvidence" type="button" data-mode="add">Añadir</button>
+        <button class="btn btn-secondary" id="btnClearFields" type="button">Limpiar</button>
+        <button class="btn btn-secondary" id="btnCloseModal" type="button">Cerrar</button>
       </div>
     </div>
   </div>
@@ -636,374 +674,9 @@
         $("empty").style.display = "block";
         return;
       }
-      $("empty").style.display = "block";
       $("empty").style.display = "none";
 
       for(const ev of state.evidences){
         const item = document.createElement("div");
         item.className = "evidence-item";
-        item.innerHTML = `
-          <div class="evidence-main">
-            <div class="evidence-number">EVIDENCIA ${ev.numero}</div>
-            <div class="evidence-description">${escapeHtml(ev.descripcion)}</div>
-          </div>
-          <div class="evidence-actions">
-            <button class="icon-btn" data-act="edit" data-id="${ev.id}" type="button">Editar</button>
-            <button class="icon-btn danger" data-act="del" data-id="${ev.id}" type="button">Borrar</button>
-          </div>
-        `;
-        list.appendChild(item);
-      }
-    }
-
-    function escapeHtml(str){
-      return (str ?? "").toString()
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    // =============================
-    // Modal
-    // =============================
-    function openModal(mode = "add", editId = ""){
-      $("backdrop").classList.add("active");
-      $("btnAddEvidence").dataset.mode = mode;
-      $("btnAddEvidence").dataset.editId = editId || "";
-      $("btnAddEvidence").textContent = (mode === "edit") ? "Guardar" : "Añadir";
-      $("modalTitle").textContent = (mode === "edit") ? "Editar evidencia" : "Añadir evidencia";
-
-      if(mode === "add" && !$("evNumero").value.trim()){
-        $("evNumero").value = nextAutoNumber();
-      }
-      setTimeout(()=> $("evDesc").focus(), 30);
-    }
-
-    function closeModal(){
-      $("backdrop").classList.remove("active");
-      $("btnAddEvidence").dataset.mode = "add";
-      $("btnAddEvidence").dataset.editId = "";
-      $("btnAddEvidence").textContent = "Añadir";
-      $("modalTitle").textContent = "Añadir evidencia";
-    }
-
-    function clearModalFields(){
-      $("evNumero").value = "";
-      $("evDesc").value = "";
-      toast("Campos limpiados");
-    }
-
-    // =============================
-    // Acciones
-    // =============================
-    function saveHeaderFromInputs(){
-      state.header.asunto = $("asunto").value.trim();
-      state.header.grupo = $("grupo").value.trim();
-      state.header.juzgado = $("juzgado").value.trim();
-      state.header.procedimiento = $("procedimiento").value.trim();
-      state.header.fechaHora = $("fechaHora").value;
-      state.header.direccion = $("direccion").value.trim();
-      saveState();
-      toast("Datos guardados");
-    }
-
-    function sortEvidences(){
-      state.evidences.sort((a,b)=>{
-        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero,10) : null;
-        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero,10) : null;
-        if(an !== null && bn !== null) return an - bn;
-        if(an !== null) return -1;
-        if(bn !== null) return 1;
-        return (a.createdAt || "").localeCompare(b.createdAt || "");
-      });
-    }
-
-    function addEvidence(){
-      const numeroRaw = $("evNumero").value;
-      const desc = $("evDesc").value.trim();
-
-      if(!desc){
-        toast("Añade una descripción");
-        $("evDesc").focus();
-        return;
-      }
-
-      const numero = normalizeNumber(numeroRaw) || nextAutoNumber();
-
-      const exists = state.evidences.some(e => e.numero === numero);
-      if(exists){
-        toast(`El Nº ${numero} ya existe`);
-        $("evNumero").focus();
-        return;
-      }
-
-      state.evidences.push({
-        id: (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2),
-        numero,
-        descripcion: desc,
-        createdAt: new Date().toISOString()
-      });
-
-      sortEvidences();
-      saveState();
-      renderList();
-
-      $("evNumero").value = nextAutoNumber();
-      $("evDesc").value = "";
-      toast("Evidencia añadida");
-      $("evDesc").focus();
-    }
-
-    function editEvidence(id){
-      const ev = state.evidences.find(e => e.id === id);
-      if(!ev) return;
-      $("evNumero").value = ev.numero;
-      $("evDesc").value = ev.descripcion;
-      openModal("edit", id);
-    }
-
-    function saveEditedEvidence(id){
-      const ev = state.evidences.find(e => e.id === id);
-      if(!ev) return;
-
-      const newNumero = normalizeNumber($("evNumero").value) || ev.numero;
-      const newDesc = $("evDesc").value.trim();
-
-      if(!newDesc){
-        toast("Añade una descripción");
-        $("evDesc").focus();
-        return;
-      }
-
-      const duplicate = state.evidences.some(e => e.id !== id && e.numero === newNumero);
-      if(duplicate){
-        toast(`El Nº ${newNumero} ya existe`);
-        $("evNumero").focus();
-        return;
-      }
-
-      ev.numero = newNumero;
-      ev.descripcion = newDesc;
-
-      sortEvidences();
-      saveState();
-      renderList();
-      closeModal();
-      clearModalFields();
-      toast("Cambios guardados");
-    }
-
-    function deleteEvidence(id){
-      const before = state.evidences.length;
-      state.evidences = state.evidences.filter(e => e.id !== id);
-      if(state.evidences.length !== before){
-        saveState();
-        renderList();
-        toast("Evidencia borrada");
-      }
-    }
-
-    function resetAll(){
-      if(!confirm("¿Borrar TODOS los datos y evidencias?")) return;
-      localStorage.removeItem(LS_KEY);
-      state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
-      state.evidences = [];
-      renderHeader();
-      renderList();
-      toast("Todo borrado");
-    }
-
-    function downloadFile(filename, content, mime){
-      const blob = new Blob([content], { type: mime });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast("Exportación generada");
-    }
-
-    function exportTxt(){
-      const h = state.header;
-      const lines = [];
-      lines.push("=== REGISTRO ===");
-      lines.push(`Asunto: ${h.asunto || "-"}`);
-      lines.push(`Grupo de Investigación: ${h.grupo || "-"}`);
-      lines.push(`Juzgado: ${h.juzgado || "-"}`);
-      lines.push(`Procedimiento: ${h.procedimiento || "-"}`);
-      lines.push(`Fecha y hora: ${h.fechaHora || "-"}`);
-      lines.push(`Dirección: ${h.direccion || "-"}`);
-      lines.push("");
-      lines.push("=== EVIDENCIAS ===");
-      if(state.evidences.length === 0){
-        lines.push("(sin evidencias)");
-      } else {
-        for(const ev of state.evidences){
-          lines.push(`- [${ev.numero}] ${ev.descripcion}`);
-        }
-      }
-      downloadFile("registro_evidencias.txt", lines.join("\n"), "text/plain;charset=utf-8");
-    }
-
-    function exportJson(){
-      downloadFile("registro_evidencias.json", JSON.stringify(state, null, 2), "application/json;charset=utf-8");
-    }
-
-    function exportPdf(){
-      if(!window.jspdf || !window.jspdf.jsPDF){
-        toast("No se pudo cargar jsPDF (¿sin internet?)");
-        return;
-      }
-
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-      const h = state.header;
-      let y = 16;
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.text("REGISTRO DE EVIDENCIAS", 105, y, { align: "center" });
-
-      y += 9;
-      doc.setLineWidth(0.5);
-      doc.line(15, y, 195, y);
-      y += 8;
-
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-
-      const headerLines = [
-        ["Asunto", h.asunto],
-        ["Grupo de Investigación", h.grupo],
-        ["Juzgado", h.juzgado],
-        ["Procedimiento", h.procedimiento],
-        ["Fecha y hora", h.fechaHora],
-        ["Dirección", h.direccion]
-      ];
-
-      headerLines.forEach(([label, value]) => {
-        doc.setFont("helvetica", "bold");
-        doc.text(`${label}:`, 15, y);
-        doc.setFont("helvetica", "normal");
-        const v = (value && String(value).trim()) ? String(value) : "-";
-        const vv = doc.splitTextToSize(v, 120);
-        doc.text(vv, 70, y);
-        y += Math.max(7, vv.length * 6);
-      });
-
-      y += 4;
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(13);
-      doc.text("EVIDENCIAS", 15, y);
-      y += 6;
-
-      doc.setLineWidth(0.3);
-      doc.line(15, y, 195, y);
-      y += 8;
-
-      doc.setFontSize(11);
-      doc.setFont("helvetica", "normal");
-
-      if(state.evidences.length === 0){
-        doc.text("No se han registrado evidencias.", 15, y);
-      } else {
-        state.evidences.forEach((ev) => {
-          const block = `(${ev.numero}) ${ev.descripcion}`;
-          const lines = doc.splitTextToSize(block, 180);
-          if (y + lines.length * 6 > 285) {
-            doc.addPage();
-            y = 18;
-          }
-          doc.text(lines, 15, y);
-          y += lines.length * 6 + 4;
-        });
-      }
-
-      doc.save("registro_evidencias.pdf");
-      toast("PDF generado");
-    }
-
-    // =============================
-    // Eventos
-    // =============================
-    function wire(){
-      $("btnOpenModal").addEventListener("click", () => {
-        $("evNumero").value = "";
-        $("evDesc").value = "";
-        openModal("add");
-      });
-
-      $("btnCloseModal").addEventListener("click", closeModal);
-      $("btnClearFields").addEventListener("click", clearModalFields);
-
-      $("backdrop").addEventListener("click", (e)=>{
-        if(e.target === $("backdrop")) closeModal();
-      });
-
-      $("btnAddEvidence").addEventListener("click", ()=>{
-        const mode = $("btnAddEvidence").dataset.mode || "add";
-        if(mode === "edit"){
-          const id = $("btnAddEvidence").dataset.editId;
-          return saveEditedEvidence(id);
-        }
-        addEvidence();
-      });
-
-      // Enter: nº -> desc | Ctrl+Enter: guardar/añadir
-      $("evNumero").addEventListener("keydown", (e)=>{
-        if(e.key === "Enter"){
-          e.preventDefault();
-          $("evDesc").focus();
-        }
-      });
-      $("evDesc").addEventListener("keydown", (e)=>{
-        if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){
-          e.preventDefault();
-          const mode = $("btnAddEvidence").dataset.mode || "add";
-          if(mode === "edit"){
-            const id = $("btnAddEvidence").dataset.editId;
-            return saveEditedEvidence(id);
-          }
-          addEvidence();
-        }
-      });
-
-      $("btnGuardarCabecera").addEventListener("click", saveHeaderFromInputs);
-      $("btnResetAll").addEventListener("click", resetAll);
-
-      $("btnExportTxt").addEventListener("click", exportTxt);
-      $("btnExportJson").addEventListener("click", exportJson);
-      $("btnExportPdf").addEventListener("click", exportPdf);
-
-      // Delegación: editar/borrar evidencias
-      $("list").addEventListener("click", (e)=>{
-        const btn = e.target.closest("button");
-        if(!btn) return;
-        const act = btn.dataset.act;
-        const id = btn.dataset.id;
-        if(act === "del") return deleteEvidence(id);
-        if(act === "edit") return editEvidence(id);
-      });
-
-      // Autosave suave al cambiar cabecera
-      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id=>{
-        $(id).addEventListener("change", saveHeaderFromInputs);
-      });
-    }
-
-    // =============================
-    // Init
-    // =============================
-    loadState();
-    renderHeader();
-    renderList();
-    wire();
-  </script>
-</body>
-</html>
+        item.innerHTML
