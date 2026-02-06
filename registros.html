@@ -587,10 +587,15 @@
           crossorigin="anonymous"
           referrerpolicy="no-referrer"></script>
 
+  
   <script>
     // =============================
-    // Estado + Persistencia
+    // Registro de Evidencias (LOCAL)
+    // - Persistencia en localStorage
+    // - Alta/edición/borrado de evidencias
+    // - Export TXT / JSON / PDF
     // =============================
+
     const LS_KEY = "evidencias_registro_v2_style";
     const $ = (id) => document.getElementById(id);
 
@@ -603,59 +608,78 @@
         fechaHora: "",
         direccion: ""
       },
-      evidences: []
+      evidences: [] // { id, numero, desc, createdAt }
     };
 
-    function loadState(){
-      try{
+    // -----------------------------
+    // Persistencia
+    // -----------------------------
+    function loadState() {
+      try {
         const raw = localStorage.getItem(LS_KEY);
-        if(!raw) return;
+        if (!raw) return;
         const parsed = JSON.parse(raw);
-        if(parsed && typeof parsed === "object"){
-          state.header = parsed.header || state.header;
+        if (parsed && typeof parsed === "object") {
+          state.header = { ...state.header, ...(parsed.header || {}) };
           state.evidences = Array.isArray(parsed.evidences) ? parsed.evidences : [];
         }
-      }catch(_e){}
+      } catch (_e) {}
     }
 
-    function saveState(){
-      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    function saveState() {
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+      } catch (_e) {}
     }
 
-    // =============================
-    // Utilidades UI
-    // =============================
-    function toast(msg){
+    // -----------------------------
+    // UI
+    // -----------------------------
+    function toast(msg) {
       const t = $("toast");
       t.textContent = msg;
       t.classList.add("show");
       clearTimeout(toast._timer);
-      toast._timer = setTimeout(()=> t.classList.remove("show"), 1700);
+      toast._timer = setTimeout(() => t.classList.remove("show"), 1700);
     }
 
-    function normalizeNumber(n){
+    function normalizeNumber(n) {
       const s = (n ?? "").toString().trim();
-      if(!s) return "";
-      if(/^\d+$/.test(s)){
-        const num = Math.min(parseInt(s,10), 999999);
+      if (!s) return "";
+      if (/^\d+$/.test(s)) {
+        const num = Math.min(parseInt(s, 10), 999999);
         return String(num).padStart(3, "0");
       }
       return s;
     }
 
-    function nextAutoNumber(){
+    function nextAutoNumber() {
       const nums = state.evidences
-        .map(e => e.numero)
-        .filter(n => /^\d+$/.test(n))
-        .map(n => parseInt(n,10));
+        .map((e) => e.numero)
+        .filter((n) => /^\d+$/.test(n))
+        .map((n) => parseInt(n, 10));
       const max = nums.length ? Math.max(...nums) : 0;
       return String(max + 1).padStart(3, "0");
     }
 
-    // =============================
+    function safeId() {
+      return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function escapeHtml(str) {
+      return (str ?? "")
+        .toString()
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // -----------------------------
     // Render
-    // =============================
-    function renderHeader(){
+    // -----------------------------
+    function renderHeader() {
       $("asunto").value = state.header.asunto || "";
       $("grupo").value = state.header.grupo || "";
       $("juzgado").value = state.header.juzgado || "";
@@ -664,19 +688,394 @@
       $("direccion").value = state.header.direccion || "";
     }
 
-    function renderList(){
+    function renderList() {
       const list = $("list");
       list.innerHTML = "";
 
       $("count").textContent = `${state.evidences.length} elemento${state.evidences.length === 1 ? "" : "s"}`;
 
-      if(state.evidences.length === 0){
+      if (state.evidences.length === 0) {
         $("empty").style.display = "block";
         return;
       }
       $("empty").style.display = "none";
 
-      for(const ev of state.evidences){
+      // Orden: por número si es numérico, si no por creación
+      const sorted = [...state.evidences].sort((a, b) => {
+        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero, 10) : null;
+        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero, 10) : null;
+        if (an !== null && bn !== null) return an - bn;
+        if (an !== null && bn === null) return -1;
+        if (an === null && bn !== null) return 1;
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      });
+
+      for (const ev of sorted) {
         const item = document.createElement("div");
         item.className = "evidence-item";
-        item.innerHTML
+
+        const numeroShow = ev.numero ? escapeHtml(ev.numero) : "—";
+
+        item.innerHTML = `
+          <div class="evidence-main">
+            <div class="evidence-number">EVIDENCIA ${numeroShow}</div>
+            <div class="evidence-description">${escapeHtml(ev.desc || "")}</div>
+          </div>
+          <div class="evidence-actions">
+            <button class="icon-btn" type="button" data-action="edit" data-id="${escapeHtml(ev.id)}">Editar</button>
+            <button class="icon-btn danger" type="button" data-action="del" data-id="${escapeHtml(ev.id)}">Borrar</button>
+          </div>
+        `;
+
+        list.appendChild(item);
+      }
+    }
+
+    // -----------------------------
+    // Modal helpers
+    // -----------------------------
+    function openModal(mode, evidenceId = null) {
+      const backdrop = $("backdrop");
+      const title = $("modalTitle");
+      const btn = $("btnAddEvidence");
+
+      backdrop.classList.add("active");
+
+      if (mode === "edit") {
+        const ev = state.evidences.find((e) => e.id === evidenceId);
+        if (!ev) {
+          toast("No se encontró la evidencia.");
+          return closeModal();
+        }
+        title.textContent = "Editar evidencia";
+        btn.textContent = "Guardar";
+        btn.dataset.mode = "edit";
+        btn.dataset.editId = ev.id;
+
+        $("evNumero").value = ev.numero || "";
+        $("evDesc").value = ev.desc || "";
+      } else {
+        title.textContent = "Añadir evidencia";
+        btn.textContent = "Añadir";
+        btn.dataset.mode = "add";
+        delete btn.dataset.editId;
+
+        $("evNumero").value = "";
+        $("evDesc").value = "";
+      }
+
+      // Foco: nº evidencia, si no, textarea
+      setTimeout(() => {
+        const target = $("evNumero");
+        target?.focus?.();
+      }, 50);
+    }
+
+    function closeModal() {
+      $("backdrop").classList.remove("active");
+    }
+
+    function clearModalFields() {
+      $("evNumero").value = "";
+      $("evDesc").value = "";
+      $("evNumero").focus();
+    }
+
+    // -----------------------------
+    // Acciones evidencias
+    // -----------------------------
+    function addEvidence() {
+      const numeroRaw = $("evNumero").value;
+      let numero = normalizeNumber(numeroRaw);
+      const desc = ($("evDesc").value || "").trim();
+
+      if (!desc) {
+        toast("Añade una descripción.");
+        $("evDesc").focus();
+        return;
+      }
+
+      if (!numero) numero = nextAutoNumber();
+
+      // Evitar duplicados de número (si numérico o mismo string)
+      const dup = state.evidences.find((e) => (e.numero || "") === numero);
+      if (dup) {
+        toast(`Ya existe la evidencia ${numero}. Usa otro Nº o edítala.`);
+        $("evNumero").focus();
+        return;
+      }
+
+      state.evidences.push({
+        id: safeId(),
+        numero,
+        desc,
+        createdAt: Date.now()
+      });
+
+      saveState();
+      renderList();
+      closeModal();
+      toast("Evidencia añadida");
+    }
+
+    function editEvidence(editId) {
+      const numeroRaw = $("evNumero").value;
+      let numero = normalizeNumber(numeroRaw);
+      const desc = ($("evDesc").value || "").trim();
+
+      if (!desc) {
+        toast("Añade una descripción.");
+        $("evDesc").focus();
+        return;
+      }
+
+      if (!numero) numero = nextAutoNumber();
+
+      const ev = state.evidences.find((e) => e.id === editId);
+      if (!ev) {
+        toast("No se encontró la evidencia.");
+        return;
+      }
+
+      const dup = state.evidences.find((e) => e.id !== editId && (e.numero || "") === numero);
+      if (dup) {
+        toast(`Ya existe la evidencia ${numero}. Usa otro Nº.`);
+        $("evNumero").focus();
+        return;
+      }
+
+      ev.numero = numero;
+      ev.desc = desc;
+
+      saveState();
+      renderList();
+      closeModal();
+      toast("Cambios guardados");
+    }
+
+    function deleteEvidence(id) {
+      const ev = state.evidences.find((e) => e.id === id);
+      const label = ev?.numero ? `Evidencia ${ev.numero}` : "Evidencia";
+      if (!confirm(`¿Borrar ${label}?`)) return;
+
+      state.evidences = state.evidences.filter((e) => e.id !== id);
+      saveState();
+      renderList();
+      toast("Evidencia borrada");
+    }
+
+    // -----------------------------
+    // Cabecera
+    // -----------------------------
+    function saveHeaderFromInputs() {
+      state.header.asunto = ($("asunto").value || "").trim();
+      state.header.grupo = ($("grupo").value || "").trim();
+      state.header.juzgado = ($("juzgado").value || "").trim();
+      state.header.procedimiento = ($("procedimiento").value || "").trim();
+      state.header.fechaHora = ($("fechaHora").value || "").trim();
+      state.header.direccion = ($("direccion").value || "").trim();
+      saveState();
+      toast("Datos guardados");
+    }
+
+    function resetAll() {
+      if (!confirm("¿Borrar TODOS los datos y evidencias?")) return;
+      localStorage.removeItem(LS_KEY);
+      state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
+      state.evidences = [];
+      renderHeader();
+      renderList();
+      toast("Borrado completo");
+    }
+
+    // -----------------------------
+    // Exportaciones
+    // -----------------------------
+    function buildExportObject() {
+      // Mantener orden consistente
+      const evidences = [...state.evidences].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      return { header: state.header, evidences };
+    }
+
+    function downloadText(filename, text, mime = "text/plain;charset=utf-8") {
+      const blob = new Blob([text], { type: mime });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportJSON() {
+      const obj = buildExportObject();
+      downloadText("registro_evidencias.json", JSON.stringify(obj, null, 2), "application/json;charset=utf-8");
+      toast("JSON exportado");
+    }
+
+    function exportTXT() {
+      const obj = buildExportObject();
+      const h = obj.header;
+
+      const lines = [];
+      lines.push("REGISTRO DE EVIDENCIAS");
+      lines.push("=".repeat(22));
+      lines.push(`Asunto: ${h.asunto || ""}`);
+      lines.push(`Grupo: ${h.grupo || ""}`);
+      lines.push(`Juzgado: ${h.juzgado || ""}`);
+      lines.push(`Procedimiento: ${h.procedimiento || ""}`);
+      lines.push(`Fecha/Hora: ${h.fechaHora || ""}`);
+      lines.push(`Dirección: ${h.direccion || ""}`);
+      lines.push("");
+      lines.push(`EVIDENCIAS (${obj.evidences.length}):`);
+      lines.push("-".repeat(22));
+
+      for (const ev of obj.evidences) {
+        lines.push(`[${ev.numero || "—"}] ${ev.desc || ""}`.trim());
+        lines.push("");
+      }
+
+      downloadText("registro_evidencias.txt", lines.join("\n"));
+      toast("TXT exportado");
+    }
+
+    async function exportPDF() {
+      const jspdf = window.jspdf?.jsPDF;
+      if (!jspdf) {
+        toast("No se pudo cargar jsPDF.");
+        return;
+      }
+
+      const doc = new jspdf({ unit: "pt", format: "a4" });
+
+      const obj = buildExportObject();
+      const h = obj.header;
+
+      const margin = 48;
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const maxW = pageW - margin * 2;
+
+      let y = margin;
+
+      function addLine(text, fontSize = 12, spacing = 16) {
+        doc.setFont("times", "normal");
+        doc.setFontSize(fontSize);
+        const chunks = doc.splitTextToSize(text, maxW);
+        for (const ch of chunks) {
+          if (y + spacing > pageH - margin) {
+            doc.addPage();
+            y = margin;
+          }
+          doc.text(ch, margin, y);
+          y += spacing;
+        }
+      }
+
+      doc.setFontSize(18);
+      doc.setFont("times", "bold");
+      doc.text("Registro de Evidencias", margin, y);
+      y += 26;
+
+      doc.setFont("times", "normal");
+      addLine(`Asunto: ${h.asunto || ""}`);
+      addLine(`Grupo: ${h.grupo || ""}`);
+      addLine(`Juzgado: ${h.juzgado || ""}`);
+      addLine(`Procedimiento: ${h.procedimiento || ""}`);
+      addLine(`Fecha/Hora: ${h.fechaHora || ""}`);
+      addLine(`Dirección: ${h.direccion || ""}`);
+      y += 10;
+
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.text(`Evidencias (${obj.evidences.length})`, margin, y);
+      y += 20;
+
+      doc.setFont("times", "normal");
+      doc.setFontSize(12);
+
+      for (const ev of obj.evidences) {
+        addLine(`Evidencia ${ev.numero || "—"}`, 12, 16);
+        addLine(ev.desc || "", 12, 16);
+        y += 8;
+      }
+
+      doc.save("registro_evidencias.pdf");
+      toast("PDF exportado");
+    }
+
+    // -----------------------------
+    // Init + eventos
+    // -----------------------------
+    function bindEvents() {
+      // Cabecera
+      $("btnGuardarCabecera")?.addEventListener("click", saveHeaderFromInputs);
+      $("btnResetAll")?.addEventListener("click", resetAll);
+
+      // Modal open/close
+      $("btnOpenModal")?.addEventListener("click", () => openModal("add"));
+      $("btnCloseModal")?.addEventListener("click", closeModal);
+      $("btnClearFields")?.addEventListener("click", clearModalFields);
+
+      // Click fuera para cerrar
+      $("backdrop")?.addEventListener("click", (e) => {
+        if (e.target === $("backdrop")) closeModal();
+      });
+
+      // Añadir / guardar
+      $("btnAddEvidence")?.addEventListener("click", () => {
+        const mode = $("btnAddEvidence").dataset.mode || "add";
+        if (mode === "edit") {
+          const editId = $("btnAddEvidence").dataset.editId;
+          if (!editId) return toast("No hay evidencia seleccionada.");
+          editEvidence(editId);
+        } else {
+          addEvidence();
+        }
+      });
+
+      // Atajo teclado: Ctrl+Enter en textarea para añadir/guardar
+      $("evDesc")?.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          $("btnAddEvidence").click();
+        }
+      });
+
+      // Acciones en lista (delegación)
+      $("list")?.addEventListener("click", (e) => {
+        const btn = e.target?.closest?.("button");
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if (!action || !id) return;
+
+        if (action === "edit") openModal("edit", id);
+        if (action === "del") deleteEvidence(id);
+      });
+
+      // Export
+      $("btnExportTxt")?.addEventListener("click", exportTXT);
+      $("btnExportJson")?.addEventListener("click", exportJSON);
+      $("btnExportPdf")?.addEventListener("click", exportPDF);
+
+      // Guardado automático de cabecera (opcional): al salir del input
+      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach((id) => {
+        $(id)?.addEventListener("change", () => {
+          state.header[id] = ($(id).value || "").trim();
+          saveState();
+        });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadState();
+      renderHeader();
+      renderList();
+      bindEvents();
+    });
+  </script>
+</body>
+</html>
