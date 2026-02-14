@@ -117,10 +117,7 @@
       font-weight:600;
     }
 
-    .grid{
-      display:grid;
-      gap:12px;
-    }
+    .grid{ display:grid; gap:12px; }
 
     .panel{
       border:1px solid var(--border);
@@ -176,9 +173,8 @@
       white-space: pre-wrap;
     }
 
-    .report{
-      display:none;
-    }
+    .report{ display:none; }
+
     .meta{
       display:grid;
       grid-template-columns: 1fr 1fr;
@@ -202,10 +198,7 @@
       overflow-wrap:anywhere;
     }
 
-    .items{
-      display:grid;
-      gap:10px;
-    }
+    .items{ display:grid; gap:10px; }
     .item{
       border:1px solid var(--border);
       background: rgba(0,0,0,.16);
@@ -221,6 +214,7 @@
       font-size: 14px;
       line-height:1.4;
       overflow-wrap:anywhere;
+      white-space: pre-wrap; /* en pantalla respeta saltos */
     }
 
     .footerline{
@@ -253,7 +247,6 @@
       </header>
 
       <div class="content">
-        <!-- Panel pegado JSON -->
         <div id="pastePanel" class="panel grid" style="display:none;">
           <div class="label">
             <span>Pega aquí el JSON (objeto completo)</span>
@@ -283,7 +276,6 @@
           <div id="errorBox" class="error"></div>
         </div>
 
-        <!-- Report -->
         <div id="report" class="report">
           <div class="meta">
             <div class="kv">
@@ -315,14 +307,8 @@
   </div>
 
   <script>
-    // ----------------------------
-    // Estado
-    // ----------------------------
     let loadedData = null;
 
-    // ----------------------------
-    // Helpers
-    // ----------------------------
     function show(el){ el.style.display = ""; }
     function hide(el){ el.style.display = "none"; }
 
@@ -342,16 +328,10 @@
     }
 
     function parseDateAny(value){
-      // Acepta:
-      // - number epoch en segundos
-      // - string número
-      // - ISO string
       if (value === null || value === undefined) return null;
 
-      // número o string numérica
       if (typeof value === "number" || (typeof value === "string" && /^\d+$/.test(value.trim()))) {
         const n = (typeof value === "number") ? value : Number(value.trim());
-        // Si viene en ms (muy grande), lo convertimos:
         const ms = n > 10_000_000_000 ? n : n * 1000;
         const d = new Date(ms);
         return isNaN(d.getTime()) ? null : d;
@@ -361,13 +341,11 @@
         const d = new Date(value);
         return isNaN(d.getTime()) ? null : d;
       }
-
       return null;
     }
 
     function fmtDate(d){
       if (!d) return "—";
-      // Formato local (España) con hora
       return d.toLocaleString("es-ES", {
         year:"numeric", month:"2-digit", day:"2-digit",
         hour:"2-digit", minute:"2-digit", second:"2-digit"
@@ -380,7 +358,6 @@
     }
 
     function normalizeData(raw){
-      // Valida y normaliza el JSON a una estructura estándar
       if (!isObject(raw)) throw new Error("El JSON debe ser un objeto raíz (no una lista).");
 
       const asunto = raw.asunto;
@@ -396,25 +373,51 @@
 
       const items = Array.isArray(asunto.items) ? asunto.items : [];
       const normItems = items.map((it, idx) => {
-        if (!isObject(it)) {
-          return { texto: "[Item inválido]", created_at: null, idx };
-        }
+        if (!isObject(it)) return { texto: "[Item inválido]", created_at: null, idx };
         const texto = safeStr(it.texto || "");
         const d = parseDateAny(it.created_at);
         return { texto, created_at: d, idx };
       });
 
-      return {
-        id: safeStr(id),
-        titulo: safeStr(titulo),
-        created_at: created,
-        items: normItems
-      };
+      return { id: safeStr(id), titulo: safeStr(titulo), created_at: created, items: normItems };
     }
 
-    // ----------------------------
-    // UI render
-    // ----------------------------
+    // ✅ FIX: jsPDF no soporta emojis con helvetica → se reemplazan/limpian antes de exportar
+    function sanitizeForPdf(s){
+      s = safeStr(s);
+
+      // normaliza saltos
+      s = s.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+      // reemplazos “bonitos” (los que usas tú)
+      const map = [
+        ["📞", "TEL:"],
+        ["🌍", "REG:"],
+        ["📡", "OP:"],
+        ["🔎", "INFO:"],
+        ["📱", "APP:"],
+        ["📟", "BOT:"],
+        ["🦝", "MAPACHE:"],
+        ["⛔", "ALERTA:"],
+        ["✅", "OK:"],
+        ["⚠️", "AVISO:"],
+      ];
+      for (const [a,b] of map) s = s.split(a).join(b);
+
+      // elimina otros pictogramas/emojis que jsPDF no puede renderizar
+      // (mantiene letras/acentos normales)
+      try{
+        s = s.replace(/[\p{Extended_Pictographic}]/gu, "");
+      }catch(_){
+        // si el navegador no soporta \p{...}, no hacemos nada extra
+      }
+
+      // limpia caracteres de control raros (excepto \n y \t)
+      s = s.replace(/[^\x09\x0A\x0D\x20-\x7E\u00A0-\u00FF]/g, "");
+
+      return s.trim();
+    }
+
     function renderReport(data){
       document.getElementById("rTitulo").textContent = data.titulo;
       document.getElementById("rId").textContent = data.id;
@@ -464,31 +467,26 @@
       hide(document.getElementById("pastePanel"));
     }
 
-    // ----------------------------
-    // PDF export
-    // ----------------------------
     function exportPDF(data){
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({
-        orientation: "p",
-        unit: "pt",
-        format: "a4"
-      });
+      const doc = new jsPDF({ orientation:"p", unit:"pt", format:"a4" });
 
       const margin = 44;
       let y = margin;
 
-      // Header
+      // Header (sanitizado por si el título lleva emoji)
+      const title = sanitizeForPdf(data.titulo);
+
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
-      doc.text(data.titulo, margin, y);
+      doc.text(title || "Asunto", margin, y);
       y += 18;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-      doc.text(`ID: ${data.id}`, margin, y);
+      doc.text(`ID: ${sanitizeForPdf(data.id)}`, margin, y);
       y += 14;
-      doc.text(`Creado: ${fmtDate(data.created_at)}`, margin, y);
+      doc.text(`Creado: ${sanitizeForPdf(fmtDate(data.created_at))}`, margin, y);
       y += 18;
 
       doc.setDrawColor(200);
@@ -498,8 +496,8 @@
       // Items table
       const rows = data.items.map((it, idx) => ([
         String(idx + 1),
-        it.created_at ? fmtDate(it.created_at) : "—",
-        it.texto || "—"
+        it.created_at ? sanitizeForPdf(fmtDate(it.created_at)) : "—",
+        sanitizeForPdf(it.texto || "—")
       ]));
 
       doc.autoTable({
@@ -511,15 +509,15 @@
           font: "helvetica",
           fontSize: 9.5,
           cellPadding: 6,
-          overflow: "linebreak"
+          overflow: "linebreak",
+          valign: "top",
+          cellWidth: "wrap"
         },
-        headStyles: {
-          fontStyle: "bold"
-        },
+        headStyles: { fontStyle: "bold" },
         columnStyles: {
           0: { cellWidth: 26 },
           1: { cellWidth: 120 },
-          2: { cellWidth: 595 - (margin*2) - 26 - 120 }
+          2: { cellWidth: 595 - (margin*2) - 26 - 120, overflow: "linebreak" }
         },
         margin: { left: margin, right: margin }
       });
@@ -530,11 +528,7 @@
         doc.setPage(p);
         doc.setFontSize(9);
         doc.setTextColor(120);
-        doc.text(
-          `Generado localmente · Página ${p} / ${pages}`,
-          margin,
-          842 - 26
-        );
+        doc.text(`Generado localmente · Página ${p} / ${pages}`, margin, 842 - 26);
       }
 
       const safeTitle = (data.titulo || "asunto")
@@ -545,9 +539,7 @@
       doc.save(`${safeTitle}.pdf`);
     }
 
-    // ----------------------------
     // Eventos
-    // ----------------------------
     document.getElementById("mainBtn").addEventListener("click", () => {
       const mainBtn = document.getElementById("mainBtn");
 
@@ -581,14 +573,10 @@
         setModeExportReady();
 
       }catch(e){
-        setError(
-          "No pude cargar el JSON.\n\n" +
-          (e && e.message ? e.message : String(e))
-        );
+        setError("No pude cargar el JSON.\n\n" + (e && e.message ? e.message : String(e)));
       }
     });
 
-    // Inicia en modo "Pegar JSON"
     setModePaste();
   </script>
 </body>
