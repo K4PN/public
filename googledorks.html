@@ -7,143 +7,568 @@
 <meta name="color-scheme" content="dark light" />
 <style>
   :root{
-    --bg:#0e1116; --panel:#151a21; --ink:#e8eef6; --muted:#a7b3c2; --acc:#4cc9f0; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444;
-    --br:16px; --gap:12px; --pad:14px; --shadow:0 8px 24px rgba(0,0,0,.25);
+    --bg:#0b0f14;
+    --panel:#121823;
+    --panel2:#0f1520;
+    --stroke:rgba(255,255,255,.10);
+    --stroke2:rgba(255,255,255,.14);
+    --ink:#e9f0fa;
+    --muted:#a8b6c8;
+    --muted2:#7f90a6;
+
+    --acc:#4cc9f0;
+    --acc2:#2ea8d1;
+    --ok:#22c55e;
+    --warn:#f59e0b;
+    --danger:#ef4444;
+
+    --br:18px;
+    --br2:14px;
+    --pad:14px;
+    --gap:12px;
+    --shadow:0 14px 40px rgba(0,0,0,.35);
+    --shadow2:0 10px 26px rgba(0,0,0,.28);
+
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
-  header{padding:18px 16px 6px; text-align:center}
-  h1{margin:0;font-size:1.2rem;letter-spacing:.3px}
-  .wrap{max-width:720px;margin:0 auto;padding:10px;display:flex;flex-direction:column;gap:var(--gap)}
-  .card{background:var(--panel);border-radius:var(--br);padding:var(--pad);box-shadow:var(--shadow)}
-  label{display:block;font-size:.9rem;color:var(--muted);margin-bottom:6px}
+
+  *{ box-sizing:border-box }
+  html,body{ height:100% }
+  body{
+    margin:0;
+    font-family:var(--sans);
+    background:
+      radial-gradient(1200px 700px at 20% -10%, rgba(76,201,240,.16), transparent 55%),
+      radial-gradient(900px 700px at 90% 0%, rgba(34,197,94,.10), transparent 55%),
+      radial-gradient(900px 700px at 40% 120%, rgba(245,158,11,.10), transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* Top bar */
+  .top{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, rgba(11,15,20,.92), rgba(11,15,20,.70));
+    backdrop-filter: blur(10px);
+    border-bottom:1px solid var(--stroke);
+  }
+  header{
+    max-width:860px;
+    margin:0 auto;
+    padding:14px 14px 10px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    display:flex; gap:10px; align-items:center;
+    min-width:0;
+  }
+  .logo{
+    width:40px;height:40px;border-radius:14px;
+    display:grid;place-items:center;
+    background:linear-gradient(180deg, rgba(76,201,240,.18), rgba(46,168,209,.08));
+    border:1px solid var(--stroke2);
+    box-shadow:var(--shadow2);
+    flex:0 0 auto;
+  }
+  h1{
+    margin:0;
+    font-size:1.05rem;
+    letter-spacing:.2px;
+    line-height:1.1;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .sub{
+    margin:2px 0 0;
+    font-size:.85rem;
+    color:var(--muted);
+    line-height:1.25;
+    max-width:54ch;
+  }
+  .headActions{
+    display:flex; gap:8px; align-items:center; flex:0 0 auto;
+  }
+
+  /* Layout */
+  main{
+    max-width:860px;
+    margin:0 auto;
+    padding:14px;
+    display:grid;
+    gap:var(--gap);
+  }
+
+  .card{
+    background:linear-gradient(180deg, rgba(18,24,35,.92), rgba(18,24,35,.82));
+    border:1px solid var(--stroke);
+    border-radius:var(--br);
+    padding:var(--pad);
+    box-shadow:var(--shadow);
+  }
+
+  .grid{
+    display:grid;
+    gap:12px;
+  }
+  @media (min-width:760px){
+    .grid{
+      grid-template-columns: 1.1fr 1.2fr .9fr;
+      align-items:end;
+    }
+  }
+
+  /* Inputs */
+  label{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    font-size:.9rem;
+    color:var(--muted);
+    margin:0 0 6px;
+  }
+  .hint{
+    color:var(--muted2);
+    font-size:.82rem;
+    margin-top:6px;
+    line-height:1.35;
+  }
+
   select, input[type="text"]{
-    width:100%;padding:12px 14px;border-radius:12px;background:#0d131b;color:var(--ink);
-    border:1px solid #253042;font-size:1rem;outline:none
+    width:100%;
+    padding:12px 12px;
+    border-radius:14px;
+    background:linear-gradient(180deg, rgba(15,21,32,.88), rgba(15,21,32,.78));
+    color:var(--ink);
+    border:1px solid rgba(255,255,255,.12);
+    outline:none;
+    font-size:1rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
   }
-  .row{display:flex;gap:10px;align-items:center}
-  .row > *{flex:1}
+  select:focus, input[type="text"]:focus{
+    border-color:rgba(76,201,240,.55);
+    box-shadow:
+      0 0 0 4px rgba(76,201,240,.14),
+      inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .field{
+    min-width:0;
+  }
+
+  /* Segmented control */
+  .seg{
+    display:grid;
+    gap:8px;
+  }
+  .segRow{
+    display:grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap:8px;
+  }
+  .segBtn{
+    appearance:none;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(15,21,32,.72);
+    color:var(--ink);
+    border-radius:14px;
+    padding:10px 10px;
+    cursor:pointer;
+    font-weight:700;
+    letter-spacing:.2px;
+    transition:transform .05s ease, filter .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .segBtn:hover{ filter:brightness(1.07) }
+  .segBtn:active{ transform:translateY(1px) }
+  .segBtn.active{
+    border-color: rgba(76,201,240,.70);
+    background: linear-gradient(180deg, rgba(76,201,240,.18), rgba(46,168,209,.08));
+    box-shadow: 0 0 0 4px rgba(76,201,240,.10);
+  }
+
+  /* Buttons */
   .btn{
-    appearance:none;border:0;border-radius:12px;padding:12px 14px;font-weight:600;
-    background:#223146;color:#e8f3ff;cursor:pointer
+    appearance:none;
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:14px;
+    padding:11px 12px;
+    font-weight:800;
+    background:rgba(34,49,70,.55);
+    color:var(--ink);
+    cursor:pointer;
+    transition:transform .05s ease, filter .12s ease, border-color .12s ease, background .12s ease;
   }
-  .btn:hover{filter:brightness(1.08)}
-  .btn:active{transform:translateY(1px)}
-  .btn-acc{background:linear-gradient(180deg,#58d3fa,#2ea8d1)}
-  .btn-ok{background:linear-gradient(180deg,#3bd67a,#19a754)}
-  .btn-danger{background:#3a1c1c}
-  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .btn:hover{ filter:brightness(1.08) }
+  .btn:active{ transform:translateY(1px) }
+  .btn:focus{ outline:none; box-shadow:0 0 0 4px rgba(76,201,240,.14) }
+
+  .btnPrimary{
+    border-color: rgba(76,201,240,.28);
+    background: linear-gradient(180deg, rgba(76,201,240,.95), rgba(46,168,209,.82));
+    color:#04111a;
+  }
+  .btnOk{
+    border-color: rgba(34,197,94,.22);
+    background: linear-gradient(180deg, rgba(59,214,122,.92), rgba(25,167,84,.82));
+    color:#05120a;
+  }
+  .btnGhost{
+    background: transparent;
+    border-color: rgba(255,255,255,.12);
+    color: var(--ink);
+  }
+  .btnDanger{
+    background: rgba(239,68,68,.12);
+    border-color: rgba(239,68,68,.22);
+    color: #ffd4d4;
+  }
+  .btnSmall{
+    padding:9px 10px;
+    border-radius:12px;
+    font-weight:800;
+    font-size:.92rem;
+  }
+
+  .actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:flex-start;
+    margin-top:12px;
+  }
+  .actions .btn{ flex:1 }
+  @media (min-width:520px){
+    .actions .btn{ flex:0 0 auto }
+  }
+
+  /* Query area */
+  .query{
+    display:grid;
+    gap:10px;
+  }
+  .preview{
+    font-family:var(--mono);
+    background:linear-gradient(180deg, rgba(11,17,25,.95), rgba(11,17,25,.82));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:var(--br2);
+    padding:12px;
+    min-height:58px;
+    word-break:break-word;
+    line-height:1.35;
+    position:relative;
+  }
+  .preview:empty::before{
+    content:"Tu consulta aparecerá aquí…";
+    color:rgba(168,182,200,.65);
+    font-family:var(--sans);
+    font-weight:600;
+  }
+
+  /* Chips */
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    align-items:flex-start;
+  }
   .chip{
-    display:inline-flex;align-items:center;gap:8px;background:#0f1622;border:1px solid #263347;color:#cfe7ff;
-    padding:8px 10px;border-radius:999px;font-size:.92rem
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(15,21,32,.72);
+    border:1px solid rgba(255,255,255,.12);
+    color:var(--ink);
+    padding:8px 10px;
+    border-radius:999px;
+    font-size:.92rem;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+    max-width:100%;
   }
-  .chip small{color:#8fb9d8}
+  .chip code{
+    font-family:var(--mono);
+    font-size:.92rem;
+    background:transparent;
+    padding:0;
+    color:#d9ecff;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    max-width:48ch;
+  }
+  .badge{
+    font-size:.75rem;
+    font-weight:900;
+    letter-spacing:.35px;
+    padding:4px 8px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.10);
+    color:rgba(233,240,250,.9);
+    background:rgba(76,201,240,.10);
+  }
+  .badge.or{ background:rgba(245,158,11,.10) }
+  .badge.and{ background:rgba(34,197,94,.10) }
+  .badge.space{ background:rgba(255,255,255,.06) }
+
   .chip button{
-    all:unset;cursor:pointer;background:#223146;border-radius:999px;padding:4px 6px;font-size:.8rem
+    all:unset;
+    cursor:pointer;
+    display:grid;
+    place-items:center;
+    width:26px;height:26px;
+    border-radius:999px;
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    color:rgba(233,240,250,.9);
   }
-  .ops{display:flex;gap:8px;flex-wrap:wrap}
-  .ops button{flex:1;outline:2px solid transparent}
-  .ops button.active{outline:2px solid var(--acc)}
-  .preview{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:#0b1119;border:1px solid #263247;border-radius:12px;padding:12px;min-height:56px;word-break:break-word}
-  .muted{color:var(--muted);font-size:.9rem}
-  .toolbar{display:flex;gap:10px;flex-wrap:wrap}
-  .foot{opacity:.8;text-align:center;font-size:.8rem}
-  .help{font-size:.9rem;color:var(--muted);line-height:1.35}
-  .seg{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end}
-  @media (min-width:560px){ .seg{grid-template-columns:1fr 180px} }
+  .chip button:hover{ filter:brightness(1.08) }
+  .chip button:focus{ box-shadow:0 0 0 4px rgba(76,201,240,.14) }
+
+  /* Footer help */
+  .help{
+    font-size:.9rem;
+    color:var(--muted);
+    line-height:1.45;
+  }
+  .help code{
+    font-family:var(--mono);
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.10);
+    padding:1px 6px;
+    border-radius:10px;
+    color:#d9ecff;
+  }
+
+  .foot{
+    opacity:.75;
+    text-align:center;
+    font-size:.82rem;
+    padding:6px 0 12px;
+    color:var(--muted);
+  }
+
+  /* Toast */
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:16px;
+    transform:translateX(-50%);
+    background:rgba(18,24,35,.92);
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    padding:10px 12px;
+    box-shadow:var(--shadow);
+    display:flex;
+    gap:10px;
+    align-items:center;
+    color:var(--ink);
+    z-index:50;
+    min-width:min(520px, calc(100vw - 24px));
+    justify-content:space-between;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+  }
+  .toast.show{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateX(-50%) translateY(-2px);
+  }
+  .toast .msg{
+    font-weight:750;
+    letter-spacing:.1px;
+    font-size:.92rem;
+    color:rgba(233,240,250,.95);
+  }
+  .toast .submsg{
+    font-size:.82rem;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .toast .left{ display:flex; flex-direction:column; gap:1px; min-width:0 }
+  .toast .right{ display:flex; gap:8px; flex:0 0 auto }
+  .toast .tbtn{
+    all:unset;
+    cursor:pointer;
+    padding:8px 10px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.06);
+    font-weight:850;
+    font-size:.88rem;
+  }
+  .toast .tbtn:hover{ filter:brightness(1.08) }
+
+  /* Small utility */
+  .row2{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .row2 .left, .row2 .right{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
+  .stat{
+    font-size:.85rem;
+    color:var(--muted2);
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1>🦝 Mapache Google Dorks</h1>
-  <div class="muted">Construye tu consulta eligiendo dorks, texto y uniones (AND / OR / espacio).</div>
-</header>
-
-<main class="wrap">
-  <section class="card" aria-labelledby="lblDork">
-    <label id="lblDork">1) Elige un dork</label>
-    <div class="row">
-      <select id="dork">
-        <option value="none">Ninguno (texto libre)</option>
-        <option value="quotes">"Frase exacta"</option>
-        <option value="minus">-Exclusión</option>
-        <option value="plus">+Obligatorio</option>
-        <option value="inurl">inurl:</option>
-        <option value="intitle">intitle:</option>
-        <option value="site">site:</option>
-        <option value="intext">intext:</option>
-        <option value="filetype">filetype:</option>
-        <option value="cache">cache:</option>
-        <option value="related">related:</option>
-        <option value="allintitle">allintitle:</option>
-        <option value="allinurl">allinurl:</option>
-        <option value="allintext">allintext:</option>
-      </select>
-    </div>
-
-    <div class="seg" style="margin-top:10px">
-      <div>
-        <label for="valor">2) Escribe el texto</label>
-        <input id="valor" type="text" inputmode="text" placeholder='Ej.: informe 2024.pdf / ejemplo.com / "frase exacta"' />
-      </div>
-      <div>
-        <label>3) Unión con lo anterior</label>
-        <div class="ops" role="group" aria-label="Uniones">
-          <button type="button" class="btn active" data-op="space" title="Espacio (equivale a AND)">Espacio</button>
-          <button type="button" class="btn" data-op="AND">AND</button>
-          <button type="button" class="btn" data-op="OR">OR</button>
+  <div class="top">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true">🦝</div>
+        <div style="min-width:0">
+          <h1>Mapache Google Dorks</h1>
+          <p class="sub">Construye tu consulta con dorks y uniones. Enter para añadir · Ctrl/⌘+Enter para buscar.</p>
         </div>
       </div>
-    </div>
 
-    <div class="row" style="margin-top:10px">
-      <button type="button" class="btn btn-acc" id="add">➕ Añadir</button>
-      <button type="button" class="btn btn-danger" id="clear">🗑️ Limpiar</button>
-    </div>
+      <div class="headActions">
+        <button class="btn btnSmall btnGhost" id="undo" type="button" title="Deshacer último (Ctrl/⌘+Z)">↶ Deshacer</button>
+        <button class="btn btnSmall btnDanger" id="clearTop" type="button" title="Vaciar todo">🗑️ Vaciar</button>
+      </div>
+    </header>
+  </div>
 
-    <div class="help" style="margin-top:8px">
-      Consejos: usa comillas para frases exactas. Puedes combinarlas con <code>-</code> o <code>+</code> (p. ej. <code>-"contrato privado"</code>).  
-      <strong>Espacio</strong> se comporta como AND. Usa <strong>OR</strong> cuando cualquiera de los términos te valga.
-    </div>
-  </section>
+  <main>
+    <section class="card" aria-labelledby="builderTitle">
+      <div class="row2">
+        <div class="left">
+          <strong id="builderTitle" style="letter-spacing:.2px">Constructor</strong>
+          <span class="stat" id="stat">0 elementos</span>
+        </div>
+        <div class="right">
+          <span class="stat" title="Se guarda en tu navegador (localStorage)">💾 Guardado automático</span>
+        </div>
+      </div>
 
-  <section class="card">
-    <label>Elementos de la consulta</label>
-    <div id="chips" class="chips" aria-live="polite"></div>
-  </section>
+      <div class="grid" style="margin-top:12px">
+        <div class="field">
+          <label for="dork">1) Dork</label>
+          <select id="dork">
+            <option value="none">Ninguno (texto libre)</option>
+            <option value="quotes">"Frase exacta"</option>
+            <option value="minus">-Exclusión</option>
+            <option value="plus">+Obligatorio</option>
+            <option value="inurl">inurl:</option>
+            <option value="intitle">intitle:</option>
+            <option value="site">site:</option>
+            <option value="intext">intext:</option>
+            <option value="filetype">filetype:</option>
+            <option value="cache">cache:</option>
+            <option value="related">related:</option>
+            <option value="allintitle">allintitle:</option>
+            <option value="allinurl">allinurl:</option>
+            <option value="allintext">allintext:</option>
+          </select>
+          <div class="hint">Tip: usa <code>"comillas"</code> para exactitud. <code>Espacio</code> ≈ AND.</div>
+        </div>
 
-  <section class="card">
-    <label>Consulta actual</label>
-    <div id="preview" class="preview" aria-live="polite"></div>
-    <div class="toolbar" style="margin-top:10px">
-      <button type="button" class="btn btn-ok" id="copy">📋 Copiar</button>
-      <button type="button" class="btn btn-acc" id="search">🔎 Buscar en Google</button>
-    </div>
-    <div class="help" style="margin-top:8px">
-      Nota: Google ha cambiado el comportamiento de <code>+</code> históricamente; sigue siendo útil para delimitar, pero prioriza comillas para exactitud.
-    </div>
-  </section>
+        <div class="field">
+          <label for="valor">2) Texto</label>
+          <input id="valor" type="text" inputmode="text"
+                 placeholder='Ej.: informe 2024.pdf · ejemplo.com · contrato privado'
+                 autocomplete="off" />
+          <div class="hint">Enter: añadir · Esc: limpiar campo · Ctrl/⌘+Enter: buscar.</div>
+        </div>
 
-  <div class="foot">© Mapache • Construcción rápida de dorks</div>
-</main>
+        <div class="field">
+          <label>3) Unión</label>
+          <div class="seg" role="group" aria-label="Uniones">
+            <div class="segRow">
+              <button type="button" class="segBtn active" data-op="space" title="Espacio (equivale a AND)">Espacio</button>
+              <button type="button" class="segBtn" data-op="AND">AND</button>
+              <button type="button" class="segBtn" data-op="OR">OR</button>
+            </div>
+          </div>
+          <div class="hint">Afecta al siguiente elemento que añadas.</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btnPrimary" id="add">➕ Añadir</button>
+        <button type="button" class="btn btnGhost" id="copy">📋 Copiar</button>
+        <button type="button" class="btn btnOk" id="search">🔎 Buscar</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="chipsTitle">
+      <div class="row2">
+        <div class="left">
+          <strong id="chipsTitle" style="letter-spacing:.2px">Elementos</strong>
+          <span class="stat">Toca ✕ para eliminar uno</span>
+        </div>
+      </div>
+      <div id="chips" class="chips" aria-live="polite" style="margin-top:10px"></div>
+      <div class="help" style="margin-top:10px">
+        Puedes combinar comillas con <code>-</code> o <code>+</code> (ej.: <code>-"contrato privado"</code>).
+        Usa <code>OR</code> cuando cualquiera de los términos te valga.
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="qTitle">
+      <div class="row2">
+        <div class="left">
+          <strong id="qTitle" style="letter-spacing:.2px">Consulta actual</strong>
+          <span class="stat" id="qLen"></span>
+        </div>
+      </div>
+
+      <div id="preview" class="preview" aria-live="polite" style="margin-top:10px"></div>
+
+      <div class="help" style="margin-top:10px">
+        Nota: Google ha cambiado el comportamiento de <code>+</code> históricamente; para precisión, prioriza <code>"comillas"</code>.
+      </div>
+    </section>
+
+    <div class="foot">© Mapache • Dorks rápido y limpio</div>
+  </main>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite">
+    <div class="left">
+      <div class="msg" id="toastMsg">Listo</div>
+      <div class="submsg" id="toastSub"></div>
+    </div>
+    <div class="right" id="toastRight"></div>
+  </div>
 
 <script>
 (() => {
   const $ = s => document.querySelector(s);
-  const dorkSel = $('#dork');
-  const valor = $('#valor');
-  const chips = $('#chips');
-  const preview = $('#preview');
-  const addBtn = $('#add');
-  const clearBtn = $('#clear');
-  const copyBtn = $('#copy');
+
+  const dorkSel   = $('#dork');
+  const valor     = $('#valor');
+  const chips     = $('#chips');
+  const preview   = $('#preview');
+
+  const addBtn    = $('#add');
+  const copyBtn   = $('#copy');
   const searchBtn = $('#search');
-  const opBtns = Array.from(document.querySelectorAll('.ops .btn'));
+  const undoBtn   = $('#undo');
+  const clearTop  = $('#clearTop');
+
+  const stat      = $('#stat');
+  const qLen      = $('#qLen');
+
+  const segBtns   = Array.from(document.querySelectorAll('.segBtn'));
+
+  const toast     = $('#toast');
+  const toastMsg  = $('#toastMsg');
+  const toastSub  = $('#toastSub');
+  const toastRight= $('#toastRight');
 
   // Estado
-  let parts = []; // {raw, shown, op}
-  let pendingOp = 'space'; // unión por defecto
+  let parts = [];              // {raw, shown, op}
+  let pendingOp = 'space';     // unión por defecto
+  let lastRemoved = null;      // {item, index}
+  let toastTimer = null;
 
   // LocalStorage seguro
   const safe = {
@@ -159,37 +584,66 @@
 
   // Restaurar
   const saved = safe.load();
-  if (Array.isArray(saved) && saved.length){ parts = saved; render(); }
+  if (Array.isArray(saved) && saved.length){
+    parts = saved;
+  }
+  render();
+  setUnion('space', false);
+  valor.focus();
 
-  // Selección de unión
-  opBtns.forEach(b=>{
-    b.addEventListener('click', ()=>{
-      pendingOp = b.dataset.op;
-      opBtns.forEach(x=>x.classList.remove('active'));
-      b.classList.add('active');
-    }, {passive:true});
-  });
+  // ------------------------- UI helpers -------------------------
+  function showToast(message, sub = '', actions = []) {
+    clearTimeout(toastTimer);
+    toastMsg.textContent = message || 'Listo';
+    toastSub.textContent = sub || '';
+    toastRight.innerHTML = '';
+    actions.forEach(a => {
+      const b = document.createElement('button');
+      b.className = 'tbtn';
+      b.type = 'button';
+      b.textContent = a.label;
+      b.addEventListener('click', () => {
+        hideToast();
+        a.onClick?.();
+      }, {passive:true});
+      toastRight.appendChild(b);
+    });
+    toast.classList.add('show');
+    toastTimer = setTimeout(hideToast, 1600);
+  }
+  function hideToast(){ toast.classList.remove('show'); }
 
+  function setUnion(op, focus=true){
+    pendingOp = op;
+    segBtns.forEach(b => b.classList.toggle('active', b.dataset.op === op));
+    if(focus) valor.focus();
+  }
+
+  // ------------------------- Logic -------------------------
   function needsQuotes(s){
     if(/^".+"$/.test(s)) return false;
     return /[\s]/.test(s);
   }
 
   function fmtPiece(kind, text){
-    const t = text.trim();
+    const t = (text || '').trim();
     if(!t) return '';
 
     switch(kind){
       case 'none':
         return t;
+
       case 'quotes':
         return /^".+"$/.test(t) ? t : `"${t}"`;
+
       case 'minus':
         if (needsQuotes(t)) return `-"${t.replace(/^"|"$/g,'')}"`;
         return `-${t}`;
+
       case 'plus':
         if (needsQuotes(t)) return `+"${t.replace(/^"|"$/g,'')}"`;
         return `+${t}`;
+
       case 'inurl':
       case 'intitle':
       case 'site':
@@ -205,9 +659,33 @@
         }
         if (needsQuotes(t)) return `${kind}:"${t.replace(/^"|"$/g,'')}"`;
         return `${kind}:${t}`;
+
       default:
         return t;
     }
+  }
+
+  function buildQuery(){
+    let out = '';
+    parts.forEach((p,i)=>{
+      if(i===0){ out += p.shown; return; }
+      if(p.op==='space') out += ' ' + p.shown;
+      else out += ' ' + p.op + ' ' + p.shown;
+    });
+    return out.trim();
+  }
+
+  function badgeClass(op){
+    const up = (op||'').toUpperCase();
+    if(up === 'OR') return 'or';
+    if(up === 'AND') return 'and';
+    return 'space';
+  }
+
+  function opLabel(op){
+    const up = (op||'').toUpperCase();
+    if(up === 'SPACE') return 'ESPACIO';
+    return up;
   }
 
   function render(){
@@ -216,95 +694,45 @@
     parts.forEach((p, idx)=>{
       const el = document.createElement('div');
       el.className = 'chip';
-      el.innerHTML = `<span>${p.shown}</span><small>${p.op.toUpperCase()==='SPACE'?'espacio':p.op}</small>
-                      <button type="button" aria-label="Eliminar">✕</button>`;
-      el.querySelector('button').addEventListener('click', ()=>{
+
+      const badge = document.createElement('span');
+      badge.className = `badge ${badgeClass(p.op)}`;
+      badge.textContent = (idx===0) ? 'INICIO' : opLabel(p.op);
+
+      const code = document.createElement('code');
+      code.textContent = p.shown;
+
+      const rm = document.createElement('button');
+      rm.type = 'button';
+      rm.setAttribute('aria-label', 'Eliminar elemento');
+      rm.textContent = '✕';
+
+      rm.addEventListener('click', ()=>{
+        lastRemoved = { item: parts[idx], index: idx };
         parts.splice(idx,1);
         safe.save(parts);
         render();
+        showToast('Elemento eliminado', 'Puedes deshacer', [
+          { label:'Deshacer', onClick: undoLastRemove }
+        ]);
       }, {passive:true});
+
+      el.appendChild(badge);
+      el.appendChild(code);
+      el.appendChild(rm);
       chips.appendChild(el);
     });
 
     // Preview
-    let out = '';
-    parts.forEach((p,i)=>{
-      if(i===0){ out += p.shown; return; }
-      if(p.op==='space'){ out += ' ' + p.shown; }
-      else { out += ' ' + p.op + ' ' + p.shown; }
-    });
-    preview.textContent = out.trim();
+    const q = buildQuery();
+    preview.textContent = q;
+
+    // Stats
+    stat.textContent = `${parts.length} ${parts.length===1 ? 'elemento' : 'elementos'}`;
+    qLen.textContent = q ? `${q.length} caracteres` : '';
+    undoBtn.disabled = !(parts.length || lastRemoved);
+    undoBtn.style.opacity = undoBtn.disabled ? '.55' : '1';
   }
 
-  addBtn.addEventListener('click', ()=>{
-    const kind = dorkSel.value;
-    const text = valor.value;
-    const piece = fmtPiece(kind, text);
-    if(!piece){
-      valor.focus();
-      return;
-    }
-    const op = (parts.length===0) ? 'space' : pendingOp;
-    parts.push({raw: piece, shown: piece, op});
-    safe.save(parts);
-    render();
-    valor.value='';
-    valor.focus();
-  }, {passive:true});
-
-  clearBtn.addEventListener('click', ()=>{
-    parts = [];
-    safe.save(parts);
-    render();
-    valor.value='';
-    // Visual: vuelve a marcar "Espacio"
-    pendingOp = 'space';
-    opBtns.forEach(x=>x.classList.remove('active'));
-    opBtns.find(b=>b.dataset.op==='space').classList.add('active');
-    valor.focus();
-  }, {passive:true});
-
-  copyBtn.addEventListener('click', async ()=>{
-    const q = preview.textContent.trim();
-    if(!q) return;
-    try{
-      await navigator.clipboard.writeText(q);
-      flash(copyBtn,'✅ Copiado','📋 Copiar');
-    }catch{
-      // Fallback
-      const ta = document.createElement('textarea');
-      ta.value = q; document.body.appendChild(ta); ta.select();
-      try{ document.execCommand('copy'); }catch{}
-      document.body.removeChild(ta);
-      flash(copyBtn,'✅ Copiado','📋 Copiar');
-    }
-  }, {passive:true});
-
-  searchBtn.addEventListener('click', ()=>{
-    const q = preview.textContent.trim();
-    if(!q) return;
-    const url = 'https://www.google.com/search?q=' + encodeURIComponent(q);
-    window.open(url, '_blank', 'noopener');
-  }, {passive:true});
-
-  // UX: Enter para añadir
-  valor.addEventListener('keydown', (e)=>{
-    if(e.key==='Enter'){
-      e.preventDefault();
-      addBtn.click();
-    }
-  });
-
-  function flash(btn, now, later){
-    const old = btn.textContent;
-    btn.textContent = now || 'Listo';
-    setTimeout(()=>btn.textContent = later || old, 1200);
-  }
-
-  // Asegura que “Espacio” aparezca seleccionado al cargar
-  opBtns.forEach(x=>x.classList.remove('active'));
-  opBtns.find(b=>b.dataset.op==='space').classList.add('active');
-})();
-</script>
-</body>
-</html>
+  function addPiece(){
+    const kind =
