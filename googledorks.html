@@ -35,42 +35,15 @@ body {
 /* ─── Header ─── */
 .header {
   border-bottom: 2px solid var(--ink);
-  padding: 20px 24px;
+  padding: 14px 24px;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   background: var(--surface);
   position: sticky;
   top: 0;
   z-index: 10;
-}
-
-.brand {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-
-.logo-mark {
-  font-weight: 800;
-  font-size: 1.3rem;
-  letter-spacing: -1px;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.tagline {
-  font-size: .75rem;
-  color: var(--ink3);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  font-weight: 400;
-}
-
-.header-actions {
-  display: flex;
-  gap: 8px;
 }
 
 /* ─── Main ─── */
@@ -381,14 +354,8 @@ footer {
 <body>
 
 <div class="header">
-  <div class="brand">
-    <span class="logo-mark">DORKS</span>
-    <span class="tagline">Constructor de búsqueda</span>
-  </div>
-  <div class="header-actions">
-    <button class="btn btn-ghost btn-sm" id="undoBtn">↶ Deshacer</button>
-    <button class="btn btn-danger btn-sm" id="clearBtn">Limpiar todo</button>
-  </div>
+  <button class="btn btn-ghost btn-sm" id="undoBtn">↶ Deshacer</button>
+  <button class="btn btn-danger btn-sm" id="clearBtn">Limpiar todo</button>
 </div>
 
 <main>
