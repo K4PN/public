@@ -2,734 +2,664 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<title>Mapache Google Dorks</title>
-<meta name="color-scheme" content="dark light" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dorks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0b0f14;
-    --panel:#121823;
-    --panel2:#0f1520;
-    --stroke:rgba(255,255,255,.10);
-    --stroke2:rgba(255,255,255,.14);
-    --ink:#e9f0fa;
-    --muted:#a8b6c8;
-    --muted2:#7f90a6;
+:root {
+  --bg: #f7f4ef;
+  --surface: #ffffff;
+  --surface2: #f0ece4;
+  --ink: #1a1612;
+  --ink2: #6b6358;
+  --ink3: #a39b8f;
+  --accent: #d4501a;
+  --accent2: #b8420f;
+  --ok: #2a7a4f;
+  --line: #ddd8cf;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --rad: 6px;
+}
 
-    --acc:#4cc9f0;
-    --acc2:#2ea8d1;
-    --ok:#22c55e;
-    --warn:#f59e0b;
-    --danger:#ef4444;
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    --br:18px;
-    --br2:14px;
-    --pad:14px;
-    --gap:12px;
-    --shadow:0 14px 40px rgba(0,0,0,.35);
-    --shadow2:0 10px 26px rgba(0,0,0,.28);
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
 
-    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-    --sans:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-  }
+/* ─── Header ─── */
+.header {
+  border-bottom: 2px solid var(--ink);
+  padding: 20px 24px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
 
-  *{ box-sizing:border-box }
-  html,body{ height:100% }
-  body{
-    margin:0;
-    font-family:var(--sans);
-    background:
-      radial-gradient(1200px 700px at 20% -10%, rgba(76,201,240,.16), transparent 55%),
-      radial-gradient(900px 700px at 90% 0%, rgba(34,197,94,.10), transparent 55%),
-      radial-gradient(900px 700px at 40% 120%, rgba(245,158,11,.10), transparent 55%),
-      var(--bg);
-    color:var(--ink);
-    -webkit-tap-highlight-color:transparent;
-  }
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
 
-  /* Top bar */
-  .top{
-    position:sticky; top:0; z-index:20;
-    background:linear-gradient(180deg, rgba(11,15,20,.92), rgba(11,15,20,.70));
-    backdrop-filter: blur(10px);
-    border-bottom:1px solid var(--stroke);
-  }
-  header{
-    max-width:860px;
-    margin:0 auto;
-    padding:14px 14px 10px;
-    display:flex;
-    gap:12px;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .brand{
-    display:flex; gap:10px; align-items:center;
-    min-width:0;
-  }
-  .logo{
-    width:40px;height:40px;border-radius:14px;
-    display:grid;place-items:center;
-    background:linear-gradient(180deg, rgba(76,201,240,.18), rgba(46,168,209,.08));
-    border:1px solid var(--stroke2);
-    box-shadow:var(--shadow2);
-    flex:0 0 auto;
-  }
-  h1{
-    margin:0;
-    font-size:1.05rem;
-    letter-spacing:.2px;
-    line-height:1.1;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  .sub{
-    margin:2px 0 0;
-    font-size:.85rem;
-    color:var(--muted);
-    line-height:1.25;
-    max-width:54ch;
-  }
-  .headActions{
-    display:flex; gap:8px; align-items:center; flex:0 0 auto;
-  }
+.logo-mark {
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -1px;
+  color: var(--accent);
+  line-height: 1;
+}
 
-  /* Layout */
-  main{
-    max-width:860px;
-    margin:0 auto;
-    padding:14px;
-    display:grid;
-    gap:var(--gap);
-  }
+.tagline {
+  font-size: .75rem;
+  color: var(--ink3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-weight: 400;
+}
 
-  .card{
-    background:linear-gradient(180deg, rgba(18,24,35,.92), rgba(18,24,35,.82));
-    border:1px solid var(--stroke);
-    border-radius:var(--br);
-    padding:var(--pad);
-    box-shadow:var(--shadow);
-  }
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
 
-  .grid{
-    display:grid;
-    gap:12px;
-  }
-  @media (min-width:760px){
-    .grid{
-      grid-template-columns: 1.1fr 1.2fr .9fr;
-      align-items:end;
-    }
-  }
+/* ─── Main ─── */
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  display: grid;
+  gap: 24px;
+}
 
-  /* Inputs */
-  label{
-    display:flex;
-    gap:8px;
-    align-items:center;
-    font-size:.9rem;
-    color:var(--muted);
-    margin:0 0 6px;
-  }
-  .hint{
-    color:var(--muted2);
-    font-size:.82rem;
-    margin-top:6px;
-    line-height:1.35;
-  }
+/* ─── Sections ─── */
+.section-label {
+  font-size: .7rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 700;
+  margin-bottom: 14px;
+}
 
-  select, input[type="text"]{
-    width:100%;
-    padding:12px 12px;
-    border-radius:14px;
-    background:linear-gradient(180deg, rgba(15,21,32,.88), rgba(15,21,32,.78));
-    color:var(--ink);
-    border:1px solid rgba(255,255,255,.12);
-    outline:none;
-    font-size:1rem;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  select:focus, input[type="text"]:focus{
-    border-color:rgba(76,201,240,.55);
-    box-shadow:
-      0 0 0 4px rgba(76,201,240,.14),
-      inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  .field{
-    min-width:0;
-  }
+.panel {
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--rad);
+  padding: 20px;
+}
 
-  /* Segmented control */
-  .seg{
-    display:grid;
-    gap:8px;
-  }
-  .segRow{
-    display:grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap:8px;
-  }
-  .segBtn{
-    appearance:none;
-    border:1px solid rgba(255,255,255,.12);
-    background:rgba(15,21,32,.72);
-    color:var(--ink);
-    border-radius:14px;
-    padding:10px 10px;
-    cursor:pointer;
-    font-weight:700;
-    letter-spacing:.2px;
-    transition:transform .05s ease, filter .12s ease, border-color .12s ease, background .12s ease;
-  }
-  .segBtn:hover{ filter:brightness(1.07) }
-  .segBtn:active{ transform:translateY(1px) }
-  .segBtn.active{
-    border-color: rgba(76,201,240,.70);
-    background: linear-gradient(180deg, rgba(76,201,240,.18), rgba(46,168,209,.08));
-    box-shadow: 0 0 0 4px rgba(76,201,240,.10);
-  }
+.panel + .panel { margin-top: 0; }
 
-  /* Buttons */
-  .btn{
-    appearance:none;
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:14px;
-    padding:11px 12px;
-    font-weight:800;
-    background:rgba(34,49,70,.55);
-    color:var(--ink);
-    cursor:pointer;
-    transition:transform .05s ease, filter .12s ease, border-color .12s ease, background .12s ease;
-  }
-  .btn:hover{ filter:brightness(1.08) }
-  .btn:active{ transform:translateY(1px) }
-  .btn:focus{ outline:none; box-shadow:0 0 0 4px rgba(76,201,240,.14) }
+/* ─── Builder grid ─── */
+.builder-row {
+  display: grid;
+  grid-template-columns: 1fr 1.6fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 680px) {
+  .builder-row { grid-template-columns: 1fr; }
+}
 
-  .btnPrimary{
-    border-color: rgba(76,201,240,.28);
-    background: linear-gradient(180deg, rgba(76,201,240,.95), rgba(46,168,209,.82));
-    color:#04111a;
-  }
-  .btnOk{
-    border-color: rgba(34,197,94,.22);
-    background: linear-gradient(180deg, rgba(59,214,122,.92), rgba(25,167,84,.82));
-    color:#05120a;
-  }
-  .btnGhost{
-    background: transparent;
-    border-color: rgba(255,255,255,.12);
-    color: var(--ink);
-  }
-  .btnDanger{
-    background: rgba(239,68,68,.12);
-    border-color: rgba(239,68,68,.22);
-    color: #ffd4d4;
-  }
-  .btnSmall{
-    padding:9px 10px;
-    border-radius:12px;
-    font-weight:800;
-    font-size:.92rem;
-  }
+.field-label {
+  font-size: .72rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
 
-  .actions{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:flex-start;
-    margin-top:12px;
-  }
-  .actions .btn{ flex:1 }
-  @media (min-width:520px){
-    .actions .btn{ flex:0 0 auto }
-  }
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: white;
+  font-size: .65rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
 
-  /* Query area */
-  .query{
-    display:grid;
-    gap:10px;
-  }
-  .preview{
-    font-family:var(--mono);
-    background:linear-gradient(180deg, rgba(11,17,25,.95), rgba(11,17,25,.82));
-    border:1px solid rgba(255,255,255,.12);
-    border-radius:var(--br2);
-    padding:12px;
-    min-height:58px;
-    word-break:break-word;
-    line-height:1.35;
-    position:relative;
-  }
-  .preview:empty::before{
-    content:"Tu consulta aparecerá aquí…";
-    color:rgba(168,182,200,.65);
-    font-family:var(--sans);
-    font-weight:600;
-  }
+select, input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--rad);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: .95rem;
+  transition: border-color .15s;
+  outline: none;
+  appearance: none;
+}
+select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6358' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 32px; }
+select:focus, input:focus { border-color: var(--accent); }
 
-  /* Chips */
-  .chips{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    align-items:flex-start;
-  }
-  .chip{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    background:rgba(15,21,32,.72);
-    border:1px solid rgba(255,255,255,.12);
-    color:var(--ink);
-    padding:8px 10px;
-    border-radius:999px;
-    font-size:.92rem;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-    max-width:100%;
-  }
-  .chip code{
-    font-family:var(--mono);
-    font-size:.92rem;
-    background:transparent;
-    padding:0;
-    color:#d9ecff;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    max-width:48ch;
-  }
-  .badge{
-    font-size:.75rem;
-    font-weight:900;
-    letter-spacing:.35px;
-    padding:4px 8px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.10);
-    color:rgba(233,240,250,.9);
-    background:rgba(76,201,240,.10);
-  }
-  .badge.or{ background:rgba(245,158,11,.10) }
-  .badge.and{ background:rgba(34,197,94,.10) }
-  .badge.space{ background:rgba(255,255,255,.06) }
+.hint-text {
+  font-size: .75rem;
+  color: var(--ink3);
+  margin-top: 5px;
+  font-family: var(--sans);
+}
 
-  .chip button{
-    all:unset;
-    cursor:pointer;
-    display:grid;
-    place-items:center;
-    width:26px;height:26px;
-    border-radius:999px;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.10);
-    color:rgba(233,240,250,.9);
-  }
-  .chip button:hover{ filter:brightness(1.08) }
-  .chip button:focus{ box-shadow:0 0 0 4px rgba(76,201,240,.14) }
+/* ─── Operator toggle ─── */
+.op-toggle {
+  display: flex;
+  border: 1.5px solid var(--line);
+  border-radius: var(--rad);
+  overflow: hidden;
+  background: var(--bg);
+}
+.op-btn {
+  flex: 1;
+  padding: 10px 6px;
+  border: none;
+  background: transparent;
+  font-family: var(--sans);
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  letter-spacing: .5px;
+}
+.op-btn:not(:last-child) { border-right: 1.5px solid var(--line); }
+.op-btn.active {
+  background: var(--ink);
+  color: white;
+}
 
-  /* Footer help */
-  .help{
-    font-size:.9rem;
-    color:var(--muted);
-    line-height:1.45;
-  }
-  .help code{
-    font-family:var(--mono);
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.10);
-    padding:1px 6px;
-    border-radius:10px;
-    color:#d9ecff;
-  }
+/* ─── Action buttons ─── */
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
 
-  .foot{
-    opacity:.75;
-    text-align:center;
-    font-size:.82rem;
-    padding:6px 0 12px;
-    color:var(--muted);
-  }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: var(--rad);
+  border: 1.5px solid transparent;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: .88rem;
+  cursor: pointer;
+  letter-spacing: .3px;
+  transition: transform .08s, filter .12s;
+}
+.btn:active { transform: translateY(1px); }
 
-  /* Toast */
-  .toast{
-    position:fixed;
-    left:50%;
-    bottom:16px;
-    transform:translateX(-50%);
-    background:rgba(18,24,35,.92);
-    border:1px solid rgba(255,255,255,.14);
-    border-radius:999px;
-    padding:10px 12px;
-    box-shadow:var(--shadow);
-    display:flex;
-    gap:10px;
-    align-items:center;
-    color:var(--ink);
-    z-index:50;
-    min-width:min(520px, calc(100vw - 24px));
-    justify-content:space-between;
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .18s ease, transform .18s ease;
-  }
-  .toast.show{
-    opacity:1;
-    pointer-events:auto;
-    transform:translateX(-50%) translateY(-2px);
-  }
-  .toast .msg{
-    font-weight:750;
-    letter-spacing:.1px;
-    font-size:.92rem;
-    color:rgba(233,240,250,.95);
-  }
-  .toast .submsg{
-    font-size:.82rem;
-    color:var(--muted);
-    margin-top:2px;
-  }
-  .toast .left{ display:flex; flex-direction:column; gap:1px; min-width:0 }
-  .toast .right{ display:flex; gap:8px; flex:0 0 auto }
-  .toast .tbtn{
-    all:unset;
-    cursor:pointer;
-    padding:8px 10px;
-    border-radius:999px;
-    border:1px solid rgba(255,255,255,.14);
-    background:rgba(255,255,255,.06);
-    font-weight:850;
-    font-size:.88rem;
-  }
-  .toast .tbtn:hover{ filter:brightness(1.08) }
+.btn-primary { background: var(--accent); color: white; border-color: var(--accent2); }
+.btn-primary:hover { filter: brightness(1.08); }
 
-  /* Small utility */
-  .row2{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .row2 .left, .row2 .right{ display:flex; gap:10px; flex-wrap:wrap; align-items:center }
-  .stat{
-    font-size:.85rem;
-    color:var(--muted2);
-  }
+.btn-ghost { background: transparent; color: var(--ink2); border-color: var(--line); }
+.btn-ghost:hover { background: var(--surface2); }
+
+.btn-ok { background: var(--ok); color: white; }
+.btn-ok:hover { filter: brightness(1.08); }
+
+.btn-danger { background: transparent; color: var(--accent); border-color: #e8c5b8; }
+.btn-danger:hover { background: #fdf0eb; }
+
+.btn-sm { padding: 8px 14px; font-size: .82rem; }
+
+/* ─── Query preview ─── */
+.query-box {
+  font-family: var(--mono);
+  font-size: .9rem;
+  background: var(--ink);
+  color: #e8e0d5;
+  border-radius: var(--rad);
+  padding: 16px;
+  min-height: 60px;
+  word-break: break-all;
+  line-height: 1.6;
+  letter-spacing: .3px;
+  position: relative;
+}
+.query-box:empty::before {
+  content: "— tu consulta aparecerá aquí —";
+  color: #6b635a;
+  font-family: var(--sans);
+  font-style: italic;
+  font-size: .85rem;
+}
+
+.accent-word { color: #f4a26e; }
+.op-word { color: #74c7a5; font-weight: 600; }
+
+/* ─── Chips ─── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 6px;
+  border: 1.5px solid var(--line);
+  border-radius: 4px;
+  font-size: .85rem;
+  background: var(--surface2);
+  font-family: var(--sans);
+  animation: chipIn .15s ease;
+}
+@keyframes chipIn { from { opacity: 0; transform: scale(.92); } to { opacity: 1; transform: scale(1); } }
+
+.chip-op {
+  font-size: .65rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 800;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--ink);
+  color: white;
+}
+.chip-op.op-or { background: #2a6bc7; }
+.chip-op.op-and { background: var(--ok); }
+.chip-op.op-start { background: var(--accent); }
+
+.chip-text {
+  font-family: var(--mono);
+  font-size: .82rem;
+  color: var(--ink);
+}
+
+.chip-rm {
+  all: unset;
+  cursor: pointer;
+  color: var(--ink3);
+  font-size: .8rem;
+  line-height: 1;
+  padding: 2px;
+  border-radius: 3px;
+  transition: color .1s;
+}
+.chip-rm:hover { color: var(--accent); }
+
+.empty-msg {
+  color: var(--ink3);
+  font-size: .85rem;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+/* ─── Meta bar ─── */
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.meta-count {
+  font-size: .78rem;
+  color: var(--ink3);
+  letter-spacing: .5px;
+}
+.meta-count strong { color: var(--ink2); font-weight: 700; }
+
+/* ─── Toast ─── */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--ink);
+  color: white;
+  border-radius: var(--rad);
+  padding: 12px 18px;
+  font-size: .88rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s, transform .18s;
+  z-index: 100;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.toast-sub { font-weight: 400; color: #a39b8f; font-size: .82rem; }
+.toast-btn {
+  all: unset;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 4px;
+  background: rgba(255,255,255,.12);
+  font-size: .82rem;
+  font-weight: 700;
+  font-family: var(--sans);
+  transition: background .1s;
+}
+.toast-btn:hover { background: rgba(255,255,255,.2); }
+
+/* ─── Footer ─── */
+footer {
+  text-align: center;
+  padding: 12px 0 28px;
+  font-size: .75rem;
+  color: var(--ink3);
+  letter-spacing: 1px;
+}
 </style>
 </head>
 <body>
-  <div class="top">
-    <header>
-        <div style="min-width:0">
-          <h1>Mapache</h1>
-        </div>
-      </div>
 
-      <div class="headActions">
-        <button class="btn btnSmall btnGhost" id="undo" type="button" title="Deshacer último (Ctrl/⌘+Z)">↶ Deshacer</button>
-        <button class="btn btnSmall btnDanger" id="clearTop" type="button" title="Vaciar todo">🗑️ Vaciar</button>
-      </div>
-    </header>
+<div class="header">
+  <div class="brand">
+    <span class="logo-mark">DORKS</span>
+    <span class="tagline">Constructor de búsqueda</span>
   </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" id="undoBtn">↶ Deshacer</button>
+    <button class="btn btn-danger btn-sm" id="clearBtn">Limpiar todo</button>
+  </div>
+</div>
 
-  <main>
-    <section class="card" aria-labelledby="builderTitle">
-      <div class="row2">
-        <div class="left">
-          <strong id="builderTitle" style="letter-spacing:.2px">Constructor</strong>
-          <span class="stat" id="stat">0 elementos</span>
-        </div>
-        <div class="right">
-          <span class="stat" title="Se guarda en tu navegador (localStorage)">💾 Guardado automático</span>
-        </div>
+<main>
+
+  <!-- Builder -->
+  <div class="panel">
+    <div class="section-label">Constructor</div>
+
+    <div class="builder-row">
+      <div>
+        <div class="field-label"><span class="num">1</span> Operador</div>
+        <select id="dorkSel">
+          <option value="none">Texto libre</option>
+          <option value="quotes">"Frase exacta"</option>
+          <option value="minus">- Excluir</option>
+          <option value="plus">+ Obligatorio</option>
+          <option value="inurl">inurl:</option>
+          <option value="intitle">intitle:</option>
+          <option value="site">site:</option>
+          <option value="intext">intext:</option>
+          <option value="filetype">filetype:</option>
+          <option value="cache">cache:</option>
+          <option value="related">related:</option>
+          <option value="allintitle">allintitle:</option>
+          <option value="allinurl">allinurl:</option>
+          <option value="allintext">allintext:</option>
+        </select>
       </div>
 
-      <div class="grid" style="margin-top:12px">
-        <div class="field">
-          <label for="dork">1) Dork</label>
-          <select id="dork">
-            <option value="none">Ninguno (texto libre)</option>
-            <option value="quotes">"Frase exacta"</option>
-            <option value="minus">-Exclusión</option>
-            <option value="plus">+Obligatorio</option>
-            <option value="inurl">inurl:</option>
-            <option value="intitle">intitle:</option>
-            <option value="site">site:</option>
-            <option value="intext">intext:</option>
-            <option value="filetype">filetype:</option>
-            <option value="cache">cache:</option>
-            <option value="related">related:</option>
-            <option value="allintitle">allintitle:</option>
-            <option value="allinurl">allinurl:</option>
-            <option value="allintext">allintext:</option>
-          </select>
-          <div class="hint">Tip: usa <code>"comillas"</code> para exactitud. <code>Espacio</code> ≈ AND.</div>
-        </div>
+      <div>
+        <div class="field-label"><span class="num">2</span> Texto</div>
+        <input id="valorInput" type="text" placeholder='ej: contrato 2024, ejemplo.com, pdf' autocomplete="off" />
+        <div class="hint-text">Enter para añadir · Ctrl+Enter para buscar</div>
+      </div>
 
-        <div class="field">
-          <label for="valor">2) Texto</label>
-          <input id="valor" type="text" inputmode="text"
-                 placeholder='Ej.: informe 2024.pdf · ejemplo.com · contrato privado'
-                 autocomplete="off" />
-          <div class="hint">Enter: añadir · Esc: limpiar campo · Ctrl/⌘+Enter: buscar.</div>
-        </div>
-
-        <div class="field">
-          <label>3) Unión</label>
-          <div class="seg" role="group" aria-label="Uniones">
-            <div class="segRow">
-              <button type="button" class="segBtn active" data-op="space" title="Espacio (equivale a AND)">Espacio</button>
-              <button type="button" class="segBtn" data-op="AND">AND</button>
-              <button type="button" class="segBtn" data-op="OR">OR</button>
-            </div>
-          </div>
-          <div class="hint">Afecta al siguiente elemento que añadas.</div>
+      <div>
+        <div class="field-label"><span class="num">3</span> Unión con anterior</div>
+        <div class="op-toggle">
+          <button class="op-btn active" data-op="space">Espacio</button>
+          <button class="op-btn" data-op="AND">AND</button>
+          <button class="op-btn" data-op="OR">OR</button>
         </div>
       </div>
-
-      <div class="actions">
-        <button type="button" class="btn btnPrimary" id="add">➕ Añadir</button>
-        <button type="button" class="btn btnGhost" id="copy">📋 Copiar</button>
-        <button type="button" class="btn btnOk" id="search">🔎 Buscar</button>
-      </div>
-    </section>
-
-    <section class="card" aria-labelledby="chipsTitle">
-      <div class="row2">
-        <div class="left">
-          <strong id="chipsTitle" style="letter-spacing:.2px">Elementos</strong>
-          <span class="stat">Toca ✕ para eliminar uno</span>
-        </div>
-      </div>
-      <div id="chips" class="chips" aria-live="polite" style="margin-top:10px"></div>
-      <div class="help" style="margin-top:10px">
-        Puedes combinar comillas con <code>-</code> o <code>+</code> (ej.: <code>-"contrato privado"</code>).
-        Usa <code>OR</code> cuando cualquiera de los términos te valga.
-      </div>
-    </section>
-
-    <section class="card" aria-labelledby="qTitle">
-      <div class="row2">
-        <div class="left">
-          <strong id="qTitle" style="letter-spacing:.2px">Consulta actual</strong>
-          <span class="stat" id="qLen"></span>
-        </div>
-      </div>
-
-      <div id="preview" class="preview" aria-live="polite" style="margin-top:10px"></div>
-
-      <div class="help" style="margin-top:10px">
-        Nota: Google ha cambiado el comportamiento de <code>+</code> históricamente; para precisión, prioriza <code>"comillas"</code>.
-      </div>
-    </section>
-
-    <div class="foot">© Mapache • Dorks rápido y limpio</div>
-  </main>
-
-  <!-- Toast -->
-  <div class="toast" id="toast" role="status" aria-live="polite">
-    <div class="left">
-      <div class="msg" id="toastMsg">Listo</div>
-      <div class="submsg" id="toastSub"></div>
     </div>
-    <div class="right" id="toastRight"></div>
+
+    <div class="op-toggle" style="margin-top:18px">
+      <button class="op-btn" id="addBtn" style="background:var(--accent);color:white">+ Añadir</button>
+      <button class="op-btn" id="searchBtn" style="background:var(--ok);color:white">↗ Buscar</button>
+      <button class="op-btn" id="copyBtn">⎘ Copiar</button>
+    </div>
   </div>
+
+  <!-- Chips -->
+  <div class="panel">
+    <div class="meta">
+      <div class="section-label" style="margin-bottom:0">Elementos</div>
+      <div class="meta-count" id="countEl">0 elementos</div>
+    </div>
+    <div id="chips" class="chips">
+      <span class="empty-msg">Sin elementos aún — usa el constructor de arriba.</span>
+    </div>
+  </div>
+
+  <!-- Query -->
+  <div class="panel">
+    <div class="meta">
+      <div class="section-label" style="margin-bottom:0">Consulta generada</div>
+      <div class="meta-count" id="lenEl"></div>
+    </div>
+    <div id="preview" class="query-box"></div>
+  </div>
+
+</main>
+
+<footer>DORKS — guardado automático en tu navegador</footer>
+
+<div class="toast" id="toast">
+  <div>
+    <div id="toastMsg"></div>
+    <div id="toastSub" class="toast-sub"></div>
+  </div>
+  <div id="toastActions"></div>
+</div>
 
 <script>
 (() => {
-  const $ = s => document.querySelector(s);
+  const sel = id => document.getElementById(id);
 
-  const dorkSel   = $('#dork');
-  const valor     = $('#valor');
-  const chips     = $('#chips');
-  const preview   = $('#preview');
+  const dorkSel   = sel('dorkSel');
+  const valorInput= sel('valorInput');
+  const chipsEl   = sel('chips');
+  const preview   = sel('preview');
+  const addBtn    = sel('addBtn');
+  const searchBtn = sel('searchBtn');
+  const copyBtn   = sel('copyBtn');
+  const undoBtn   = sel('undoBtn');
+  const clearBtn  = sel('clearBtn');
+  const countEl   = sel('countEl');
+  const lenEl     = sel('lenEl');
+  const opBtns    = Array.from(document.querySelectorAll('.op-btn'));
+  const toast     = sel('toast');
+  const toastMsg  = sel('toastMsg');
+  const toastSub  = sel('toastSub');
+  const toastActs = sel('toastActions');
 
-  const addBtn    = $('#add');
-  const copyBtn   = $('#copy');
-  const searchBtn = $('#search');
-  const undoBtn   = $('#undo');
-  const clearTop  = $('#clearTop');
+  let parts = [];
+  let pendingOp = 'space';
+  let lastRemoved = null;
+  let toastTimer;
 
-  const stat      = $('#stat');
-  const qLen      = $('#qLen');
+  // Persistence
+  try { parts = JSON.parse(localStorage.getItem('dorks_v1') || '[]'); } catch {}
+  render();
 
-  const segBtns   = Array.from(document.querySelectorAll('.segBtn'));
+  // ── Operators ──
+  opBtns.forEach(b => b.addEventListener('click', () => {
+    pendingOp = b.dataset.op;
+    opBtns.forEach(x => x.classList.toggle('active', x === b));
+    valorInput.focus();
+  }));
 
-  const toast     = $('#toast');
-  const toastMsg  = $('#toastMsg');
-  const toastSub  = $('#toastSub');
-  const toastRight= $('#toastRight');
+  // ── Format ──
+  function fmt(kind, text) {
+    const t = text.trim();
+    if (!t) return '';
+    const needsQ = /\s/.test(t) && !/^".+"$/.test(t);
+    const q = s => needsQ ? `"${s}"` : s;
 
-  // Estado
-  let parts = [];              // {raw, shown, op}
-  let pendingOp = 'space';     // unión por defecto
-  let lastRemoved = null;      // {item, index}
-  let toastTimer = null;
-
-  // LocalStorage seguro
-  const safe = {
-    load(){
-      try{ return JSON.parse(localStorage.getItem('mapache_dorks_v1')||'[]'); }
-      catch{ return []; }
-    },
-    save(data){
-      try{ localStorage.setItem('mapache_dorks_v1', JSON.stringify(data)); }
-      catch{ /* modo privado / sin almacenamiento */ }
+    switch(kind) {
+      case 'quotes':   return /^".+"$/.test(t) ? t : `"${t}"`;
+      case 'minus':    return `-${q(t)}`;
+      case 'plus':     return `+${q(t)}`;
+      case 'none':     return t;
+      default:         return /^allin/.test(kind) ? `${kind}:${t}` : `${kind}:${q(t)}`;
     }
+  }
+
+  function buildQuery() {
+    return parts.map((p, i) => {
+      if (i === 0) return p.shown;
+      const op = p.op === 'space' ? ' ' : ` ${p.op} `;
+      return op + p.shown;
+    }).join('').trim();
+  }
+
+  // ── Render ──
+  function render() {
+    // chips
+    if (parts.length === 0) {
+      chipsEl.innerHTML = '<span class="empty-msg">Sin elementos aún — usa el constructor de arriba.</span>';
+    } else {
+      chipsEl.innerHTML = '';
+      parts.forEach((p, i) => {
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+
+        const opBadge = document.createElement('span');
+        opBadge.className = 'chip-op ' + (i === 0 ? 'op-start' : p.op === 'OR' ? 'op-or' : p.op === 'AND' ? 'op-and' : '');
+        opBadge.textContent = i === 0 ? 'INICIO' : p.op === 'space' ? '·' : p.op;
+
+        const txt = document.createElement('span');
+        txt.className = 'chip-text';
+        txt.textContent = p.shown;
+
+        const rm = document.createElement('button');
+        rm.className = 'chip-rm';
+        rm.textContent = '✕';
+        rm.title = 'Eliminar';
+        rm.onclick = () => {
+          lastRemoved = { item: parts[i], index: i };
+          parts.splice(i, 1);
+          save(); render();
+          toast_show('Eliminado', null, [{ label: 'Deshacer', fn: undoRemove }]);
+        };
+
+        chip.append(opBadge, txt, rm);
+        chipsEl.appendChild(chip);
+      });
+    }
+
+    // preview (syntax-highlighted)
+    const q = buildQuery();
+    if (!q) {
+      preview.innerHTML = '';
+    } else {
+      const html = q.replace(/(AND|OR)/g, '<span class="op-word">$1</span>')
+                    .replace(/(inurl|intitle|site|intext|filetype|cache|related|all\w+):/g, '<span class="accent-word">$1</span>:');
+      preview.innerHTML = html;
+    }
+
+    countEl.textContent = `${parts.length} elemento${parts.length !== 1 ? 's' : ''}`;
+    lenEl.textContent = q ? `${q.length} caracteres` : '';
+    undoBtn.style.opacity = (parts.length || lastRemoved) ? '1' : '.4';
+  }
+
+  function save() {
+    try { localStorage.setItem('dorks_v1', JSON.stringify(parts)); } catch {}
+  }
+
+  // ── Add ──
+  function addPiece() {
+    const kind = dorkSel.value;
+    const val  = valorInput.value.trim();
+    if (!val) { valorInput.focus(); return; }
+
+    const shown = fmt(kind, val);
+    parts.push({ shown, op: parts.length === 0 ? 'start' : pendingOp });
+    valorInput.value = '';
+    save(); render();
+    valorInput.focus();
+  }
+
+  addBtn.onclick = addPiece;
+  valorInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      if (e.ctrlKey || e.metaKey) doSearch();
+      else addPiece();
+    }
+    if (e.key === 'Escape') valorInput.value = '';
+  });
+
+  // ── Actions ──
+  function doSearch() {
+    const q = buildQuery();
+    if (!q) return;
+    window.open('https://www.google.com/search?q=' + encodeURIComponent(q), '_blank');
+  }
+
+  searchBtn.onclick = doSearch;
+
+  copyBtn.onclick = () => {
+    const q = buildQuery();
+    if (!q) return;
+    navigator.clipboard.writeText(q).then(() => toast_show('Copiado al portapapeles', q.slice(0, 50) + (q.length > 50 ? '…' : '')));
   };
 
-  // Restaurar
-  const saved = safe.load();
-  if (Array.isArray(saved) && saved.length){
-    parts = saved;
-  }
-  render();
-  setUnion('space', false);
-  valor.focus();
+  undoBtn.onclick = undoRemove;
 
-  // ------------------------- UI helpers -------------------------
-  function showToast(message, sub = '', actions = []) {
+  function undoRemove() {
+    if (!lastRemoved) return;
+    parts.splice(lastRemoved.index, 0, lastRemoved.item);
+    lastRemoved = null;
+    save(); render();
+    toast_show('Elemento restaurado');
+  }
+
+  clearBtn.onclick = () => {
+    if (!parts.length) return;
+    const backup = [...parts];
+    parts = [];
+    save(); render();
+    toast_show('Todo eliminado', null, [{ label: 'Deshacer', fn: () => { parts = backup; save(); render(); } }]);
+  };
+
+  // ── Toast ──
+  function toast_show(msg, sub, actions) {
     clearTimeout(toastTimer);
-    toastMsg.textContent = message || 'Listo';
+    toastMsg.textContent = msg;
     toastSub.textContent = sub || '';
-    toastRight.innerHTML = '';
-    actions.forEach(a => {
+    toastActs.innerHTML = '';
+    (actions || []).forEach(a => {
       const b = document.createElement('button');
-      b.className = 'tbtn';
-      b.type = 'button';
+      b.className = 'toast-btn';
       b.textContent = a.label;
-      b.addEventListener('click', () => {
-        hideToast();
-        a.onClick?.();
-      }, {passive:true});
-      toastRight.appendChild(b);
+      b.onclick = () => { hideToast(); a.fn(); };
+      toastActs.appendChild(b);
     });
     toast.classList.add('show');
-    toastTimer = setTimeout(hideToast, 1600);
-  }
-  function hideToast(){ toast.classList.remove('show'); }
-
-  function setUnion(op, focus=true){
-    pendingOp = op;
-    segBtns.forEach(b => b.classList.toggle('active', b.dataset.op === op));
-    if(focus) valor.focus();
+    toastTimer = setTimeout(hideToast, 2200);
   }
 
-  // ------------------------- Logic -------------------------
-  function needsQuotes(s){
-    if(/^".+"$/.test(s)) return false;
-    return /[\s]/.test(s);
-  }
+  function hideToast() { toast.classList.remove('show'); }
 
-  function fmtPiece(kind, text){
-    const t = (text || '').trim();
-    if(!t) return '';
-
-    switch(kind){
-      case 'none':
-        return t;
-
-      case 'quotes':
-        return /^".+"$/.test(t) ? t : `"${t}"`;
-
-      case 'minus':
-        if (needsQuotes(t)) return `-"${t.replace(/^"|"$/g,'')}"`;
-        return `-${t}`;
-
-      case 'plus':
-        if (needsQuotes(t)) return `+"${t.replace(/^"|"$/g,'')}"`;
-        return `+${t}`;
-
-      case 'inurl':
-      case 'intitle':
-      case 'site':
-      case 'intext':
-      case 'filetype':
-      case 'cache':
-      case 'related':
-      case 'allintitle':
-      case 'allinurl':
-      case 'allintext':
-        if(/^allin/.test(kind)){
-          return `${kind}:${t}`;
-        }
-        if (needsQuotes(t)) return `${kind}:"${t.replace(/^"|"$/g,'')}"`;
-        return `${kind}:${t}`;
-
-      default:
-        return t;
-    }
-  }
-
-  function buildQuery(){
-    let out = '';
-    parts.forEach((p,i)=>{
-      if(i===0){ out += p.shown; return; }
-      if(p.op==='space') out += ' ' + p.shown;
-      else out += ' ' + p.op + ' ' + p.shown;
-    });
-    return out.trim();
-  }
-
-  function badgeClass(op){
-    const up = (op||'').toUpperCase();
-    if(up === 'OR') return 'or';
-    if(up === 'AND') return 'and';
-    return 'space';
-  }
-
-  function opLabel(op){
-    const up = (op||'').toUpperCase();
-    if(up === 'SPACE') return 'ESPACIO';
-    return up;
-  }
-
-  function render(){
-    // Chips
-    chips.innerHTML = '';
-    parts.forEach((p, idx)=>{
-      const el = document.createElement('div');
-      el.className = 'chip';
-
-      const badge = document.createElement('span');
-      badge.className = `badge ${badgeClass(p.op)}`;
-      badge.textContent = (idx===0) ? 'INICIO' : opLabel(p.op);
-
-      const code = document.createElement('code');
-      code.textContent = p.shown;
-
-      const rm = document.createElement('button');
-      rm.type = 'button';
-      rm.setAttribute('aria-label', 'Eliminar elemento');
-      rm.textContent = '✕';
-
-      rm.addEventListener('click', ()=>{
-        lastRemoved = { item: parts[idx], index: idx };
-        parts.splice(idx,1);
-        safe.save(parts);
-        render();
-        showToast('Elemento eliminado', 'Puedes deshacer', [
-          { label:'Deshacer', onClick: undoLastRemove }
-        ]);
-      }, {passive:true});
-
-      el.appendChild(badge);
-      el.appendChild(code);
-      el.appendChild(rm);
-      chips.appendChild(el);
-    });
-
-    // Preview
-    const q = buildQuery();
-    preview.textContent = q;
-
-    // Stats
-    stat.textContent = `${parts.length} ${parts.length===1 ? 'elemento' : 'elementos'}`;
-    qLen.textContent = q ? `${q.length} caracteres` : '';
-    undoBtn.disabled = !(parts.length || lastRemoved);
-    undoBtn.style.opacity = undoBtn.disabled ? '.55' : '1';
-  }
-
-  function addPiece(){
-    const kind =
+})();
+</script>
+</body>
+</html>
