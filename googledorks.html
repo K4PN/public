@@ -168,6 +168,9 @@ select:focus, input:focus { border-color: var(--accent); }
   overflow: hidden;
   background: var(--bg);
 }
+.act-btn { flex:1; padding:10px 6px; border:none; background:var(--surface2); font-family:var(--sans); font-size:.85rem; font-weight:700; color:var(--ink2); cursor:pointer; transition:background .12s, color .12s; letter-spacing:.5px; }
+.act-btn:not(:last-child) { border-right:1.5px solid var(--line); }
+.act-btn:active { transform:translateY(1px); }
 .op-btn {
   flex: 1;
   padding: 10px 6px;
@@ -432,9 +435,9 @@ footer {
     </div>
 
     <div class="op-toggle" style="margin-top:18px">
-      <button class="op-btn" id="addBtn" style="background:var(--accent);color:white">+ Añadir</button>
-      <button class="op-btn" id="searchBtn" style="background:var(--ok);color:white">↗ Buscar</button>
-      <button class="op-btn" id="copyBtn">⎘ Copiar</button>
+      <button class="act-btn" id="addBtn" style="background:var(--accent);color:white">+ Añadir</button>
+      <button class="act-btn" id="searchBtn" style="background:var(--ok);color:white">↗ Buscar</button>
+      <button class="act-btn" id="copyBtn">⎘ Copiar</button>
     </div>
   </div>
 
@@ -543,8 +546,7 @@ footer {
         chip.className = 'chip';
 
         const opBadge = document.createElement('span');
-        opBadge.className = 'chip-op ' + (i === 0 ? 'op-start' : p.op === 'OR' ? 'op-or' : p.op === 'AND' ? 'op-and' : '');
-        opBadge.textContent = i === 0 ? 'INICIO' : p.op === 'space' ? '·' : p.op;
+        if (i === 0) { opBadge.style.display = 'none'; } else { opBadge.className = 'chip-op ' + (p.op === 'OR' ? 'op-or' : p.op === 'AND' ? 'op-and' : ''); opBadge.textContent = p.op === 'space' ? '·' : p.op; }
 
         const txt = document.createElement('span');
         txt.className = 'chip-text';
@@ -592,7 +594,7 @@ footer {
     if (!val) { valorInput.focus(); return; }
 
     const shown = fmt(kind, val);
-    parts.push({ shown, op: parts.length === 0 ? 'start' : pendingOp });
+    parts.push({ shown, op: pendingOp });
     valorInput.value = '';
     save(); render();
     valorInput.focus();
