@@ -4,1207 +4,630 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Reportaje Fotográfico · Registro</title>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
   <style>
     :root {
-      --primary: #1a1a2e;
-      --secondary: #16213e;
-      --accent: #c8986b;
-      --accent-light: #d4ab7f;
-      --text-light: #f5f5f5;
-      --text-muted: #a0a0a0;
-      --surface: #0f0f1e;
-      --border: rgba(200, 152, 107, 0.2);
-      --shadow: rgba(0, 0, 0, 0.4);
+      --primary: #1a1a2e; --secondary: #16213e; --accent: #c8986b;
+      --accent-light: #d4ab7f; --text-light: #f5f5f5; --text-muted: #a0a0a0;
+      --surface: #0f0f1e; --border: rgba(200,152,107,0.2); --shadow: rgba(0,0,0,0.4);
     }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Crimson Pro',serif; background:linear-gradient(135deg,var(--surface) 0%,var(--primary) 100%); color:var(--text-light); min-height:100vh; padding:20px; line-height:1.6; }
+    .container { max-width:660px; margin:0 auto; animation:fadeIn .6s ease-out; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes slideDown { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes scaleIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+    @keyframes slideInLeft { from{opacity:0;transform:translateX(-30px)} to{opacity:1;transform:translateX(0)} }
+    @keyframes modalSlideUp { from{opacity:0;transform:translateY(50px) scale(.9)} to{opacity:1;transform:translateY(0) scale(1)} }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .header { text-align:center; margin-bottom:28px; padding-bottom:22px; border-bottom:1px solid var(--border); animation:slideDown .8s ease-out; }
+    .header h1 { font-size:2.2rem; font-weight:700; letter-spacing:-.02em; margin-bottom:10px; background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+    .header .subtitle { font-family:'DM Mono',monospace; font-size:.85rem; color:var(--text-muted); letter-spacing:.1em; text-transform:uppercase; }
 
-    body {
-      font-family: 'Crimson Pro', serif;
-      background: linear-gradient(135deg, var(--surface) 0%, var(--primary) 100%);
-      color: var(--text-light);
-      min-height: 100vh;
-      padding: 20px;
-      line-height: 1.6;
-    }
+    .info-card { background:rgba(22,33,62,.6); backdrop-filter:blur(10px); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:18px; box-shadow:0 8px 32px var(--shadow); animation:scaleIn .6s ease-out .2s backwards; }
+    .grid { display:grid; grid-template-columns:1fr; gap:14px; }
+    @media(min-width:520px){ .grid{grid-template-columns:1fr 1fr} .span2{grid-column:1/-1} }
+    .form-group { margin-bottom:0; }
+    .form-label { font-family:'DM Mono',monospace; font-size:.75rem; color:var(--accent); text-transform:uppercase; letter-spacing:.15em; margin-bottom:8px; display:block; font-weight:500; }
+    .form-input, .form-textarea { width:100%; padding:14px 16px; background:rgba(15,15,30,.6); border:1px solid var(--border); border-radius:10px; color:var(--text-light); font-family:'Crimson Pro',serif; font-size:1rem; transition:all .3s ease; }
+    .form-input:focus, .form-textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(200,152,107,.1); }
+    .form-textarea { min-height:80px; resize:vertical; }
 
-    .container {
-      max-width: 660px;
-      margin: 0 auto;
-      animation: fadeIn 0.6s ease-out;
-    }
+    .button-group { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; animation:scaleIn .6s ease-out .35s backwards; }
+    .button-group + .button-group { margin-top:12px; }
+    .btn-add { flex:1; padding:16px; background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); color:var(--primary); border:none; border-radius:12px; font-family:'Crimson Pro',serif; font-size:1.05rem; font-weight:700; cursor:pointer; transition:all .3s ease; box-shadow:0 4px 20px rgba(200,152,107,.3); text-transform:uppercase; letter-spacing:.05em; }
+    .btn-add:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(200,152,107,.5); }
+    .btn-export { padding:16px 18px; background:rgba(255,255,255,.1); color:var(--text-light); border:1px solid var(--border); border-radius:12px; font-family:'Crimson Pro',serif; font-size:1.05rem; font-weight:700; cursor:pointer; transition:all .3s ease; text-transform:uppercase; letter-spacing:.05em; display:inline-flex; align-items:center; gap:10px; flex:1; justify-content:center; }
+    .btn-export:hover { background:rgba(255,255,255,.15); transform:translateY(-2px); }
+    .btn-danger { padding:16px 18px; background:rgba(255,255,255,.05); color:var(--text-light); border:1px solid rgba(255,120,120,.25); border-radius:12px; font-family:'Crimson Pro',serif; font-size:1.05rem; font-weight:700; cursor:pointer; transition:all .3s ease; text-transform:uppercase; letter-spacing:.05em; flex:1; justify-content:center; display:inline-flex; align-items:center; gap:10px; }
+    .btn-danger:hover { background:rgba(255,120,120,.1); transform:translateY(-2px); }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    .photos-section { margin-top:26px; }
+    .photos-title { font-size:1.5rem; font-weight:700; margin-bottom:14px; color:var(--accent); display:flex; align-items:center; gap:12px; justify-content:space-between; }
+    .photos-title .left { display:flex; align-items:center; gap:12px; }
+    .photo-count { font-family:'DM Mono',monospace; font-size:.8rem; background:rgba(200,152,107,.2); padding:4px 12px; border-radius:20px; font-weight:500; color:var(--text-light); }
 
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-30px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    .photos-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .photo-card { background:rgba(22,33,62,.4); border:1px solid var(--border); border-radius:14px; overflow:hidden; animation:slideInLeft .4s ease-out; transition:all .3s ease; display:flex; flex-direction:column; }
+    .photo-card:hover { border-color:rgba(200,152,107,.5); box-shadow:0 4px 20px rgba(0,0,0,.3); }
+    .photo-img-wrap { position:relative; width:100%; aspect-ratio:4/3; background:rgba(15,15,30,.8); overflow:hidden; }
+    .photo-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+    .photo-num-badge { position:absolute; top:8px; left:8px; background:rgba(0,0,0,.65); border:1px solid var(--border); color:var(--accent); font-family:'DM Mono',monospace; font-size:.65rem; padding:3px 8px; border-radius:999px; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(4px); }
+    .photo-del-btn { position:absolute; top:8px; right:8px; background:rgba(180,40,40,.75); border:none; color:white; font-size:.7rem; font-weight:700; padding:4px 8px; border-radius:8px; cursor:pointer; backdrop-filter:blur(4px); transition:background .2s; font-family:'DM Mono',monospace; }
+    .photo-del-btn:hover { background:rgba(220,40,40,.95); }
+    .photo-caption-area { padding:10px 12px 12px; flex:1; }
+    .photo-caption-label { font-family:'DM Mono',monospace; font-size:.68rem; color:var(--accent); text-transform:uppercase; letter-spacing:.12em; margin-bottom:5px; }
+    .photo-caption-input { width:100%; background:rgba(15,15,30,.5); border:1px solid var(--border); border-radius:8px; color:var(--text-light); font-family:'Crimson Pro',serif; font-size:.92rem; padding:8px 10px; resize:none; min-height:56px; transition:border-color .2s; }
+    .photo-caption-input:focus { outline:none; border-color:var(--accent); }
+    .empty-state { text-align:center; padding:46px 16px; color:var(--text-muted); font-style:italic; border:1px dashed rgba(200,152,107,.25); border-radius:14px; background:rgba(22,33,62,.25); grid-column:1/-1; }
 
-    @keyframes scaleIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to   { opacity: 1; transform: scale(1); }
-    }
+    /* Modal */
+    .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.88); backdrop-filter:blur(10px); z-index:1000; animation:fadeIn .3s ease; padding:16px; }
+    .modal-overlay.active { display:flex; align-items:flex-start; justify-content:center; padding-top:12px; }
+    .modal { background:var(--secondary); border:1px solid var(--border); border-radius:20px; padding:26px; max-width:500px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.6); animation:modalSlideUp .4s ease-out; max-height:calc(100dvh - 24px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    .modal h2 { font-size:1.7rem; font-weight:700; margin-bottom:18px; color:var(--accent); letter-spacing:-.01em; }
 
-    @keyframes slideInLeft {
-      from { opacity: 0; transform: translateX(-30px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
+    .camera-container { position:relative; width:100%; aspect-ratio:4/3; background:#000; border-radius:12px; overflow:hidden; margin-bottom:16px; }
+    #cameraVideo { width:100%; height:100%; object-fit:cover; display:block; }
+    #cameraCanvas { display:none; }
+    .preview-wrap { display:none; margin-bottom:14px; }
+    .preview-wrap.active { display:block; }
+    #previewImg { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:12px; margin-bottom:12px; display:block; }
 
-    @keyframes modalSlideUp {
-      from { opacity: 0; transform: translateY(50px) scale(0.9); }
-      to   { opacity: 1; transform: translateY(0) scale(1); }
-    }
+    .camera-select-wrap { margin-bottom:14px; display:none; }
+    .camera-select { width:100%; padding:10px 14px; background:rgba(15,15,30,.6); border:1px solid var(--border); border-radius:10px; color:var(--text-light); font-family:'DM Mono',monospace; font-size:.82rem; }
 
-    .header {
-      text-align: center;
-      margin-bottom: 28px;
-      padding-bottom: 22px;
-      border-bottom: 1px solid var(--border);
-      animation: slideDown 0.8s ease-out;
-    }
+    .modal-buttons { display:flex; gap:12px; flex-wrap:wrap; position:sticky; bottom:0; background:var(--secondary); padding-top:14px; padding-bottom:calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--border); z-index:5; margin-top:14px; }
+    .btn { flex:1; padding:14px; border:none; border-radius:10px; font-family:'Crimson Pro',serif; font-size:1rem; font-weight:600; cursor:pointer; transition:all .3s ease; text-transform:uppercase; letter-spacing:.05em; }
+    .btn-primary { background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); color:var(--primary); box-shadow:0 4px 15px rgba(200,152,107,.3); }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(200,152,107,.5); }
+    .btn-secondary { background:rgba(255,255,255,.1); color:var(--text-light); border:1px solid var(--border); }
+    .btn-secondary:hover { background:rgba(255,255,255,.15); }
+    .hint { margin-top:10px; font-family:'DM Mono',monospace; font-size:.78rem; color:var(--text-muted); letter-spacing:.02em; }
 
-    .header h1 {
-      font-size: 2.2rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 10px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
+    .toast { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); background:rgba(0,0,0,.75); border:1px solid var(--border); color:var(--text-light); padding:10px 18px; border-radius:999px; font-family:'DM Mono',monospace; font-size:.85rem; display:none; z-index:2000; max-width:calc(100% - 28px); text-align:center; }
+    .toast.show { display:block; }
 
-    .header .subtitle {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .info-card {
-      background: rgba(22, 33, 62, 0.6);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 18px;
-      box-shadow: 0 8px 32px var(--shadow);
-      animation: scaleIn 0.6s ease-out 0.2s backwards;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-    @media (min-width: 520px){
-      .grid { grid-template-columns: 1fr 1fr; }
-      .span2 { grid-column: 1 / -1; }
-    }
-
-    .form-group { margin-bottom: 0; }
-    .form-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      margin-bottom: 8px;
-      display: block;
-      font-weight: 500;
-    }
-
-    .form-input,
-    .form-textarea {
-      width: 100%;
-      padding: 14px 16px;
-      background: rgba(15, 15, 30, 0.6);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text-light);
-      font-family: 'Crimson Pro', serif;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-
-    .form-input:focus,
-    .form-textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(200, 152, 107, 0.1);
-    }
-
-    .form-textarea { min-height: 80px; resize: vertical; }
-
-    /* Botonera */
-    .button-group {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-      animation: scaleIn 0.6s ease-out 0.35s backwards;
-    }
-
-    .btn-add {
-      flex: 1;
-      padding: 16px;
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-      color: var(--primary);
-      border: none;
-      border-radius: 12px;
-      font-family: 'Crimson Pro', serif;
-      font-size: 1.05rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 20px rgba(200, 152, 107, 0.3);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(200, 152, 107, 0.5); }
-    .btn-add:active { transform: translateY(0); }
-
-    .btn-export {
-      padding: 16px 18px;
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-light);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      font-family: 'Crimson Pro', serif;
-      font-size: 1.05rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1;
-      justify-content: center;
-    }
-    .btn-export:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
-
-    .btn-danger {
-      padding: 16px 18px;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text-light);
-      border: 1px solid rgba(255, 120, 120, 0.25);
-      border-radius: 12px;
-      font-family: 'Crimson Pro', serif;
-      font-size: 1.05rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      flex: 1;
-      justify-content: center;
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .btn-danger:hover { background: rgba(255, 120, 120, 0.10); transform: translateY(-2px); }
-
-    /* Sección fotos */
-    .photos-section { margin-top: 26px; }
-
-    .photos-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 14px;
-      color: var(--accent);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      justify-content: space-between;
-    }
-
-    .photos-title .left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .photo-count {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.8rem;
-      background: rgba(200, 152, 107, 0.2);
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-weight: 500;
-      color: var(--text-light);
-    }
-
-    /* Grid de fotos (2 columnas) */
-    .photos-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    .photo-card {
-      background: rgba(22, 33, 62, 0.4);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-      animation: slideInLeft 0.4s ease-out;
-      transition: all 0.3s ease;
-      display: flex;
-      flex-direction: column;
-    }
-    .photo-card:hover {
-      border-color: rgba(200, 152, 107, 0.5);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-
-    .photo-img-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 4/3;
-      background: rgba(15,15,30,0.8);
-      overflow: hidden;
-    }
-
-    .photo-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .photo-num-badge {
-      position: absolute;
-      top: 8px;
-      left: 8px;
-      background: rgba(0,0,0,0.65);
-      border: 1px solid var(--border);
-      color: var(--accent);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.65rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      backdrop-filter: blur(4px);
-    }
-
-    .photo-del-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: rgba(180,40,40,0.75);
-      border: none;
-      color: white;
-      font-size: 0.7rem;
-      font-weight: 700;
-      padding: 4px 8px;
-      border-radius: 8px;
-      cursor: pointer;
-      backdrop-filter: blur(4px);
-      transition: background 0.2s;
-      font-family: 'DM Mono', monospace;
-    }
-    .photo-del-btn:hover { background: rgba(220,40,40,0.95); }
-
-    .photo-caption-area {
-      padding: 10px 12px 12px;
-      flex: 1;
-    }
-
-    .photo-caption-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.68rem;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 5px;
-    }
-
-    .photo-caption-input {
-      width: 100%;
-      background: rgba(15,15,30,0.5);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-light);
-      font-family: 'Crimson Pro', serif;
-      font-size: 0.92rem;
-      padding: 8px 10px;
-      resize: none;
-      min-height: 56px;
-      transition: border-color 0.2s;
-    }
-    .photo-caption-input:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 46px 16px;
-      color: var(--text-muted);
-      font-style: italic;
-      border: 1px dashed rgba(200, 152, 107, 0.25);
-      border-radius: 14px;
-      background: rgba(22,33,62,0.25);
-      grid-column: 1 / -1;
-    }
-
-    /* Cámara modal */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.88);
-      backdrop-filter: blur(10px);
-      z-index: 1000;
-      animation: fadeIn 0.3s ease;
-      padding: 16px;
-    }
-    .modal-overlay.active {
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding-top: 12px;
-    }
-
-    .modal {
-      background: var(--secondary);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 26px;
-      max-width: 500px;
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-      animation: modalSlideUp 0.4s ease-out;
-      max-height: calc(100dvh - 24px);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .modal h2 {
-      font-size: 1.7rem;
-      font-weight: 700;
-      margin-bottom: 18px;
-      color: var(--accent);
-      letter-spacing: -0.01em;
-    }
-
-    /* Área de cámara */
-    .camera-container {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 4/3;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 16px;
-    }
-
-    #cameraVideo {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    #cameraCanvas {
-      display: none;
-    }
-
-    .camera-preview-wrap {
-      display: none;
-    }
-
-    .camera-preview-wrap.active {
-      display: block;
-    }
-
-    #previewImg {
-      width: 100%;
-      aspect-ratio: 4/3;
-      object-fit: cover;
-      border-radius: 12px;
-      margin-bottom: 14px;
-    }
-
-    /* selector de cámara */
-    .camera-select-wrap {
-      margin-bottom: 14px;
-    }
-
-    .camera-select {
-      width: 100%;
-      padding: 10px 14px;
-      background: rgba(15, 15, 30, 0.6);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      color: var(--text-light);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.82rem;
-    }
-
-    .modal-buttons {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      position: sticky;
-      bottom: 0;
-      background: var(--secondary);
-      padding-top: 14px;
-      padding-bottom: calc(10px + env(safe-area-inset-bottom));
-      border-top: 1px solid var(--border);
-      z-index: 5;
-    }
-
-    .btn {
-      flex: 1;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      font-family: 'Crimson Pro', serif;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
-      color: var(--primary);
-      box-shadow: 0 4px 15px rgba(200, 152, 107, 0.3);
-    }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(200, 152, 107, 0.5); }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.1);
-      color: var(--text-light);
-      border: 1px solid var(--border);
-    }
-    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
-
-    .hint {
-      margin-top: 10px;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      letter-spacing: 0.02em;
-    }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,.75);
-      border: 1px solid var(--border);
-      color: var(--text-light);
-      padding: 10px 18px;
-      border-radius: 999px;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.85rem;
-      display: none;
-      z-index: 2000;
-      max-width: calc(100% - 28px);
-      text-align: center;
-    }
-    .toast.show { display: block; }
-
-    /* Galería: estado de carga */
-    .loading-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-      padding: 4px 10px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
-
-    .button-group + .button-group { margin-top: 12px; }
-
-    @media (max-width: 480px) {
-      body { padding: 14px; }
-      .header h1 { font-size: 1.9rem; }
-      .modal { padding: 18px; }
-      .modal-buttons { flex-direction: column; }
-      .button-group { flex-direction: column; }
-      .btn-export, .btn-add, .btn-danger { justify-content: center; width: 100%; }
-      .photos-grid { grid-template-columns: 1fr; }
-    }
-
-    @media (max-width: 380px) {
-      .photos-grid { grid-template-columns: 1fr; }
+    @media(max-width:480px) {
+      body { padding:14px; } .header h1 { font-size:1.9rem; }
+      .modal { padding:18px; } .modal-buttons { flex-direction:column; }
+      .button-group { flex-direction:column; }
+      .btn-export,.btn-add,.btn-danger { justify-content:center; width:100%; }
+      .photos-grid { grid-template-columns:1fr; }
     }
   </style>
 </head>
-
 <body>
-  <div class="container">
-
-    <div class="header">
-      <h1>Reportaje Fotográfico</h1>
-      <div class="subtitle">Diligencia de Registro</div>
-    </div>
-
-    <!-- Datos del registro -->
-    <section class="info-card" aria-label="Datos del registro">
-      <div class="grid">
-        <div class="form-group">
-          <label class="form-label" for="asunto">Asunto</label>
-          <input class="form-input" id="asunto" placeholder="Ej: Estafa informática" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="grupo">Grupo de Investigación</label>
-          <input class="form-input" id="grupo" placeholder="Ej: Grupo / Unidad" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="juzgado">Juzgado</label>
-          <input class="form-input" id="juzgado" placeholder="Ej: J. Instrucción nº..." />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="procedimiento">Procedimiento</label>
-          <input class="form-input" id="procedimiento" placeholder="Ej: Diligencias Previas 123/2026" />
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fechaHora">Fecha y hora del registro</label>
-          <input class="form-input" id="fechaHora" type="datetime-local" />
-        </div>
-        <div class="form-group span2">
-          <label class="form-label" for="direccion">Dirección</label>
-          <input class="form-input" id="direccion" placeholder="C/ ..., nº..., localidad" />
-        </div>
-      </div>
-
-      <div class="button-group">
-        <button class="btn-add" id="btnGuardarCabecera" type="button">Guardar datos</button>
-        <button class="btn-danger" id="btnResetAll" type="button">Borrar todo</button>
-      </div>
-    </section>
-
-    <!-- Botones acción -->
-    <div class="button-group">
-      <button class="btn-add" id="btnOpenCamera" type="button">📷 Tomar foto</button>
-      <button class="btn-export" id="btnExportOdt" type="button">📄 Exportar ODT</button>
-    </div>
-
-    <!-- Galería de fotos -->
-    <section class="photos-section" aria-label="Fotos del reportaje">
-      <div class="photos-title">
-        <div class="left">
-          <span>Reportaje</span>
-          <span class="photo-count" id="count">0 fotos</span>
-        </div>
-      </div>
-      <div class="photos-grid" id="photoGrid">
-        <div class="empty-state" id="emptyState">
-          <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin:0 auto 14px;opacity:0.25;display:block">
-            <rect x="8" y="24" width="80" height="58" rx="8" stroke="currentColor" stroke-width="3"/>
-            <circle cx="48" cy="53" r="16" stroke="currentColor" stroke-width="3"/>
-            <circle cx="48" cy="53" r="7" stroke="currentColor" stroke-width="2.5"/>
-            <path d="M32 24l5-10h22l5 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Aún no has añadido fotos. Pulsa "Tomar foto".
-        </div>
-      </div>
-    </section>
-
-  </div><!-- /container -->
-
-  <!-- Modal cámara -->
-  <div class="modal-overlay" id="cameraModal" role="dialog" aria-modal="true" aria-labelledby="cameraModalTitle">
-    <div class="modal">
-      <h2 id="cameraModalTitle">Tomar foto</h2>
-
-      <!-- Selector de cámara (aparece si hay varias) -->
-      <div class="camera-select-wrap" id="cameraSelectWrap" style="display:none">
-        <label class="form-label" for="cameraSelect">Cámara</label>
-        <select class="camera-select" id="cameraSelect"></select>
-      </div>
-
-      <!-- Video stream -->
-      <div class="camera-container" id="cameraContainer">
-        <video id="cameraVideo" autoplay playsinline muted></video>
-        <canvas id="cameraCanvas"></canvas>
-      </div>
-
-      <!-- Preview tras capturar -->
-      <div class="camera-preview-wrap" id="previewWrap">
-        <img id="previewImg" src="" alt="Foto capturada" />
-        <div class="form-group">
-          <label class="form-label" for="captionInput">Nota / pie de foto</label>
-          <textarea class="form-textarea" id="captionInput" placeholder="Describe lo que muestra la fotografía..."></textarea>
-        </div>
-      </div>
-
-      <p class="hint" id="cameraHint">Apunta la cámara y pulsa "Capturar".</p>
-
-      <div class="modal-buttons" id="cameraButtons">
-        <button class="btn btn-primary" id="btnCapture" type="button">Capturar</button>
-        <button class="btn btn-secondary" id="btnSwitchCam" type="button" style="display:none">Cambiar cámara</button>
-        <button class="btn btn-secondary" id="btnCloseCamera" type="button">Cerrar</button>
-      </div>
-    </div>
+<div class="container">
+  <div class="header">
+    <h1>Reportaje Fotográfico</h1>
+    <div class="subtitle">Diligencia de Registro</div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <section class="info-card" aria-label="Datos del registro">
+    <div class="grid">
+      <div class="form-group">
+        <label class="form-label" for="asunto">Asunto</label>
+        <input class="form-input" id="asunto" placeholder="Ej: Estafa informatica" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="grupo">Grupo de Investigacion</label>
+        <input class="form-input" id="grupo" placeholder="Ej: Grupo / Unidad" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="juzgado">Juzgado</label>
+        <input class="form-input" id="juzgado" placeholder="Ej: J. Instruccion num..." />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="procedimiento">Procedimiento</label>
+        <input class="form-input" id="procedimiento" placeholder="Ej: Diligencias Previas 123/2026" />
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="fechaHora">Fecha y hora del registro</label>
+        <input class="form-input" id="fechaHora" type="datetime-local" />
+      </div>
+      <div class="form-group span2">
+        <label class="form-label" for="direccion">Direccion</label>
+        <input class="form-input" id="direccion" placeholder="C/ ..., num..., localidad" />
+      </div>
+    </div>
+    <div class="button-group">
+      <button class="btn-add" id="btnGuardarCabecera" type="button">Guardar datos</button>
+      <button class="btn-danger" id="btnResetAll" type="button">Borrar todo</button>
+    </div>
+  </section>
 
-  <!-- JSZip para generar el ODT -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+  <div class="button-group">
+    <button class="btn-add" id="btnOpenCamera" type="button">Tomar foto</button>
+    <button class="btn-export" id="btnExportOdt" type="button">Exportar ODT</button>
+  </div>
 
-  <script>
-    // =======================================
-    // REPORTAJE FOTOGRÁFICO · Registro
-    // =======================================
+  <section class="photos-section">
+    <div class="photos-title">
+      <div class="left">
+        <span>Reportaje</span>
+        <span class="photo-count" id="count">0 fotos</span>
+      </div>
+    </div>
+    <div class="photos-grid" id="photoGrid">
+      <div class="empty-state" id="emptyState">
+        <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:64px;height:64px;margin:0 auto 14px;opacity:.2;display:block">
+          <rect x="8" y="24" width="80" height="58" rx="8" stroke="currentColor" stroke-width="3"/>
+          <circle cx="48" cy="53" r="16" stroke="currentColor" stroke-width="3"/>
+          <circle cx="48" cy="53" r="7" stroke="currentColor" stroke-width="2.5"/>
+          <path d="M32 24l5-10h22l5 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Aun no hay fotos. Pulsa "Tomar foto".
+      </div>
+    </div>
+  </section>
+</div>
 
-    const LS_KEY = "reportaje_fotografico_v1";
-    const $ = (id) => document.getElementById(id);
+<!-- Modal camara -->
+<div class="modal-overlay" id="cameraModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2 id="cameraModalTitle">Tomar foto</h2>
 
-    // Estado
-    const state = {
-      header: { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" },
-      photos: [] // { id, dataUrl, caption, createdAt }
-    };
+    <div class="camera-select-wrap" id="cameraSelectWrap">
+      <label class="form-label" for="cameraSelect">Camara</label>
+      <select class="camera-select" id="cameraSelect"></select>
+    </div>
 
-    // Cámara
-    let currentStream = null;
-    let capturedDataUrl = null;
-    let videoDevices = [];
-    let currentDeviceIndex = 0;
+    <!-- Video en vivo -->
+    <div class="camera-container" id="cameraContainer">
+      <video id="cameraVideo" autoplay playsinline muted></video>
+      <canvas id="cameraCanvas"></canvas>
+    </div>
 
-    // ─── Persistencia ────────────────────────────────────────────
-    function saveState() {
-      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(_){}
-    }
+    <!-- Preview tras captura -->
+    <div class="preview-wrap" id="previewWrap">
+      <img id="previewImg" src="" alt="Foto capturada" />
+      <div class="form-group">
+        <label class="form-label" for="captionInput">Pie de foto</label>
+        <textarea class="form-textarea" id="captionInput" placeholder="Describe lo que muestra la fotografia..."></textarea>
+      </div>
+    </div>
 
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(LS_KEY);
-        if (!raw) return;
-        const p = JSON.parse(raw);
-        if (p && typeof p === "object") {
-          state.header = { ...state.header, ...(p.header || {}) };
-          state.photos = Array.isArray(p.photos) ? p.photos : [];
-        }
-      } catch(_){}
-    }
+    <p class="hint" id="cameraHint">Apunta la camara y pulsa Capturar.</p>
 
-    // ─── Toast ───────────────────────────────────────────────────
-    function toast(msg) {
-      const t = $("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      clearTimeout(toast._t);
-      toast._t = setTimeout(() => t.classList.remove("show"), 1800);
-    }
+    <div class="modal-buttons">
+      <button class="btn btn-primary" id="btnCapture" type="button">Capturar</button>
+      <button class="btn btn-secondary" id="btnRetake" type="button" style="display:none">Repetir</button>
+      <button class="btn btn-secondary" id="btnSwitchCam" type="button" style="display:none">Cambiar camara</button>
+      <button class="btn btn-secondary" id="btnCloseCamera" type="button">Cerrar</button>
+    </div>
+  </div>
+</div>
 
-    // ─── Utilidades ──────────────────────────────────────────────
-    function safeId() {
-      return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
-    }
-    function escHtml(s) {
-      return (s??'').toString()
-        .replaceAll("&","&amp;").replaceAll("<","&lt;")
-        .replaceAll(">","&gt;").replaceAll('"',"&quot;");
-    }
+<div class="toast" id="toast"></div>
 
-    // ─── Render cabecera ─────────────────────────────────────────
-    function renderHeader() {
-      $("asunto").value = state.header.asunto || "";
-      $("grupo").value = state.header.grupo || "";
-      $("juzgado").value = state.header.juzgado || "";
-      $("procedimiento").value = state.header.procedimiento || "";
-      $("fechaHora").value = state.header.fechaHora || "";
-      $("direccion").value = state.header.direccion || "";
-    }
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-    function saveHeaderFromInputs() {
-      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
-        state.header[id] = ($(id).value || "").trim();
-      });
-      saveState();
-      toast("Datos guardados");
-    }
+<script>
+  const LS_KEY = "reportaje_v2";
+  const $ = id => document.getElementById(id);
 
-    // ─── Render galería ──────────────────────────────────────────
-    function renderGallery() {
-      const grid = $("photoGrid");
-      const empty = $("emptyState");
+  const state = {
+    header: { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" },
+    photos: []
+  };
 
-      // Eliminar tarjetas anteriores (no el empty)
-      [...grid.querySelectorAll(".photo-card")].forEach(c => c.remove());
+  let currentStream = null;
+  let capturedDataUrl = null;
+  let videoDevices = [];
+  let currentDeviceIndex = 0;
+  // Modos del modal: "live" | "preview"
+  let cameraMode = "live";
 
-      const n = state.photos.length;
-      $("count").textContent = `${n} foto${n !== 1 ? "s" : ""}`;
-
-      if (n === 0) {
-        empty.style.display = "block";
-        return;
+  // ── Persistencia ──────────────────────────────────────────────
+  function saveState() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(_) {}
+  }
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      if (p && typeof p === "object") {
+        state.header = Object.assign({}, state.header, p.header || {});
+        state.photos = Array.isArray(p.photos) ? p.photos : [];
       }
-      empty.style.display = "none";
+    } catch(_) {}
+  }
 
-      state.photos.forEach((ph, idx) => {
-        const card = document.createElement("div");
-        card.className = "photo-card";
-        card.dataset.id = ph.id;
+  // ── Toast ─────────────────────────────────────────────────────
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove("show"), 2000);
+  }
 
-        card.innerHTML = `
-          <div class="photo-img-wrap">
-            <img src="${escHtml(ph.dataUrl)}" alt="Foto ${idx+1}" loading="lazy" />
-            <span class="photo-num-badge">Foto ${String(idx+1).padStart(2,"0")}</span>
-            <button class="photo-del-btn" data-action="del" data-id="${escHtml(ph.id)}" type="button">✕</button>
-          </div>
-          <div class="photo-caption-area">
-            <div class="photo-caption-label">Pie de foto</div>
-            <textarea class="photo-caption-input" data-id="${escHtml(ph.id)}"
-              placeholder="Descripción de la fotografía..."
-              rows="3">${escHtml(ph.caption || "")}</textarea>
-          </div>
-        `;
+  // ── Utilidades ────────────────────────────────────────────────
+  function safeId() {
+    return Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
+  }
+  function escHtml(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
 
-        grid.appendChild(card);
-      });
-
-      // Eventos: cambio de caption → guardar en estado
-      grid.querySelectorAll(".photo-caption-input").forEach(ta => {
-        ta.addEventListener("input", () => {
-          const id = ta.dataset.id;
-          const ph = state.photos.find(p => p.id === id);
-          if (ph) { ph.caption = ta.value; saveState(); }
-        });
-      });
-    }
-
-    function deletePhoto(id) {
-      const ph = state.photos.find(p => p.id === id);
-      if (!ph) return;
-      const idx = state.photos.indexOf(ph);
-      if (!confirm(`¿Borrar la Foto ${idx+1}?`)) return;
-      state.photos = state.photos.filter(p => p.id !== id);
-      saveState();
-      renderGallery();
-      toast("Foto eliminada");
-    }
-
-    // ─── Cámara ──────────────────────────────────────────────────
-    async function enumerateCameras() {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        videoDevices = devices.filter(d => d.kind === "videoinput");
-        const sel = $("cameraSelect");
-        sel.innerHTML = "";
-        videoDevices.forEach((d, i) => {
-          const opt = document.createElement("option");
-          opt.value = i;
-          opt.textContent = d.label || `Cámara ${i+1}`;
-          sel.appendChild(opt);
-        });
-        if (videoDevices.length > 1) {
-          $("cameraSelectWrap").style.display = "block";
-          $("btnSwitchCam").style.display = "inline-flex";
-        } else {
-          $("cameraSelectWrap").style.display = "none";
-          $("btnSwitchCam").style.display = "none";
-        }
-      } catch(_){}
-    }
-
-    async function startCamera(deviceIndex) {
-      stopCamera();
-      const constraints = { video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } };
-      if (videoDevices.length > 0 && videoDevices[deviceIndex]) {
-        constraints.video = { deviceId: { exact: videoDevices[deviceIndex].deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } };
-      }
-      try {
-        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-        const video = $("cameraVideo");
-        video.srcObject = currentStream;
-        await video.play();
-        await enumerateCameras();
-      } catch(err) {
-        toast("No se pudo acceder a la cámara. Comprueba los permisos.");
-        closeCameraModal();
-      }
-    }
-
-    function stopCamera() {
-      if (currentStream) {
-        currentStream.getTracks().forEach(t => t.stop());
-        currentStream = null;
-      }
-      const video = $("cameraVideo");
-      video.srcObject = null;
-    }
-
-    function capturePhoto() {
-      const video = $("cameraVideo");
-      const canvas = $("cameraCanvas");
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      capturedDataUrl = canvas.toDataURL("image/jpeg", 0.92);
-
-      // Mostrar preview
-      $("previewImg").src = capturedDataUrl;
-      $("captionInput").value = "";
-      $("cameraContainer").style.display = "none";
-      $("previewWrap").classList.add("active");
-      $("cameraHint").textContent = "Añade una nota y pulsa "Guardar foto", o vuelve a intentar.";
-      $("btnCapture").textContent = "Guardar foto";
-      $("btnCapture").dataset.mode = "save";
-      stopCamera();
-    }
-
-    function retakePhoto() {
-      capturedDataUrl = null;
-      $("cameraContainer").style.display = "block";
-      $("previewWrap").classList.remove("active");
-      $("cameraHint").textContent = "Apunta la cámara y pulsa \"Capturar\".";
-      $("btnCapture").textContent = "Capturar";
-      $("btnCapture").dataset.mode = "capture";
-      startCamera(currentDeviceIndex);
-    }
-
-    function savePhoto() {
-      if (!capturedDataUrl) return;
-      state.photos.push({
-        id: safeId(),
-        dataUrl: capturedDataUrl,
-        caption: ($("captionInput").value || "").trim(),
-        createdAt: Date.now()
-      });
-      saveState();
-      renderGallery();
-      toast("Foto añadida");
-      capturedDataUrl = null;
-      // Volver a cámara para tomar otra si se quiere
-      retakePhoto();
-    }
-
-    function openCameraModal() {
-      capturedDataUrl = null;
-      $("cameraContainer").style.display = "block";
-      $("previewWrap").classList.remove("active");
-      $("cameraHint").textContent = "Apunta la cámara y pulsa \"Capturar\".";
-      $("btnCapture").textContent = "Capturar";
-      $("btnCapture").dataset.mode = "capture";
-      $("cameraModal").classList.add("active");
-      currentDeviceIndex = 0;
-      startCamera(currentDeviceIndex);
-    }
-
-    function closeCameraModal() {
-      stopCamera();
-      $("cameraModal").classList.remove("active");
-      capturedDataUrl = null;
-      $("cameraContainer").style.display = "block";
-      $("previewWrap").classList.remove("active");
-      $("btnCapture").textContent = "Capturar";
-      $("btnCapture").dataset.mode = "capture";
-    }
-
-    // ─── Exportar ODT ────────────────────────────────────────────
-    // ODT es un ZIP con XML + imágenes
-    async function exportOdt() {
-      if (!window.JSZip) { toast("JSZip no disponible."); return; }
-      if (state.photos.length === 0) { toast("No hay fotos que exportar."); return; }
-
-      toast("Generando ODT…");
-
-      const h = state.header;
-      const fmtDate = h.fechaHora
-        ? new Date(h.fechaHora).toLocaleString("es-ES", { dateStyle:"long", timeStyle:"short" })
-        : "";
-
-      // Construimos el content.xml
-      // 2 columnas, 4 fotos por página → 2 filas × 2 cols por página
-      // Dimensiones A4 con márgenes: ancho útil ≈ 17cm → cada col ≈ 8.2cm
-      // Cada imagen: 8.2cm × 6.15cm (ratio 4:3)
-      const IMG_W_CM = "8.2cm";
-      const IMG_H_CM = "6.1cm";
-      const COL_W = "8.50cm"; // incluye padding
-
-      // Encabezados de página (estilos)
-      const styles = `<?xml version="1.0" encoding="UTF-8"?>
-<office:document-styles
-  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
-  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
-  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
-  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
-  office:version="1.3">
-  <office:styles>
-    <style:default-style style:family="paragraph">
-      <style:text-properties fo:font-family="Times New Roman" fo:font-size="10pt"/>
-    </style:default-style>
-  </office:styles>
-  <office:automatic-styles>
-    <style:page-layout style:name="PageLayout">
-      <style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm"
-        fo:margin-top="2cm" fo:margin-bottom="2cm"
-        fo:margin-left="2cm" fo:margin-right="2cm"/>
-    </style:page-layout>
-  </office:automatic-styles>
-  <office:master-styles>
-    <style:master-page style:name="Standard" style:page-layout-name="PageLayout"/>
-  </office:master-styles>
-</office:document-styles>`;
-
-      // Construir filas de tabla con fotos de a 2
-      const photos = [...state.photos];
-      let tableRows = "";
-
-      for (let i = 0; i < photos.length; i += 2) {
-        const cells = [photos[i], photos[i+1] || null].map((ph, ci) => {
-          if (!ph) {
-            return `<table:table-cell table:style-name="TC" office:value-type="string">
-              <text:p/>
-            </table:table-cell>`;
-          }
-          const imgName = `img_${ph.id}.jpg`;
-          const capText = (ph.caption || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-          const photoNum = photos.indexOf(ph) + 1;
-          return `<table:table-cell table:style-name="TC" office:value-type="string">
-            <text:p text:style-name="PhotoNumStyle">Foto ${String(photoNum).padStart(2,"0")}</text:p>
-            <text:p text:style-name="PhotoImgStyle">
-              <draw:frame draw:style-name="PhotoFrame" draw:name="img${photoNum}"
-                text:anchor-type="as-char"
-                svg:width="${IMG_W_CM}" svg:height="${IMG_H_CM}">
-                <draw:image xlink:href="Pictures/${imgName}" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>
-              </draw:frame>
-            </text:p>
-            <text:p text:style-name="CaptionStyle">${capText}</text:p>
-          </table:table-cell>`;
-        }).join("\n");
-
-        tableRows += `<table:table-row table:style-name="TR">${cells}</table:table-row>\n`;
-
-        // Salto de página cada 2 filas (4 fotos)
-        const rowIndex = Math.floor(i / 2);
-        if ((rowIndex + 1) % 2 === 0 && i + 2 < photos.length) {
-          tableRows += `<table:table-row table:style-name="TR_Break">
-            <table:table-cell table:number-columns-spanned="2" office:value-type="string">
-              <text:p text:style-name="PageBreak"/>
-            </table:table-cell>
-          </table:table-row>\n`;
-        }
-      }
-
-      const content = `<?xml version="1.0" encoding="UTF-8"?>
-<office:document-content
-  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
-  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
-  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
-  xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
-  xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
-  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
-  xmlns:xlink="http://www.w3.org/1999/xlink"
-  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
-  office:version="1.3">
-
-  <office:automatic-styles>
-    <!-- Estilos de párrafo -->
-    <style:style style:name="TitleStyle" style:family="paragraph">
-      <style:text-properties fo:font-size="16pt" fo:font-weight="bold" fo:color="#1a1a2e"/>
-      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.3cm"/>
-    </style:style>
-    <style:style style:name="SubtitleStyle" style:family="paragraph">
-      <style:text-properties fo:font-size="11pt" fo:color="#444444"/>
-      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.15cm"/>
-    </style:style>
-    <style:style style:name="HeaderSepStyle" style:family="paragraph">
-      <style:paragraph-properties fo:border-bottom="0.5pt solid #c8986b" fo:margin-bottom="0.5cm" fo:padding-bottom="0.2cm"/>
-    </style:style>
-    <style:style style:name="PhotoNumStyle" style:family="paragraph">
-      <style:text-properties fo:font-size="8pt" fo:font-weight="bold" fo:color="#c8986b" fo:font-family="Courier New, monospace"/>
-      <style:paragraph-properties fo:margin-bottom="0.1cm"/>
-    </style:style>
-    <style:style style:name="PhotoImgStyle" style:family="paragraph">
-      <style:paragraph-properties fo:margin-bottom="0.1cm"/>
-    </style:style>
-    <style:style style:name="CaptionStyle" style:family="paragraph">
-      <style:text-properties fo:font-size="9pt" fo:font-style="italic" fo:color="#333333"/>
-      <style:paragraph-properties fo:margin-bottom="0.3cm" fo:border-top="0.3pt solid #cccccc" fo:padding-top="0.1cm"/>
-    </style:style>
-    <style:style style:name="PageBreak" style:family="paragraph">
-      <style:paragraph-properties fo:break-before="page"/>
-    </style:style>
-    <style:style style:name="NormalP" style:family="paragraph">
-      <style:text-properties fo:font-size="10pt"/>
-      <style:paragraph-properties fo:margin-bottom="0.15cm"/>
-    </style:style>
-
-    <!-- Estilos de tabla -->
-    <style:style style:name="PhotoTable" style:family="table">
-      <style:table-properties style:width="17cm" fo:margin-bottom="0.3cm"/>
-    </style:style>
-    <style:style style:name="TC1" style:family="table-column">
-      <style:table-column-properties style:column-width="${COL_W}"/>
-    </style:style>
-    <style:style style:name="TR" style:family="table-row">
-      <style:table-row-properties style:row-height="auto" style:use-optimal-row-height="true"/>
-    </style:style>
-    <style:style style:name="TR_Break" style:family="table-row"/>
-    <style:style style:name="TC" style:family="table-cell">
-      <style:table-cell-properties fo:padding="0.2cm" fo:border="0.3pt solid #e0d0c0"/>
-    </style:style>
-
-    <!-- Estilo de imagen -->
-    <style:style style:name="PhotoFrame" style:family="graphic">
-      <style:graphic-properties fo:clip="rect(0cm,0cm,0cm,0cm)"
-        draw:luminance="0%" draw:contrast="0%"
-        draw:color-mode="standard"
-        style:run-through="foreground"
-        style:horizontal-pos="center"
-        style:horizontal-rel="paragraph"/>
-    </style:style>
-  </office:automatic-styles>
-
-  <office:body>
-    <office:text>
-      <!-- CABECERA DEL DOCUMENTO -->
-      <text:p text:style-name="TitleStyle">REPORTAJE FOTOGRÁFICO · DILIGENCIA DE REGISTRO</text:p>
-      ${h.asunto ? `<text:p text:style-name="SubtitleStyle">Asunto: ${h.asunto.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
-      ${h.grupo ? `<text:p text:style-name="SubtitleStyle">Grupo: ${h.grupo.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
-      ${h.juzgado ? `<text:p text:style-name="SubtitleStyle">Juzgado: ${h.juzgado.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
-      ${h.procedimiento ? `<text:p text:style-name="SubtitleStyle">Procedimiento: ${h.procedimiento.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
-      ${fmtDate ? `<text:p text:style-name="SubtitleStyle">Fecha y hora: ${fmtDate}</text:p>` : ""}
-      ${h.direccion ? `<text:p text:style-name="SubtitleStyle">Dirección: ${h.direccion.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
-      <text:p text:style-name="HeaderSepStyle"/>
-      <text:p text:style-name="SubtitleStyle">Total de fotografías: ${photos.length}</text:p>
-      <text:p text:style-name="NormalP"/>
-
-      <!-- TABLA DE FOTOS (2 columnas) -->
-      <table:table table:name="Reportaje" table:style-name="PhotoTable">
-        <table:table-column table:style-name="TC1" table:number-columns-repeated="2"/>
-        ${tableRows}
-      </table:table>
-
-    </office:text>
-  </office:body>
-</office:document-content>`;
-
-      const manifest = `<?xml version="1.0" encoding="UTF-8"?>
-<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3">
-  <manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/>
-  <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
-  <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
-  ${photos.map(ph => `<manifest:file-entry manifest:full-path="Pictures/img_${ph.id}.jpg" manifest:media-type="image/jpeg"/>`).join("\n  ")}
-</manifest:manifest>`;
-
-      const mimetype = "application/vnd.oasis.opendocument.text";
-
-      // Construir el ZIP
-      const zip = new JSZip();
-      zip.file("mimetype", mimetype, { compression: "STORE" });
-      zip.folder("META-INF").file("manifest.xml", manifest);
-      zip.file("styles.xml", styles);
-      zip.file("content.xml", content);
-
-      // Añadir imágenes como JPEG desde dataUrl
-      const picFolder = zip.folder("Pictures");
-      for (const ph of photos) {
-        // Convertir dataUrl a Uint8Array
-        const b64 = ph.dataUrl.split(",")[1];
-        picFolder.file(`img_${ph.id}.jpg`, b64, { base64: true });
-      }
-
-      const blob = await zip.generateAsync({ type:"blob", mimeType: mimetype });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      const asunto = (h.asunto || "registro").replace(/[^a-zA-Z0-9_\-áéíóúñÁÉÍÓÚÑ ]/g,"").replace(/\s+/g,"_").slice(0,30);
-      a.download = `Reportaje_${asunto}.odt`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      toast("ODT exportado ✓");
-    }
-
-    // ─── Reset ───────────────────────────────────────────────────
-    function resetAll() {
-      if (!confirm("¿Borrar TODOS los datos y fotografías?")) return;
-      localStorage.removeItem(LS_KEY);
-      state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
-      state.photos = [];
-      renderHeader();
-      renderGallery();
-      toast("Borrado completo");
-    }
-
-    // ─── Eventos ─────────────────────────────────────────────────
-    function bindEvents() {
-      $("btnGuardarCabecera")?.addEventListener("click", saveHeaderFromInputs);
-      $("btnResetAll")?.addEventListener("click", resetAll);
-      $("btnExportOdt")?.addEventListener("click", exportOdt);
-
-      // Abrir cámara
-      $("btnOpenCamera")?.addEventListener("click", openCameraModal);
-      $("btnCloseCamera")?.addEventListener("click", closeCameraModal);
-
-      // Capturar / guardar
-      $("btnCapture")?.addEventListener("click", () => {
-        const mode = $("btnCapture").dataset.mode || "capture";
-        if (mode === "save") savePhoto();
-        else capturePhoto();
-      });
-
-      // Cambiar cámara
-      $("btnSwitchCam")?.addEventListener("click", () => {
-        currentDeviceIndex = (currentDeviceIndex + 1) % Math.max(videoDevices.length, 1);
-        $("cameraSelect").value = currentDeviceIndex;
-        startCamera(currentDeviceIndex);
-      });
-
-      $("cameraSelect")?.addEventListener("change", () => {
-        currentDeviceIndex = parseInt($("cameraSelect").value, 10) || 0;
-        startCamera(currentDeviceIndex);
-      });
-
-      // Click fuera del modal para cerrar
-      $("cameraModal")?.addEventListener("click", (e) => {
-        if (e.target === $("cameraModal")) closeCameraModal();
-      });
-
-      // Delegación en grid: borrar foto
-      $("photoGrid")?.addEventListener("click", (e) => {
-        const btn = e.target?.closest?.("button");
-        if (!btn) return;
-        if (btn.dataset.action === "del") deletePhoto(btn.dataset.id);
-      });
-
-      // Guardado automático de cabecera al cambiar campos
-      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
-        $(id)?.addEventListener("change", () => {
-          state.header[id] = ($(id).value || "").trim();
-          saveState();
-        });
-      });
-    }
-
-    // ─── Init ────────────────────────────────────────────────────
-    document.addEventListener("DOMContentLoaded", () => {
-      loadState();
-      renderHeader();
-      renderGallery();
-      bindEvents();
+  // ── Cabecera ──────────────────────────────────────────────────
+  function renderHeader() {
+    ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
+      $(id).value = state.header[id] || "";
     });
-  </script>
+  }
+  function saveHeaderFromInputs() {
+    ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
+      state.header[id] = ($(id).value || "").trim();
+    });
+    saveState();
+    toast("Datos guardados");
+  }
+
+  // ── Galeria ───────────────────────────────────────────────────
+  function renderGallery() {
+    const grid = $("photoGrid");
+    grid.querySelectorAll(".photo-card").forEach(c => c.remove());
+    const n = state.photos.length;
+    $("count").textContent = n + " foto" + (n !== 1 ? "s" : "");
+    $("emptyState").style.display = n === 0 ? "block" : "none";
+
+    state.photos.forEach((ph, idx) => {
+      const card = document.createElement("div");
+      card.className = "photo-card";
+      card.innerHTML =
+        '<div class="photo-img-wrap">' +
+          '<img src="' + ph.dataUrl + '" alt="Foto ' + (idx+1) + '" loading="lazy" />' +
+          '<span class="photo-num-badge">Foto ' + String(idx+1).padStart(2,"0") + '</span>' +
+          '<button class="photo-del-btn" data-id="' + ph.id + '" type="button">X</button>' +
+        '</div>' +
+        '<div class="photo-caption-area">' +
+          '<div class="photo-caption-label">Pie de foto</div>' +
+          '<textarea class="photo-caption-input" data-id="' + ph.id + '" rows="3" placeholder="Descripcion...">' +
+            escHtml(ph.caption || "") +
+          '</textarea>' +
+        '</div>';
+
+      card.querySelector(".photo-del-btn").addEventListener("click", () => {
+        if (confirm("Borrar la Foto " + (idx+1) + "?")) {
+          state.photos = state.photos.filter(p => p.id !== ph.id);
+          saveState();
+          renderGallery();
+          toast("Foto eliminada");
+        }
+      });
+      card.querySelector(".photo-caption-input").addEventListener("input", function() {
+        const p = state.photos.find(x => x.id === this.dataset.id);
+        if (p) { p.caption = this.value; saveState(); }
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  // ── Camara ────────────────────────────────────────────────────
+  function stopCamera() {
+    if (currentStream) {
+      currentStream.getTracks().forEach(t => t.stop());
+      currentStream = null;
+    }
+    $("cameraVideo").srcObject = null;
+  }
+
+  async function enumerateCameras() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      videoDevices = devices.filter(d => d.kind === "videoinput");
+      const sel = $("cameraSelect");
+      sel.innerHTML = "";
+      videoDevices.forEach((d, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = d.label || ("Camara " + (i+1));
+        sel.appendChild(opt);
+      });
+      $("cameraSelectWrap").style.display = videoDevices.length > 1 ? "block" : "none";
+      $("btnSwitchCam").style.display = videoDevices.length > 1 ? "" : "none";
+    } catch(_) {}
+  }
+
+  async function startCamera(idx) {
+    stopCamera();
+    let constraints = { video: { facingMode: "environment" } };
+    if (videoDevices.length > 0 && videoDevices[idx]) {
+      constraints = { video: { deviceId: { exact: videoDevices[idx].deviceId } } };
+    }
+    try {
+      currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+      const video = $("cameraVideo");
+      video.srcObject = currentStream;
+      video.play();
+      await enumerateCameras();
+    } catch(err) {
+      console.error(err);
+      toast("No se pudo acceder a la camara. Revisa permisos del navegador.");
+      closeCameraModal();
+    }
+  }
+
+  function showLiveView() {
+    cameraMode = "live";
+    $("cameraContainer").style.display = "block";
+    $("previewWrap").classList.remove("active");
+    $("btnCapture").textContent = "Capturar";
+    $("btnRetake").style.display = "none";
+    $("cameraHint").textContent = "Apunta la camara y pulsa Capturar.";
+    capturedDataUrl = null;
+  }
+
+  function showPreviewView(dataUrl) {
+    cameraMode = "preview";
+    capturedDataUrl = dataUrl;
+    $("previewImg").src = dataUrl;
+    $("captionInput").value = "";
+    $("cameraContainer").style.display = "none";
+    $("previewWrap").classList.add("active");
+    $("btnCapture").textContent = "Guardar foto";
+    $("btnRetake").style.display = "";
+    $("cameraHint").textContent = "Aniade una nota y pulsa Guardar foto, o pulsa Repetir para volver.";
+  }
+
+  function doCapture() {
+    const video = $("cameraVideo");
+    const canvas = $("cameraCanvas");
+    const w = video.videoWidth || 640;
+    const h = video.videoHeight || 480;
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext("2d").drawImage(video, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+    stopCamera();
+    showPreviewView(dataUrl);
+  }
+
+  function doSavePhoto() {
+    if (!capturedDataUrl) { toast("No hay foto capturada."); return; }
+    state.photos.push({
+      id: safeId(),
+      dataUrl: capturedDataUrl,
+      caption: ($("captionInput").value || "").trim(),
+      createdAt: Date.now()
+    });
+    saveState();
+    renderGallery();
+    toast("Foto guardada");
+    // Volver a la camara para tomar otra
+    showLiveView();
+    startCamera(currentDeviceIndex);
+  }
+
+  function openCameraModal() {
+    showLiveView();
+    $("cameraModal").classList.add("active");
+    startCamera(currentDeviceIndex);
+  }
+
+  function closeCameraModal() {
+    stopCamera();
+    $("cameraModal").classList.remove("active");
+    showLiveView();
+  }
+
+  // ── Exportar ODT ──────────────────────────────────────────────
+  async function exportOdt() {
+    if (!window.JSZip) { toast("JSZip no disponible."); return; }
+    if (state.photos.length === 0) { toast("No hay fotos que exportar."); return; }
+    toast("Generando ODT...");
+
+    const h = state.header;
+    const fmtDate = h.fechaHora
+      ? new Date(h.fechaHora).toLocaleString("es-ES", { dateStyle:"long", timeStyle:"short" })
+      : "";
+
+    const IMG_W = "8.0cm";
+    const IMG_H = "6.0cm";
+    const COL_W = "8.50cm";
+
+    const photos = state.photos.slice();
+    let tableRows = "";
+
+    for (let i = 0; i < photos.length; i += 2) {
+      const pair = [photos[i], photos[i+1] || null];
+      const cells = pair.map((ph, ci) => {
+        if (!ph) return '<table:table-cell table:style-name="TC"><text:p/></table:table-cell>';
+        const num = String(photos.indexOf(ph) + 1).padStart(2, "0");
+        const cap = (ph.caption || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+        return '<table:table-cell table:style-name="TC">' +
+          '<text:p text:style-name="PhotoNum">Foto ' + num + '</text:p>' +
+          '<text:p text:style-name="PhotoImg">' +
+            '<draw:frame draw:style-name="PhotoFrame" draw:name="f' + num + '"' +
+              ' text:anchor-type="as-char"' +
+              ' svg:width="' + IMG_W + '" svg:height="' + IMG_H + '">' +
+              '<draw:image xlink:href="Pictures/img_' + ph.id + '.jpg"' +
+                ' xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>' +
+            '</draw:frame>' +
+          '</text:p>' +
+          '<text:p text:style-name="Caption">' + cap + '</text:p>' +
+        '</table:table-cell>';
+      }).join("");
+      tableRows += '<table:table-row table:style-name="TR">' + cells + '</table:table-row>\n';
+
+      // Salto de pagina cada 4 fotos (cada 2 filas)
+      const rowIdx = Math.floor(i / 2);
+      if ((rowIdx + 1) % 2 === 0 && i + 2 < photos.length) {
+        tableRows +=
+          '<table:table-row table:style-name="TR">' +
+            '<table:table-cell table:number-columns-spanned="2" table:style-name="TC">' +
+              '<text:p text:style-name="PBreak"/>' +
+            '</table:table-cell>' +
+          '</table:table-row>\n';
+      }
+    }
+
+    function xmlEsc(s) {
+      return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+
+    const content =
+'<?xml version="1.0" encoding="UTF-8"?>' +
+'<office:document-content' +
+' xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"' +
+' xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"' +
+' xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"' +
+' xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"' +
+' xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"' +
+' xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"' +
+' xmlns:xlink="http://www.w3.org/1999/xlink"' +
+' xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"' +
+' office:version="1.3">' +
+'<office:automatic-styles>' +
+  '<style:style style:name="Title" style:family="paragraph"><style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.3cm"/><style:text-properties fo:font-size="16pt" fo:font-weight="bold"/></style:style>' +
+  '<style:style style:name="Sub" style:family="paragraph"><style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.15cm"/><style:text-properties fo:font-size="10pt"/></style:style>' +
+  '<style:style style:name="Sep" style:family="paragraph"><style:paragraph-properties fo:border-bottom="0.5pt solid #c8986b" fo:margin-bottom="0.5cm" fo:padding-bottom="0.2cm"/></style:style>' +
+  '<style:style style:name="PhotoNum" style:family="paragraph"><style:paragraph-properties fo:margin-bottom="0.1cm"/><style:text-properties fo:font-size="8pt" fo:font-weight="bold" fo:color="#c8986b"/></style:style>' +
+  '<style:style style:name="PhotoImg" style:family="paragraph"><style:paragraph-properties fo:margin-bottom="0.1cm"/></style:style>' +
+  '<style:style style:name="Caption" style:family="paragraph"><style:paragraph-properties fo:margin-bottom="0.2cm" fo:border-top="0.3pt solid #cccccc" fo:padding-top="0.1cm"/><style:text-properties fo:font-size="9pt" fo:font-style="italic"/></style:style>' +
+  '<style:style style:name="PBreak" style:family="paragraph"><style:paragraph-properties fo:break-before="page"/></style:style>' +
+  '<style:style style:name="PhotoTable" style:family="table"><style:table-properties style:width="17cm"/></style:style>' +
+  '<style:style style:name="TC1" style:family="table-column"><style:table-column-properties style:column-width="' + COL_W + '"/></style:style>' +
+  '<style:style style:name="TR" style:family="table-row"><style:table-row-properties style:use-optimal-row-height="true"/></style:style>' +
+  '<style:style style:name="TC" style:family="table-cell"><style:table-cell-properties fo:padding="0.2cm" fo:border="0.3pt solid #e0d0c0"/></style:style>' +
+  '<style:style style:name="PhotoFrame" style:family="graphic"><style:graphic-properties style:horizontal-pos="center" style:horizontal-rel="paragraph" draw:color-mode="standard"/></style:style>' +
+'</office:automatic-styles>' +
+'<office:body><office:text>' +
+  '<text:p text:style-name="Title">REPORTAJE FOTOGRAFICO - DILIGENCIA DE REGISTRO</text:p>' +
+  (h.asunto    ? '<text:p text:style-name="Sub">Asunto: '         + xmlEsc(h.asunto)         + '</text:p>' : '') +
+  (h.grupo     ? '<text:p text:style-name="Sub">Grupo: '          + xmlEsc(h.grupo)          + '</text:p>' : '') +
+  (h.juzgado   ? '<text:p text:style-name="Sub">Juzgado: '        + xmlEsc(h.juzgado)        + '</text:p>' : '') +
+  (h.procedimiento ? '<text:p text:style-name="Sub">Procedimiento: ' + xmlEsc(h.procedimiento) + '</text:p>' : '') +
+  (fmtDate     ? '<text:p text:style-name="Sub">Fecha y hora: '   + xmlEsc(fmtDate)          + '</text:p>' : '') +
+  (h.direccion ? '<text:p text:style-name="Sub">Direccion: '      + xmlEsc(h.direccion)      + '</text:p>' : '') +
+  '<text:p text:style-name="Sep"/>' +
+  '<text:p text:style-name="Sub">Total de fotografias: ' + photos.length + '</text:p>' +
+  '<text:p text:style-name="Sub"/>' +
+  '<table:table table:name="Fotos" table:style-name="PhotoTable">' +
+    '<table:table-column table:style-name="TC1" table:number-columns-repeated="2"/>' +
+    tableRows +
+  '</table:table>' +
+'</office:text></office:body>' +
+'</office:document-content>';
+
+    const styles =
+'<?xml version="1.0" encoding="UTF-8"?>' +
+'<office:document-styles' +
+' xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"' +
+' xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"' +
+' xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"' +
+' office:version="1.3">' +
+'<office:automatic-styles>' +
+  '<style:page-layout style:name="PL">' +
+    '<style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm"' +
+      ' fo:margin-top="2cm" fo:margin-bottom="2cm"' +
+      ' fo:margin-left="2cm" fo:margin-right="2cm"/>' +
+  '</style:page-layout>' +
+'</office:automatic-styles>' +
+'<office:master-styles>' +
+  '<style:master-page style:name="Standard" style:page-layout-name="PL"/>' +
+'</office:master-styles>' +
+'</office:document-styles>';
+
+    const manifest =
+'<?xml version="1.0" encoding="UTF-8"?>' +
+'<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3">' +
+  '<manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/>' +
+  '<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>' +
+  '<manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>' +
+  photos.map(ph =>
+    '<manifest:file-entry manifest:full-path="Pictures/img_' + ph.id + '.jpg" manifest:media-type="image/jpeg"/>'
+  ).join("") +
+'</manifest:manifest>';
+
+    const zip = new JSZip();
+    zip.file("mimetype", "application/vnd.oasis.opendocument.text", { compression:"STORE" });
+    zip.folder("META-INF").file("manifest.xml", manifest);
+    zip.file("styles.xml", styles);
+    zip.file("content.xml", content);
+    const pics = zip.folder("Pictures");
+    photos.forEach(ph => {
+      const b64 = ph.dataUrl.split(",")[1];
+      pics.file("img_" + ph.id + ".jpg", b64, { base64: true });
+    });
+
+    const blob = await zip.generateAsync({ type:"blob", mimeType:"application/vnd.oasis.opendocument.text" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const slug = (h.asunto || "registro").replace(/[^a-zA-Z0-9]/g,"_").slice(0,30);
+    a.download = "Reportaje_" + slug + ".odt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast("ODT exportado");
+  }
+
+  // ── Reset ─────────────────────────────────────────────────────
+  function resetAll() {
+    if (!confirm("Borrar TODOS los datos y fotografias?")) return;
+    localStorage.removeItem(LS_KEY);
+    state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
+    state.photos = [];
+    renderHeader();
+    renderGallery();
+    toast("Borrado completo");
+  }
+
+  // ── Eventos ───────────────────────────────────────────────────
+  $("btnGuardarCabecera").addEventListener("click", saveHeaderFromInputs);
+  $("btnResetAll").addEventListener("click", resetAll);
+  $("btnExportOdt").addEventListener("click", exportOdt);
+
+  $("btnOpenCamera").addEventListener("click", openCameraModal);
+  $("btnCloseCamera").addEventListener("click", closeCameraModal);
+
+  $("btnCapture").addEventListener("click", function() {
+    if (cameraMode === "live") doCapture();
+    else doSavePhoto();
+  });
+
+  $("btnRetake").addEventListener("click", function() {
+    showLiveView();
+    startCamera(currentDeviceIndex);
+  });
+
+  $("btnSwitchCam").addEventListener("click", function() {
+    if (videoDevices.length < 2) return;
+    currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
+    $("cameraSelect").value = currentDeviceIndex;
+    startCamera(currentDeviceIndex);
+  });
+
+  $("cameraSelect").addEventListener("change", function() {
+    currentDeviceIndex = parseInt(this.value, 10) || 0;
+    startCamera(currentDeviceIndex);
+  });
+
+  $("cameraModal").addEventListener("click", function(e) {
+    if (e.target === this) closeCameraModal();
+  });
+
+  ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
+    $(id).addEventListener("change", function() {
+      state.header[id] = (this.value || "").trim();
+      saveState();
+    });
+  });
+
+  // ── Init ──────────────────────────────────────────────────────
+  loadState();
+  renderHeader();
+  renderGallery();
+</script>
 </body>
 </html>
