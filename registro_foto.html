@@ -1,0 +1,1232 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Registro · Reportaje Fotográfico</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1a1a2e;
+      --secondary: #16213e;
+      --accent: #c8986b;
+      --accent-light: #d4ab7f;
+      --text-light: #f5f5f5;
+      --text-muted: #a0a0a0;
+      --surface: #0f0f1e;
+      --border: rgba(200, 152, 107, 0.2);
+      --shadow: rgba(0, 0, 0, 0.4);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Crimson Pro', serif;
+      background: linear-gradient(135deg, var(--surface) 0%, var(--primary) 100%);
+      color: var(--text-light);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container { max-width: 680px; margin: 0 auto; animation: fadeIn 0.6s ease-out; }
+
+    @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-30px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes scaleIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+    @keyframes slideInLeft { from { opacity:0; transform:translateX(-30px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes modalSlideUp { from { opacity:0; transform:translateY(50px) scale(0.9); } to { opacity:1; transform:translateY(0) scale(1); } }
+
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      animation: slideDown 0.8s ease-out;
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header .subtitle {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .info-card {
+      background: rgba(22, 33, 62, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 32px var(--shadow);
+      animation: scaleIn 0.6s ease-out 0.2s backwards;
+    }
+
+    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 520px) { .grid { grid-template-columns: 1fr 1fr; } .span2 { grid-column: 1 / -1; } }
+
+    .form-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+      display: block;
+      font-weight: 500;
+    }
+
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(15, 15, 30, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-light);
+      font-family: 'Crimson Pro', serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200, 152, 107, 0.1);
+    }
+
+    .form-textarea { min-height: 80px; resize: vertical; }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+      animation: scaleIn 0.6s ease-out 0.35s backwards;
+    }
+
+    .button-group + .button-group { margin-top: 12px; }
+
+    .btn-add {
+      flex: 1;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: var(--primary);
+      border: none;
+      border-radius: 12px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(200, 152, 107, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn-add:hover { transform: translateY(-2px); box-shadow: 0 6px 28px rgba(200, 152, 107, 0.5); }
+    .btn-add:active { transform: translateY(0); }
+
+    .btn-export {
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+      justify-content: center;
+    }
+    .btn-export:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-2px); }
+
+    .btn-danger {
+      padding: 16px 18px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-light);
+      border: 1px solid rgba(255, 120, 120, 0.25);
+      border-radius: 12px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      flex: 1;
+      justify-content: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .btn-danger:hover { background: rgba(255, 120, 120, 0.10); transform: translateY(-2px); }
+
+    /* Fotos */
+    .photos-section { margin-top: 26px; }
+
+    .photos-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+    }
+
+    .photos-title .left { display: flex; align-items: center; gap: 12px; }
+
+    .photo-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(200, 152, 107, 0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    /* Grid de fotos: 2 columnas */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 480px) { .photos-grid { grid-template-columns: 1fr; } }
+
+    .photo-item {
+      background: rgba(22, 33, 62, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      animation: slideInLeft 0.4s ease-out;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .photo-item:hover { background: rgba(22, 33, 62, 0.7); transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
+
+    .photo-img-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+
+    .photo-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-number-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 20px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .photo-caption {
+      padding: 10px 12px;
+      font-size: 0.93rem;
+      color: var(--text-light);
+      line-height: 1.5;
+      border-top: 1px solid var(--border);
+      font-style: italic;
+      flex: 1;
+    }
+
+    .photo-caption.empty { color: var(--text-muted); }
+
+    .photo-actions {
+      display: flex;
+      gap: 8px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .icon-btn {
+      flex: 1;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    .icon-btn:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-1px); }
+    .icon-btn.danger { border-color: rgba(255, 120, 120, 0.25); }
+    .icon-btn.danger:hover { background: rgba(255, 120, 120, 0.12); }
+
+    .empty-state {
+      text-align: center;
+      padding: 46px 16px;
+      color: var(--text-muted);
+      font-style: italic;
+      border: 1px dashed rgba(200, 152, 107, 0.25);
+      border-radius: 14px;
+      background: rgba(22,33,62,0.25);
+      grid-column: 1 / -1;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+      padding: 12px;
+    }
+    .modal-overlay.active {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 12px;
+    }
+
+    .modal {
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      animation: modalSlideUp 0.4s ease-out;
+      max-height: calc(100dvh - 24px);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--accent);
+      letter-spacing: -0.01em;
+    }
+
+    /* Zona de drop de foto */
+    .photo-drop-zone {
+      width: 100%;
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      background: rgba(15,15,30,0.5);
+      min-height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+    .photo-drop-zone:hover, .photo-drop-zone.drag-over {
+      border-color: var(--accent);
+      background: rgba(200, 152, 107, 0.07);
+    }
+    .photo-drop-zone.has-image { border-style: solid; }
+
+    .photo-drop-zone img.preview {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .drop-hint {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 16px;
+      z-index: 1;
+    }
+    .has-image .drop-hint { display: none; }
+
+    .drop-overlay-label {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      align-items: center;
+      justify-content: center;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      z-index: 2;
+      cursor: pointer;
+    }
+    .has-image:hover .drop-overlay-label { display: flex; }
+
+    #photoFileInput { display: none; }
+
+    .modal-buttons {
+      position: sticky;
+      bottom: 0;
+      background: var(--secondary);
+      padding-top: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      margin-top: 12px;
+      border-top: 1px solid var(--border);
+      z-index: 5;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: var(--primary);
+      box-shadow: 0 4px 15px rgba(200, 152, 107, 0.3);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(200, 152, 107, 0.5); }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
+
+    .hint {
+      margin-top: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.75);
+      border: 1px solid var(--border);
+      color: var(--text-light);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 2000;
+      max-width: calc(100% - 28px);
+      text-align: center;
+    }
+    .toast.show { display: block; }
+
+    @media (max-width: 480px) {
+      body { padding: 16px; }
+      .header h1 { font-size: 2rem; }
+      .modal { padding: 22px; }
+      .modal-buttons { flex-direction: column; }
+      .button-group { flex-direction: column; }
+      .btn-export, .btn-add, .btn-danger { justify-content: center; width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Reportaje Fotográfico</h1>
+      <div class="subtitle">Registro de diligencia</div>
+    </div>
+
+    <!-- Datos del registro -->
+    <section class="info-card" aria-label="Datos del registro">
+      <div class="grid">
+        <div class="form-group">
+          <label class="form-label" for="asunto">Asunto</label>
+          <input class="form-input" id="asunto" placeholder="Ej: Estafa informática" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="grupo">Grupo de Investigación</label>
+          <input class="form-input" id="grupo" placeholder="Ej: Grupo / Unidad" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="juzgado">Juzgado</label>
+          <input class="form-input" id="juzgado" placeholder="Ej: J. Instrucción nº..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="procedimiento">Procedimiento</label>
+          <input class="form-input" id="procedimiento" placeholder="Ej: Diligencias Previas 123/2026" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fechaHora">Fecha y hora del registro</label>
+          <input class="form-input" id="fechaHora" type="datetime-local" />
+        </div>
+        <div class="form-group span2">
+          <label class="form-label" for="direccion">Dirección</label>
+          <input class="form-input" id="direccion" placeholder="C/ ..., nº..., localidad" />
+        </div>
+      </div>
+      <div class="button-group">
+        <button class="btn-add" id="btnGuardarCabecera" type="button">Guardar datos</button>
+        <button class="btn-danger" id="btnResetAll" type="button">Borrar todo</button>
+      </div>
+    </section>
+
+    <!-- Botones de acción -->
+    <div class="button-group">
+      <button class="btn-add" id="btnOpenModal" type="button">📷 Añadir foto</button>
+      <button class="btn-export" id="btnExportOdt" type="button">Exportar ODT</button>
+    </div>
+
+    <!-- Galería de fotos -->
+    <section class="photos-section" aria-label="Fotos del reportaje">
+      <div class="photos-title">
+        <div class="left">
+          <span>Fotos</span>
+          <span class="photo-count" id="count">0 fotos</span>
+        </div>
+      </div>
+      <div class="photos-grid" id="list">
+        <div class="empty-state" id="empty">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:64px;height:64px;margin:0 auto 12px;opacity:0.3;display:block;">
+            <rect x="2" y="5" width="20" height="15" rx="2"/>
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M8.5 5V3.5A1.5 1.5 0 0 1 10 2h4a1.5 1.5 0 0 1 1.5 1.5V5"/>
+          </svg>
+          Aún no has añadido fotos. Pulsa "Añadir foto".
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal añadir/editar foto -->
+  <div class="modal-overlay" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h2 id="modalTitle">Añadir foto</h2>
+
+      <!-- Zona drag & drop / click para foto -->
+      <div class="photo-drop-zone" id="dropZone">
+        <img class="preview" id="photoPreview" src="" alt="" style="display:none;" />
+        <div class="drop-hint">
+          📷 Pulsa aquí o arrastra una foto<br>
+          <span style="font-size:0.7rem;opacity:0.7;">JPG, PNG, HEIC…</span>
+        </div>
+        <div class="drop-overlay-label">Cambiar foto</div>
+      </div>
+      <input type="file" id="photoFileInput" accept="image/*" />
+
+      <div class="form-group">
+        <label class="form-label" for="photoNumero">Nº Foto</label>
+        <input class="form-input" id="photoNumero" inputmode="numeric" placeholder="Ej: 001 (opcional, se asigna automáticamente)" />
+      </div>
+
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label" for="photoCaption">Pie de foto / Nota</label>
+        <textarea class="form-textarea" id="photoCaption" placeholder="Describe lo que muestra la foto: ubicación, objeto, contexto relevante…"></textarea>
+      </div>
+
+      <div class="hint">Tip: Ctrl+Enter para guardar. Si dejas el Nº vacío se asigna automáticamente.</div>
+
+      <div class="modal-buttons">
+        <button class="btn btn-primary" id="btnSavePhoto" type="button" data-mode="add">Añadir</button>
+        <button class="btn btn-secondary" id="btnClearFields" type="button">Limpiar</button>
+        <button class="btn btn-secondary" id="btnCloseModal" type="button">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- JSZip para generar el ODT -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+  <script>
+    // ============================================================
+    // REPORTAJE FOTOGRÁFICO — Registro de diligencia
+    // ============================================================
+
+    const LS_KEY = "reportaje_fotografico_v1";
+    const $ = (id) => document.getElementById(id);
+
+    const state = {
+      header: { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" },
+      photos: [] // { id, numero, caption, imageData, imageMime, createdAt }
+    };
+
+    // ---- Persistencia ----
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          state.header = { ...state.header, ...(parsed.header || {}) };
+          state.photos = Array.isArray(parsed.photos) ? parsed.photos : [];
+        }
+      } catch(_e) {}
+    }
+
+    function saveState() {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(_e) {}
+    }
+
+    // ---- Toast ----
+    function toast(msg) {
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => t.classList.remove("show"), 1800);
+    }
+
+    // ---- IDs y numeración ----
+    function safeId() {
+      return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function normalizeNumber(n) {
+      const s = (n ?? "").toString().trim();
+      if (!s) return "";
+      if (/^\d+$/.test(s)) return String(Math.min(parseInt(s,10), 999999)).padStart(3,"0");
+      return s;
+    }
+
+    function nextAutoNumber() {
+      const nums = state.photos
+        .map(p => p.numero)
+        .filter(n => /^\d+$/.test(n))
+        .map(n => parseInt(n,10));
+      const max = nums.length ? Math.max(...nums) : 0;
+      return String(max + 1).padStart(3, "0");
+    }
+
+    function escHtml(s) {
+      return (s ?? "").toString()
+        .replaceAll("&","&amp;").replaceAll("<","&lt;")
+        .replaceAll(">","&gt;").replaceAll('"',"&quot;");
+    }
+
+    // ---- Estado temporal del modal ----
+    let modalImageData = null;   // base64 sin prefijo
+    let modalImageMime = null;   // "image/jpeg" etc.
+
+    function resetModalState() {
+      modalImageData = null;
+      modalImageMime = null;
+      $("photoPreview").style.display = "none";
+      $("photoPreview").src = "";
+      $("dropZone").classList.remove("has-image");
+      $("photoNumero").value = "";
+      $("photoCaption").value = "";
+    }
+
+    // ---- Carga de imagen (file input o drag) ----
+    function loadImageFile(file) {
+      if (!file || !file.type.startsWith("image/")) {
+        toast("Selecciona un archivo de imagen.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        const [prefix, b64] = dataUrl.split(",");
+        const mime = prefix.match(/data:([^;]+)/)?.[1] || "image/jpeg";
+        modalImageData = b64;
+        modalImageMime = mime;
+
+        const prev = $("photoPreview");
+        prev.src = dataUrl;
+        prev.style.display = "block";
+        $("dropZone").classList.add("has-image");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // ---- Render ----
+    function renderHeader() {
+      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(k => {
+        $(k).value = state.header[k] || "";
+      });
+    }
+
+    function renderList() {
+      const list = $("list");
+      list.innerHTML = "";
+
+      const n = state.photos.length;
+      $("count").textContent = `${n} foto${n === 1 ? "" : "s"}`;
+
+      if (n === 0) {
+        const emp = document.createElement("div");
+        emp.className = "empty-state";
+        emp.id = "empty";
+        emp.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:64px;height:64px;margin:0 auto 12px;opacity:0.3;display:block;">
+            <rect x="2" y="5" width="20" height="15" rx="2"/>
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M8.5 5V3.5A1.5 1.5 0 0 1 10 2h4a1.5 1.5 0 0 1 1.5 1.5V5"/>
+          </svg>
+          Aún no has añadido fotos. Pulsa "Añadir foto".
+        `;
+        list.appendChild(emp);
+        return;
+      }
+
+      const sorted = [...state.photos].sort((a,b) => {
+        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero,10) : null;
+        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero,10) : null;
+        if (an !== null && bn !== null) return an - bn;
+        if (an !== null) return -1;
+        if (bn !== null) return 1;
+        return (a.createdAt||0) - (b.createdAt||0);
+      });
+
+      for (const ph of sorted) {
+        const item = document.createElement("div");
+        item.className = "photo-item";
+
+        const src = ph.imageData
+          ? `data:${ph.imageMime || "image/jpeg"};base64,${ph.imageData}`
+          : "";
+
+        const captionHtml = ph.caption
+          ? `<div class="photo-caption">${escHtml(ph.caption)}</div>`
+          : `<div class="photo-caption empty">Sin nota</div>`;
+
+        item.innerHTML = `
+          <div class="photo-img-wrapper">
+            ${src ? `<img src="${src}" alt="Foto ${escHtml(ph.numero)}" loading="lazy" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:0.3;font-size:2rem;">📷</div>`}
+            <div class="photo-number-badge">Foto ${escHtml(ph.numero || "—")}</div>
+          </div>
+          ${captionHtml}
+          <div class="photo-actions">
+            <button class="icon-btn" type="button" data-action="edit" data-id="${escHtml(ph.id)}">Editar</button>
+            <button class="icon-btn danger" type="button" data-action="del" data-id="${escHtml(ph.id)}">Borrar</button>
+          </div>
+        `;
+        list.appendChild(item);
+      }
+    }
+
+    // ---- Modal ----
+    function openModal(mode, photoId = null) {
+      const backdrop = $("backdrop");
+      const btn = $("btnSavePhoto");
+
+      backdrop.classList.add("active");
+      resetModalState();
+
+      if (mode === "edit" && photoId) {
+        const ph = state.photos.find(p => p.id === photoId);
+        if (!ph) { toast("No se encontró la foto."); closeModal(); return; }
+
+        $("modalTitle").textContent = "Editar foto";
+        btn.textContent = "Guardar";
+        btn.dataset.mode = "edit";
+        btn.dataset.editId = ph.id;
+
+        $("photoNumero").value = ph.numero || "";
+        $("photoCaption").value = ph.caption || "";
+
+        if (ph.imageData) {
+          const src = `data:${ph.imageMime || "image/jpeg"};base64,${ph.imageData}`;
+          $("photoPreview").src = src;
+          $("photoPreview").style.display = "block";
+          $("dropZone").classList.add("has-image");
+          modalImageData = ph.imageData;
+          modalImageMime = ph.imageMime;
+        }
+      } else {
+        $("modalTitle").textContent = "Añadir foto";
+        btn.textContent = "Añadir";
+        btn.dataset.mode = "add";
+        delete btn.dataset.editId;
+      }
+
+      setTimeout(() => $("dropZone")?.focus?.(), 50);
+    }
+
+    function closeModal() {
+      $("backdrop").classList.remove("active");
+      resetModalState();
+    }
+
+    // ---- Guardar foto ----
+    function savePhoto() {
+      const btn = $("btnSavePhoto");
+      const mode = btn.dataset.mode || "add";
+      const editId = btn.dataset.editId;
+
+      let numero = normalizeNumber($("photoNumero").value);
+      const caption = ($("photoCaption").value || "").trim();
+
+      if (!modalImageData && mode === "add") {
+        toast("Añade una foto antes de guardar.");
+        return;
+      }
+
+      if (!numero) numero = nextAutoNumber();
+
+      if (mode === "edit" && editId) {
+        const ph = state.photos.find(p => p.id === editId);
+        if (!ph) { toast("No se encontró la foto."); return; }
+
+        const dup = state.photos.find(p => p.id !== editId && (p.numero || "") === numero);
+        if (dup) { toast(`Ya existe la foto ${numero}. Usa otro Nº.`); return; }
+
+        ph.numero = numero;
+        ph.caption = caption;
+        if (modalImageData) { ph.imageData = modalImageData; ph.imageMime = modalImageMime; }
+        saveState(); renderList(); closeModal();
+        toast("Foto actualizada");
+      } else {
+        const dup = state.photos.find(p => (p.numero || "") === numero);
+        if (dup) { toast(`Ya existe la foto ${numero}. Usa otro Nº o edítala.`); return; }
+
+        state.photos.push({
+          id: safeId(),
+          numero,
+          caption,
+          imageData: modalImageData,
+          imageMime: modalImageMime || "image/jpeg",
+          createdAt: Date.now()
+        });
+        saveState(); renderList(); closeModal();
+        toast("Foto añadida");
+      }
+    }
+
+    function deletePhoto(id) {
+      const ph = state.photos.find(p => p.id === id);
+      const label = ph?.numero ? `Foto ${ph.numero}` : "esta foto";
+      if (!confirm(`¿Borrar ${label}?`)) return;
+      state.photos = state.photos.filter(p => p.id !== id);
+      saveState(); renderList();
+      toast("Foto borrada");
+    }
+
+    // ---- Guardar cabecera ----
+    function saveHeader() {
+      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(k => {
+        state.header[k] = ($(k).value || "").trim();
+      });
+      saveState();
+      toast("Datos guardados");
+    }
+
+    function resetAll() {
+      if (!confirm("¿Borrar TODOS los datos y fotos?")) return;
+      localStorage.removeItem(LS_KEY);
+      state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
+      state.photos = [];
+      renderHeader();
+      renderList();
+      toast("Borrado completo");
+    }
+
+    // ================================================================
+    // EXPORTAR A ODT
+    // Genera un documento .odt (OpenDocument Text) con:
+    //   - Portada con los datos del registro
+    //   - Fotos en 2 columnas, 4 por página, con pie de foto debajo
+    // ================================================================
+    async function exportODT() {
+      if (!window.JSZip) { toast("No se pudo cargar JSZip."); return; }
+      if (state.photos.length === 0) { toast("No hay fotos que exportar."); return; }
+
+      const h = state.header;
+      const photos = [...state.photos].sort((a,b) => {
+        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero,10) : null;
+        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero,10) : null;
+        if (an !== null && bn !== null) return an - bn;
+        if (an !== null) return -1; if (bn !== null) return 1;
+        return (a.createdAt||0) - (b.createdAt||0);
+      });
+
+      // Formatos fecha
+      const fechaStr = h.fechaHora
+        ? new Date(h.fechaHora).toLocaleString("es-ES", {dateStyle:"long", timeStyle:"short"})
+        : "";
+
+      // ---- Estilos del documento ----
+      // Página A4 (210x297mm), márgenes 20mm, 2 columnas de tabla del ~85mm c/u
+      // Para 4 fotos por página usamos una tabla de 2 cols x 2 rows por página
+      // Tamaño de imagen: ~8 cm de ancho, mantiene proporción
+
+      const styles = `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-styles
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+  office:version="1.2">
+
+  <office:styles>
+    <style:style style:name="Default_Paragraph_Style" style:family="paragraph" style:display-name="Default Paragraph Style">
+      <style:paragraph-properties fo:margin-bottom="0.2cm"/>
+      <style:text-properties fo:font-family="Arial" fo:font-size="10pt"/>
+    </style:style>
+    <style:style style:name="Title" style:family="paragraph" style:display-name="Título">
+      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.4cm"/>
+      <style:text-properties fo:font-family="Arial" fo:font-size="16pt" fo:font-weight="bold" fo:color="#1a1a2e"/>
+    </style:style>
+    <style:style style:name="Subtitle" style:family="paragraph" style:display-name="Subtítulo">
+      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.2cm"/>
+      <style:text-properties fo:font-family="Arial" fo:font-size="10pt" fo:color="#555555"/>
+    </style:style>
+    <style:style style:name="HeaderLabel" style:family="paragraph">
+      <style:paragraph-properties fo:margin-bottom="0.1cm"/>
+      <style:text-properties fo:font-family="Arial" fo:font-size="9pt" fo:font-weight="bold" fo:color="#666666"/>
+    </style:style>
+    <style:style style:name="HeaderValue" style:family="paragraph">
+      <style:paragraph-properties fo:margin-bottom="0.25cm"/>
+      <style:text-properties fo:font-family="Arial" fo:font-size="10pt"/>
+    </style:style>
+    <style:style style:name="PhotoNumber" style:family="paragraph">
+      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.1cm"/>
+      <style:text-properties fo:font-family="Arial" fo:font-size="8pt" fo:font-weight="bold" fo:color="#c8986b"/>
+    </style:style>
+    <style:style style:name="Caption" style:family="paragraph">
+      <style:paragraph-properties fo:text-align="center" fo:margin-top="0.15cm" fo:margin-bottom="0.2cm"/>
+      <style:text-properties fo:font-family="Arial" fo:font-size="8.5pt" fo:font-style="italic" fo:color="#333333"/>
+    </style:style>
+    <style:style style:name="CellStyle" style:family="table-cell">
+      <style:table-cell-properties fo:padding="0.3cm" fo:border="0.05cm solid #dddddd"/>
+    </style:style>
+  </office:styles>
+
+  <office:automatic-styles>
+    <style:page-layout style:name="PageLayout">
+      <style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm"
+        fo:margin-top="2cm" fo:margin-bottom="2cm"
+        fo:margin-left="2cm" fo:margin-right="2cm"/>
+    </style:page-layout>
+  </office:automatic-styles>
+
+  <office:master-styles>
+    <style:master-page style:name="Standard" style:page-layout-name="PageLayout"/>
+  </office:master-styles>
+</office:document-styles>`;
+
+      // ---- Construir el content.xml ----
+      // Las fotos se incrustan en el ODT como Pictures/photoN.jpg y se referencian
+
+      const zip = new JSZip();
+      const imgFolder = zip.folder("Pictures");
+
+      // Añadir todas las fotos al ZIP
+      const imgEntries = []; // { name, mime, b64 }
+      for (let i = 0; i < photos.length; i++) {
+        const ph = photos[i];
+        if (!ph.imageData) continue;
+        const ext = (ph.imageMime || "image/jpeg").split("/")[1].replace("jpeg","jpg") || "jpg";
+        const fname = `photo_${String(i+1).padStart(3,"0")}.${ext}`;
+        imgFolder.file(fname, ph.imageData, { base64: true });
+        imgEntries[i] = { name: fname, mime: ph.imageMime || "image/jpeg" };
+      }
+
+      // Función para obtener dimensiones aproximadas del image (no podemos leer el EXIF desde JS sin libs)
+      // Usamos tamaño fijo: 8cm ancho, 6cm alto (ratio 4:3)
+      const IMG_W = "8cm";
+      const IMG_H = "6cm";
+
+      // Generar celdas de foto
+      function photoCell(idx) {
+        const ph = photos[idx];
+        if (!ph) {
+          // celda vacía para completar la fila
+          return `<table:table-cell table:style-name="CellStyle">
+            <text:p/>
+          </table:table-cell>`;
+        }
+
+        const entry = imgEntries[idx];
+        const imgXml = entry
+          ? `<draw:frame draw:name="img_${idx}" text:anchor-type="as-char"
+              svg:width="${IMG_W}" svg:height="${IMG_H}"
+              style:vertical-rel="line" style:vertical-pos="top">
+              <draw:image xlink:href="Pictures/${entry.name}" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>
+            </draw:frame>`
+          : ``;
+
+        const numText = ph.numero ? `FOTO ${ph.numero}` : `FOTO`;
+        const captionText = ph.caption
+          ? escXml(ph.caption)
+          : `<text:span text:style-name="Caption" style:font-style="italic" fo:color="#999999">Sin nota</text:span>`;
+
+        return `<table:table-cell table:style-name="CellStyle">
+          <text:p text:style-name="PhotoNumber">${escXml(numText)}</text:p>
+          <text:p text:style-name="Default_Paragraph_Style" fo:text-align="center">${imgXml}</text:p>
+          <text:p text:style-name="Caption">${escXml(ph.caption || "")}</text:p>
+        </table:table-cell>`;
+      }
+
+      function escXml(s) {
+        return (s ?? "").toString()
+          .replaceAll("&","&amp;").replaceAll("<","&lt;")
+          .replaceAll(">","&gt;").replaceAll('"',"&quot;")
+          .replaceAll("'","&apos;");
+      }
+
+      // Generar filas (2 fotos por fila, 2 filas por página → 4 fotos/página)
+      // Separador de página después de cada 2 filas
+      let tableRows = "";
+      for (let i = 0; i < photos.length; i += 2) {
+        const isFirstInPage = (i % 4 === 0);
+        const isSecondRowOfPage = (i % 4 === 2);
+        const needsPageBreakAfter = isSecondRowOfPage && (i + 2 < photos.length);
+
+        const rowStyle = needsPageBreakAfter
+          ? `row_break_${i}`
+          : `RowStyle`;
+
+        tableRows += `<table:table-row>
+          ${photoCell(i)}
+          ${photoCell(i+1)}
+        </table:table-row>`;
+
+        // Insertamos salto de página tras cada 2 filas (= 4 fotos)
+        if (needsPageBreakAfter) {
+          tableRows += `</table:table>
+          <text:p text:style-name="Default_Paragraph_Style"><text:soft-page-break/></text:p>
+          <table:table table:name="Photos${i}" table:style-name="PhotoTable">
+            <table:table-column table:style-name="PhotoCol" table:number-columns-repeated="2"/>`;
+        }
+      }
+
+      const headerSection = `
+    <text:p text:style-name="Title">Reportaje Fotográfico</text:p>
+    <text:p text:style-name="Subtitle">Registro de diligencia policial</text:p>
+    <text:p text:style-name="Default_Paragraph_Style">&#160;</text:p>
+    ${h.asunto ? `<text:p text:style-name="HeaderLabel">ASUNTO</text:p><text:p text:style-name="HeaderValue">${escXml(h.asunto)}</text:p>` : ""}
+    ${h.grupo ? `<text:p text:style-name="HeaderLabel">GRUPO / UNIDAD</text:p><text:p text:style-name="HeaderValue">${escXml(h.grupo)}</text:p>` : ""}
+    ${h.juzgado ? `<text:p text:style-name="HeaderLabel">JUZGADO</text:p><text:p text:style-name="HeaderValue">${escXml(h.juzgado)}</text:p>` : ""}
+    ${h.procedimiento ? `<text:p text:style-name="HeaderLabel">PROCEDIMIENTO</text:p><text:p text:style-name="HeaderValue">${escXml(h.procedimiento)}</text:p>` : ""}
+    ${fechaStr ? `<text:p text:style-name="HeaderLabel">FECHA Y HORA</text:p><text:p text:style-name="HeaderValue">${escXml(fechaStr)}</text:p>` : ""}
+    ${h.direccion ? `<text:p text:style-name="HeaderLabel">DIRECCIÓN</text:p><text:p text:style-name="HeaderValue">${escXml(h.direccion)}</text:p>` : ""}
+    <text:p text:style-name="Default_Paragraph_Style">&#160;</text:p>
+    <text:p text:style-name="Subtitle">Total de fotografías: ${photos.length}</text:p>
+    <text:p text:style-name="Default_Paragraph_Style"><text:soft-page-break/></text:p>`;
+
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+  xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  office:version="1.2">
+
+  <office:automatic-styles>
+    <style:style style:name="PhotoTable" style:family="table">
+      <style:table-properties style:width="17cm" fo:margin-bottom="0cm" table:align="center"/>
+    </style:style>
+    <style:style style:name="PhotoCol" style:family="table-column">
+      <style:table-column-properties style:column-width="8.5cm"/>
+    </style:style>
+    <style:style style:name="RowStyle" style:family="table-row">
+      <style:table-row-properties style:row-height="7.5cm" style:use-optimal-row-height="false"/>
+    </style:style>
+  </office:automatic-styles>
+
+  <office:body>
+    <office:text>
+      ${headerSection}
+      <table:table table:name="Photos0" table:style-name="PhotoTable">
+        <table:table-column table:style-name="PhotoCol" table:number-columns-repeated="2"/>
+        ${tableRows}
+      </table:table>
+    </office:text>
+  </office:body>
+</office:document-content>`;
+
+      const manifest = `<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">
+  <manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/>
+  <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
+  <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
+  ${photos.filter((_,i) => imgEntries[i]).map((_,i) => {
+    const e = imgEntries[i];
+    return `<manifest:file-entry manifest:full-path="Pictures/${e.name}" manifest:media-type="${e.mime}"/>`;
+  }).join("\n  ")}
+</manifest:manifest>`;
+
+      const mimetype = "application/vnd.oasis.opendocument.text";
+
+      zip.file("mimetype", mimetype, { compression: "STORE" });
+      zip.file("content.xml", content);
+      zip.file("styles.xml", styles);
+      zip.folder("META-INF").file("manifest.xml", manifest);
+
+      try {
+        const blob = await zip.generateAsync({ type: "blob", mimeType: mimetype });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const fechaFile = h.fechaHora
+          ? new Date(h.fechaHora).toISOString().slice(0,10)
+          : new Date().toISOString().slice(0,10);
+        a.download = `reportaje_fotografico_${fechaFile}.odt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        toast("ODT exportado correctamente");
+      } catch(err) {
+        console.error(err);
+        toast("Error al generar el ODT.");
+      }
+    }
+
+    // ---- Bind events ----
+    function bindEvents() {
+      $("btnGuardarCabecera")?.addEventListener("click", saveHeader);
+      $("btnResetAll")?.addEventListener("click", resetAll);
+      $("btnOpenModal")?.addEventListener("click", () => openModal("add"));
+      $("btnCloseModal")?.addEventListener("click", closeModal);
+      $("btnClearFields")?.addEventListener("click", () => {
+        resetModalState();
+        $("photoNumero").value = "";
+        $("photoCaption").value = "";
+      });
+
+      $("backdrop")?.addEventListener("click", (e) => {
+        if (e.target === $("backdrop")) closeModal();
+      });
+
+      $("btnSavePhoto")?.addEventListener("click", savePhoto);
+
+      // Drop zone: click abre selector de archivo
+      $("dropZone")?.addEventListener("click", () => $("photoFileInput").click());
+
+      // Cambiar foto cuando ya hay una (overlay)
+      $("dropZone")?.querySelector(".drop-overlay-label")?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        $("photoFileInput").click();
+      });
+
+      $("photoFileInput")?.addEventListener("change", (e) => {
+        const file = e.target.files?.[0];
+        if (file) loadImageFile(file);
+        e.target.value = "";
+      });
+
+      // Drag & drop
+      $("dropZone")?.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        $("dropZone").classList.add("drag-over");
+      });
+      $("dropZone")?.addEventListener("dragleave", () => {
+        $("dropZone").classList.remove("drag-over");
+      });
+      $("dropZone")?.addEventListener("drop", (e) => {
+        e.preventDefault();
+        $("dropZone").classList.remove("drag-over");
+        const file = e.dataTransfer?.files?.[0];
+        if (file) loadImageFile(file);
+      });
+
+      // Ctrl+Enter en textarea
+      $("photoCaption")?.addEventListener("keydown", (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+          e.preventDefault();
+          savePhoto();
+        }
+      });
+
+      // Delegación en lista
+      $("list")?.addEventListener("click", (e) => {
+        const btn = e.target?.closest?.("button");
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if (!action || !id) return;
+        if (action === "edit") openModal("edit", id);
+        if (action === "del") deletePhoto(id);
+      });
+
+      $("btnExportOdt")?.addEventListener("click", exportODT);
+
+      // Autoguardado cabecera
+      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
+        $(id)?.addEventListener("change", () => {
+          state.header[id] = ($(id).value || "").trim();
+          saveState();
+        });
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadState();
+      renderHeader();
+      renderList();
+      bindEvents();
+    });
+  </script>
+</body>
+</html>
