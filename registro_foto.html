@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Registro · Reportaje Fotográfico</title>
+  <title>Reportaje Fotográfico · Registro</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,13 +33,36 @@
       line-height: 1.6;
     }
 
-    .container { max-width: 680px; margin: 0 auto; animation: fadeIn 0.6s ease-out; }
+    .container {
+      max-width: 660px;
+      margin: 0 auto;
+      animation: fadeIn 0.6s ease-out;
+    }
 
-    @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes slideDown { from { opacity:0; transform:translateY(-30px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes scaleIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
-    @keyframes slideInLeft { from { opacity:0; transform:translateX(-30px); } to { opacity:1; transform:translateX(0); } }
-    @keyframes modalSlideUp { from { opacity:0; transform:translateY(50px) scale(0.9); } to { opacity:1; transform:translateY(0) scale(1); } }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes slideInLeft {
+      from { opacity: 0; transform: translateX(-30px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes modalSlideUp {
+      from { opacity: 0; transform: translateY(50px) scale(0.9); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
     .header {
       text-align: center;
@@ -79,9 +102,17 @@
       animation: scaleIn 0.6s ease-out 0.2s backwards;
     }
 
-    .grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
-    @media (min-width: 520px) { .grid { grid-template-columns: 1fr 1fr; } .span2 { grid-column: 1 / -1; } }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    @media (min-width: 520px){
+      .grid { grid-template-columns: 1fr 1fr; }
+      .span2 { grid-column: 1 / -1; }
+    }
 
+    .form-group { margin-bottom: 0; }
     .form-label {
       font-family: 'DM Mono', monospace;
       font-size: 0.75rem;
@@ -93,7 +124,8 @@
       font-weight: 500;
     }
 
-    .form-input, .form-textarea {
+    .form-input,
+    .form-textarea {
       width: 100%;
       padding: 14px 16px;
       background: rgba(15, 15, 30, 0.6);
@@ -105,7 +137,8 @@
       transition: all 0.3s ease;
     }
 
-    .form-input:focus, .form-textarea:focus {
+    .form-input:focus,
+    .form-textarea:focus {
       outline: none;
       border-color: var(--accent);
       box-shadow: 0 0 0 3px rgba(200, 152, 107, 0.1);
@@ -113,6 +146,7 @@
 
     .form-textarea { min-height: 80px; resize: vertical; }
 
+    /* Botonera */
     .button-group {
       display: flex;
       gap: 12px;
@@ -120,8 +154,6 @@
       flex-wrap: wrap;
       animation: scaleIn 0.6s ease-out 0.35s backwards;
     }
-
-    .button-group + .button-group { margin-top: 12px; }
 
     .btn-add {
       flex: 1;
@@ -184,7 +216,7 @@
     }
     .btn-danger:hover { background: rgba(255, 120, 120, 0.10); transform: translateY(-2px); }
 
-    /* Fotos */
+    /* Sección fotos */
     .photos-section { margin-top: 26px; }
 
     .photos-title {
@@ -198,7 +230,11 @@
       justify-content: space-between;
     }
 
-    .photos-title .left { display: flex; align-items: center; gap: 12px; }
+    .photos-title .left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
     .photo-count {
       font-family: 'DM Mono', monospace;
@@ -210,96 +246,108 @@
       color: var(--text-light);
     }
 
-    /* Grid de fotos: 2 columnas */
+    /* Grid de fotos (2 columnas) */
     .photos-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 14px;
     }
 
-    @media (max-width: 480px) { .photos-grid { grid-template-columns: 1fr; } }
-
-    .photo-item {
+    .photo-card {
       background: rgba(22, 33, 62, 0.4);
       border: 1px solid var(--border);
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      transition: all 0.3s ease;
       animation: slideInLeft 0.4s ease-out;
+      transition: all 0.3s ease;
       display: flex;
       flex-direction: column;
     }
+    .photo-card:hover {
+      border-color: rgba(200, 152, 107, 0.5);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
 
-    .photo-item:hover { background: rgba(22, 33, 62, 0.7); transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
-
-    .photo-img-wrapper {
+    .photo-img-wrap {
       position: relative;
       width: 100%;
       aspect-ratio: 4/3;
-      background: rgba(0,0,0,0.3);
+      background: rgba(15,15,30,0.8);
       overflow: hidden;
     }
 
-    .photo-img-wrapper img {
+    .photo-img-wrap img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
 
-    .photo-number-badge {
+    .photo-num-badge {
       position: absolute;
       top: 8px;
       left: 8px;
+      background: rgba(0,0,0,0.65);
+      border: 1px solid var(--border);
+      color: var(--accent);
       font-family: 'DM Mono', monospace;
       font-size: 0.65rem;
-      background: rgba(0,0,0,0.7);
-      border: 1px solid var(--accent);
-      color: var(--accent);
       padding: 3px 8px;
-      border-radius: 20px;
-      letter-spacing: 0.1em;
+      border-radius: 999px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
+      backdrop-filter: blur(4px);
     }
 
-    .photo-caption {
-      padding: 10px 12px;
-      font-size: 0.93rem;
-      color: var(--text-light);
-      line-height: 1.5;
-      border-top: 1px solid var(--border);
-      font-style: italic;
-      flex: 1;
-    }
-
-    .photo-caption.empty { color: var(--text-muted); }
-
-    .photo-actions {
-      display: flex;
-      gap: 8px;
-      padding: 10px 12px;
-      border-top: 1px solid var(--border);
-    }
-
-    .icon-btn {
-      flex: 1;
-      padding: 8px 10px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-light);
-      border: 1px solid var(--border);
+    .photo-del-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(180,40,40,0.75);
+      border: none;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 8px;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.25s ease;
+      backdrop-filter: blur(4px);
+      transition: background 0.2s;
       font-family: 'DM Mono', monospace;
-      font-size: 0.72rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      text-align: center;
     }
-    .icon-btn:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-1px); }
-    .icon-btn.danger { border-color: rgba(255, 120, 120, 0.25); }
-    .icon-btn.danger:hover { background: rgba(255, 120, 120, 0.12); }
+    .photo-del-btn:hover { background: rgba(220,40,40,0.95); }
+
+    .photo-caption-area {
+      padding: 10px 12px 12px;
+      flex: 1;
+    }
+
+    .photo-caption-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 5px;
+    }
+
+    .photo-caption-input {
+      width: 100%;
+      background: rgba(15,15,30,0.5);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-light);
+      font-family: 'Crimson Pro', serif;
+      font-size: 0.92rem;
+      padding: 8px 10px;
+      resize: none;
+      min-height: 56px;
+      transition: border-color 0.2s;
+    }
+    .photo-caption-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
 
     .empty-state {
       text-align: center;
@@ -312,16 +360,16 @@
       grid-column: 1 / -1;
     }
 
-    /* Modal */
+    /* Cámara modal */
     .modal-overlay {
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(8px);
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(10px);
       z-index: 1000;
       animation: fadeIn 0.3s ease;
-      padding: 12px;
+      padding: 16px;
     }
     .modal-overlay.active {
       display: flex;
@@ -334,98 +382,89 @@
       background: var(--secondary);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 30px;
-      max-width: 520px;
+      padding: 26px;
+      max-width: 500px;
       width: 100%;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
       animation: modalSlideUp 0.4s ease-out;
       max-height: calc(100dvh - 24px);
-      overflow: auto;
+      overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
 
     .modal h2 {
-      font-size: 1.8rem;
+      font-size: 1.7rem;
       font-weight: 700;
       margin-bottom: 18px;
       color: var(--accent);
       letter-spacing: -0.01em;
     }
 
-    /* Zona de drop de foto */
-    .photo-drop-zone {
-      width: 100%;
-      border: 2px dashed var(--border);
-      border-radius: 12px;
-      background: rgba(15,15,30,0.5);
-      min-height: 160px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      cursor: pointer;
-      transition: all 0.3s ease;
+    /* Área de cámara */
+    .camera-container {
       position: relative;
-      margin-bottom: 14px;
+      width: 100%;
+      aspect-ratio: 4/3;
+      background: #000;
+      border-radius: 12px;
       overflow: hidden;
+      margin-bottom: 16px;
     }
-    .photo-drop-zone:hover, .photo-drop-zone.drag-over {
-      border-color: var(--accent);
-      background: rgba(200, 152, 107, 0.07);
-    }
-    .photo-drop-zone.has-image { border-style: solid; }
 
-    .photo-drop-zone img.preview {
-      position: absolute;
-      inset: 0;
+    #cameraVideo {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 10px;
+      display: block;
     }
 
-    .drop-hint {
-      font-family: 'DM Mono', monospace;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      text-align: center;
-      padding: 16px;
-      z-index: 1;
-    }
-    .has-image .drop-hint { display: none; }
-
-    .drop-overlay-label {
+    #cameraCanvas {
       display: none;
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      align-items: center;
-      justify-content: center;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.8rem;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      z-index: 2;
-      cursor: pointer;
     }
-    .has-image:hover .drop-overlay-label { display: flex; }
 
-    #photoFileInput { display: none; }
+    .camera-preview-wrap {
+      display: none;
+    }
+
+    .camera-preview-wrap.active {
+      display: block;
+    }
+
+    #previewImg {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 14px;
+    }
+
+    /* selector de cámara */
+    .camera-select-wrap {
+      margin-bottom: 14px;
+    }
+
+    .camera-select {
+      width: 100%;
+      padding: 10px 14px;
+      background: rgba(15, 15, 30, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-light);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+    }
 
     .modal-buttons {
-      position: sticky;
-      bottom: 0;
-      background: var(--secondary);
-      padding-top: 12px;
-      padding-bottom: calc(12px + env(safe-area-inset-bottom));
-      margin-top: 12px;
-      border-top: 1px solid var(--border);
-      z-index: 5;
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
+      position: sticky;
+      bottom: 0;
+      background: var(--secondary);
+      padding-top: 14px;
+      padding-bottom: calc(10px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      z-index: 5;
     }
 
     .btn {
@@ -448,6 +487,7 @@
       box-shadow: 0 4px 15px rgba(200, 152, 107, 0.3);
     }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(200, 152, 107, 0.5); }
+
     .btn-secondary {
       background: rgba(255, 255, 255, 0.1);
       color: var(--text-light);
@@ -456,10 +496,11 @@
     .btn-secondary:hover { background: rgba(255, 255, 255, 0.15); }
 
     .hint {
-      margin-top: 6px;
+      margin-top: 10px;
       font-family: 'DM Mono', monospace;
-      font-size: 0.76rem;
+      font-size: 0.78rem;
       color: var(--text-muted);
+      letter-spacing: 0.02em;
     }
 
     .toast {
@@ -470,7 +511,7 @@
       background: rgba(0,0,0,.75);
       border: 1px solid var(--border);
       color: var(--text-light);
-      padding: 10px 14px;
+      padding: 10px 18px;
       border-radius: 999px;
       font-family: 'DM Mono', monospace;
       font-size: 0.85rem;
@@ -481,22 +522,42 @@
     }
     .toast.show { display: block; }
 
+    /* Galería: estado de carga */
+    .loading-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    .button-group + .button-group { margin-top: 12px; }
+
     @media (max-width: 480px) {
-      body { padding: 16px; }
-      .header h1 { font-size: 2rem; }
-      .modal { padding: 22px; }
+      body { padding: 14px; }
+      .header h1 { font-size: 1.9rem; }
+      .modal { padding: 18px; }
       .modal-buttons { flex-direction: column; }
       .button-group { flex-direction: column; }
       .btn-export, .btn-add, .btn-danger { justify-content: center; width: 100%; }
+      .photos-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 380px) {
+      .photos-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 
 <body>
   <div class="container">
+
     <div class="header">
       <h1>Reportaje Fotográfico</h1>
-      <div class="subtitle">Registro de diligencia</div>
+      <div class="subtitle">Diligencia de Registro</div>
     </div>
 
     <!-- Datos del registro -->
@@ -527,71 +588,74 @@
           <input class="form-input" id="direccion" placeholder="C/ ..., nº..., localidad" />
         </div>
       </div>
+
       <div class="button-group">
         <button class="btn-add" id="btnGuardarCabecera" type="button">Guardar datos</button>
         <button class="btn-danger" id="btnResetAll" type="button">Borrar todo</button>
       </div>
     </section>
 
-    <!-- Botones de acción -->
+    <!-- Botones acción -->
     <div class="button-group">
-      <button class="btn-add" id="btnOpenModal" type="button">📷 Añadir foto</button>
-      <button class="btn-export" id="btnExportOdt" type="button">Exportar ODT</button>
+      <button class="btn-add" id="btnOpenCamera" type="button">📷 Tomar foto</button>
+      <button class="btn-export" id="btnExportOdt" type="button">📄 Exportar ODT</button>
     </div>
 
     <!-- Galería de fotos -->
     <section class="photos-section" aria-label="Fotos del reportaje">
       <div class="photos-title">
         <div class="left">
-          <span>Fotos</span>
+          <span>Reportaje</span>
           <span class="photo-count" id="count">0 fotos</span>
         </div>
       </div>
-      <div class="photos-grid" id="list">
-        <div class="empty-state" id="empty">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:64px;height:64px;margin:0 auto 12px;opacity:0.3;display:block;">
-            <rect x="2" y="5" width="20" height="15" rx="2"/>
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M8.5 5V3.5A1.5 1.5 0 0 1 10 2h4a1.5 1.5 0 0 1 1.5 1.5V5"/>
+      <div class="photos-grid" id="photoGrid">
+        <div class="empty-state" id="emptyState">
+          <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin:0 auto 14px;opacity:0.25;display:block">
+            <rect x="8" y="24" width="80" height="58" rx="8" stroke="currentColor" stroke-width="3"/>
+            <circle cx="48" cy="53" r="16" stroke="currentColor" stroke-width="3"/>
+            <circle cx="48" cy="53" r="7" stroke="currentColor" stroke-width="2.5"/>
+            <path d="M32 24l5-10h22l5 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          Aún no has añadido fotos. Pulsa "Añadir foto".
+          Aún no has añadido fotos. Pulsa "Tomar foto".
         </div>
       </div>
     </section>
-  </div>
 
-  <!-- Modal añadir/editar foto -->
-  <div class="modal-overlay" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  </div><!-- /container -->
+
+  <!-- Modal cámara -->
+  <div class="modal-overlay" id="cameraModal" role="dialog" aria-modal="true" aria-labelledby="cameraModalTitle">
     <div class="modal">
-      <h2 id="modalTitle">Añadir foto</h2>
+      <h2 id="cameraModalTitle">Tomar foto</h2>
 
-      <!-- Zona drag & drop / click para foto -->
-      <div class="photo-drop-zone" id="dropZone">
-        <img class="preview" id="photoPreview" src="" alt="" style="display:none;" />
-        <div class="drop-hint">
-          📷 Pulsa aquí o arrastra una foto<br>
-          <span style="font-size:0.7rem;opacity:0.7;">JPG, PNG, HEIC…</span>
+      <!-- Selector de cámara (aparece si hay varias) -->
+      <div class="camera-select-wrap" id="cameraSelectWrap" style="display:none">
+        <label class="form-label" for="cameraSelect">Cámara</label>
+        <select class="camera-select" id="cameraSelect"></select>
+      </div>
+
+      <!-- Video stream -->
+      <div class="camera-container" id="cameraContainer">
+        <video id="cameraVideo" autoplay playsinline muted></video>
+        <canvas id="cameraCanvas"></canvas>
+      </div>
+
+      <!-- Preview tras capturar -->
+      <div class="camera-preview-wrap" id="previewWrap">
+        <img id="previewImg" src="" alt="Foto capturada" />
+        <div class="form-group">
+          <label class="form-label" for="captionInput">Nota / pie de foto</label>
+          <textarea class="form-textarea" id="captionInput" placeholder="Describe lo que muestra la fotografía..."></textarea>
         </div>
-        <div class="drop-overlay-label">Cambiar foto</div>
-      </div>
-      <input type="file" id="photoFileInput" accept="image/*" />
-
-      <div class="form-group">
-        <label class="form-label" for="photoNumero">Nº Foto</label>
-        <input class="form-input" id="photoNumero" inputmode="numeric" placeholder="Ej: 001 (opcional, se asigna automáticamente)" />
       </div>
 
-      <div class="form-group" style="margin-top:12px;">
-        <label class="form-label" for="photoCaption">Pie de foto / Nota</label>
-        <textarea class="form-textarea" id="photoCaption" placeholder="Describe lo que muestra la foto: ubicación, objeto, contexto relevante…"></textarea>
-      </div>
+      <p class="hint" id="cameraHint">Apunta la cámara y pulsa "Capturar".</p>
 
-      <div class="hint">Tip: Ctrl+Enter para guardar. Si dejas el Nº vacío se asigna automáticamente.</div>
-
-      <div class="modal-buttons">
-        <button class="btn btn-primary" id="btnSavePhoto" type="button" data-mode="add">Añadir</button>
-        <button class="btn btn-secondary" id="btnClearFields" type="button">Limpiar</button>
-        <button class="btn btn-secondary" id="btnCloseModal" type="button">Cerrar</button>
+      <div class="modal-buttons" id="cameraButtons">
+        <button class="btn btn-primary" id="btnCapture" type="button">Capturar</button>
+        <button class="btn btn-secondary" id="btnSwitchCam" type="button" style="display:none">Cambiar cámara</button>
+        <button class="btn btn-secondary" id="btnCloseCamera" type="button">Cerrar</button>
       </div>
     </div>
   </div>
@@ -599,364 +663,296 @@
   <div class="toast" id="toast"></div>
 
   <!-- JSZip para generar el ODT -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
 
   <script>
-    // ============================================================
-    // REPORTAJE FOTOGRÁFICO — Registro de diligencia
-    // ============================================================
+    // =======================================
+    // REPORTAJE FOTOGRÁFICO · Registro
+    // =======================================
 
     const LS_KEY = "reportaje_fotografico_v1";
     const $ = (id) => document.getElementById(id);
 
+    // Estado
     const state = {
       header: { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" },
-      photos: [] // { id, numero, caption, imageData, imageMime, createdAt }
+      photos: [] // { id, dataUrl, caption, createdAt }
     };
 
-    // ---- Persistencia ----
+    // Cámara
+    let currentStream = null;
+    let capturedDataUrl = null;
+    let videoDevices = [];
+    let currentDeviceIndex = 0;
+
+    // ─── Persistencia ────────────────────────────────────────────
+    function saveState() {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(_){}
+    }
+
     function loadState() {
       try {
         const raw = localStorage.getItem(LS_KEY);
         if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") {
-          state.header = { ...state.header, ...(parsed.header || {}) };
-          state.photos = Array.isArray(parsed.photos) ? parsed.photos : [];
+        const p = JSON.parse(raw);
+        if (p && typeof p === "object") {
+          state.header = { ...state.header, ...(p.header || {}) };
+          state.photos = Array.isArray(p.photos) ? p.photos : [];
         }
-      } catch(_e) {}
+      } catch(_){}
     }
 
-    function saveState() {
-      try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(_e) {}
-    }
-
-    // ---- Toast ----
+    // ─── Toast ───────────────────────────────────────────────────
     function toast(msg) {
       const t = $("toast");
       t.textContent = msg;
       t.classList.add("show");
-      clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => t.classList.remove("show"), 1800);
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.remove("show"), 1800);
     }
 
-    // ---- IDs y numeración ----
+    // ─── Utilidades ──────────────────────────────────────────────
     function safeId() {
-      return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2,8)}`;
     }
-
-    function normalizeNumber(n) {
-      const s = (n ?? "").toString().trim();
-      if (!s) return "";
-      if (/^\d+$/.test(s)) return String(Math.min(parseInt(s,10), 999999)).padStart(3,"0");
-      return s;
-    }
-
-    function nextAutoNumber() {
-      const nums = state.photos
-        .map(p => p.numero)
-        .filter(n => /^\d+$/.test(n))
-        .map(n => parseInt(n,10));
-      const max = nums.length ? Math.max(...nums) : 0;
-      return String(max + 1).padStart(3, "0");
-    }
-
     function escHtml(s) {
-      return (s ?? "").toString()
+      return (s??'').toString()
         .replaceAll("&","&amp;").replaceAll("<","&lt;")
         .replaceAll(">","&gt;").replaceAll('"',"&quot;");
     }
 
-    // ---- Estado temporal del modal ----
-    let modalImageData = null;   // base64 sin prefijo
-    let modalImageMime = null;   // "image/jpeg" etc.
-
-    function resetModalState() {
-      modalImageData = null;
-      modalImageMime = null;
-      $("photoPreview").style.display = "none";
-      $("photoPreview").src = "";
-      $("dropZone").classList.remove("has-image");
-      $("photoNumero").value = "";
-      $("photoCaption").value = "";
-    }
-
-    // ---- Carga de imagen (file input o drag) ----
-    function loadImageFile(file) {
-      if (!file || !file.type.startsWith("image/")) {
-        toast("Selecciona un archivo de imagen.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target.result;
-        const [prefix, b64] = dataUrl.split(",");
-        const mime = prefix.match(/data:([^;]+)/)?.[1] || "image/jpeg";
-        modalImageData = b64;
-        modalImageMime = mime;
-
-        const prev = $("photoPreview");
-        prev.src = dataUrl;
-        prev.style.display = "block";
-        $("dropZone").classList.add("has-image");
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // ---- Render ----
+    // ─── Render cabecera ─────────────────────────────────────────
     function renderHeader() {
-      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(k => {
-        $(k).value = state.header[k] || "";
-      });
+      $("asunto").value = state.header.asunto || "";
+      $("grupo").value = state.header.grupo || "";
+      $("juzgado").value = state.header.juzgado || "";
+      $("procedimiento").value = state.header.procedimiento || "";
+      $("fechaHora").value = state.header.fechaHora || "";
+      $("direccion").value = state.header.direccion || "";
     }
 
-    function renderList() {
-      const list = $("list");
-      list.innerHTML = "";
-
-      const n = state.photos.length;
-      $("count").textContent = `${n} foto${n === 1 ? "" : "s"}`;
-
-      if (n === 0) {
-        const emp = document.createElement("div");
-        emp.className = "empty-state";
-        emp.id = "empty";
-        emp.innerHTML = `
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="width:64px;height:64px;margin:0 auto 12px;opacity:0.3;display:block;">
-            <rect x="2" y="5" width="20" height="15" rx="2"/>
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M8.5 5V3.5A1.5 1.5 0 0 1 10 2h4a1.5 1.5 0 0 1 1.5 1.5V5"/>
-          </svg>
-          Aún no has añadido fotos. Pulsa "Añadir foto".
-        `;
-        list.appendChild(emp);
-        return;
-      }
-
-      const sorted = [...state.photos].sort((a,b) => {
-        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero,10) : null;
-        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero,10) : null;
-        if (an !== null && bn !== null) return an - bn;
-        if (an !== null) return -1;
-        if (bn !== null) return 1;
-        return (a.createdAt||0) - (b.createdAt||0);
-      });
-
-      for (const ph of sorted) {
-        const item = document.createElement("div");
-        item.className = "photo-item";
-
-        const src = ph.imageData
-          ? `data:${ph.imageMime || "image/jpeg"};base64,${ph.imageData}`
-          : "";
-
-        const captionHtml = ph.caption
-          ? `<div class="photo-caption">${escHtml(ph.caption)}</div>`
-          : `<div class="photo-caption empty">Sin nota</div>`;
-
-        item.innerHTML = `
-          <div class="photo-img-wrapper">
-            ${src ? `<img src="${src}" alt="Foto ${escHtml(ph.numero)}" loading="lazy" />` : `<div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:0.3;font-size:2rem;">📷</div>`}
-            <div class="photo-number-badge">Foto ${escHtml(ph.numero || "—")}</div>
-          </div>
-          ${captionHtml}
-          <div class="photo-actions">
-            <button class="icon-btn" type="button" data-action="edit" data-id="${escHtml(ph.id)}">Editar</button>
-            <button class="icon-btn danger" type="button" data-action="del" data-id="${escHtml(ph.id)}">Borrar</button>
-          </div>
-        `;
-        list.appendChild(item);
-      }
-    }
-
-    // ---- Modal ----
-    function openModal(mode, photoId = null) {
-      const backdrop = $("backdrop");
-      const btn = $("btnSavePhoto");
-
-      backdrop.classList.add("active");
-      resetModalState();
-
-      if (mode === "edit" && photoId) {
-        const ph = state.photos.find(p => p.id === photoId);
-        if (!ph) { toast("No se encontró la foto."); closeModal(); return; }
-
-        $("modalTitle").textContent = "Editar foto";
-        btn.textContent = "Guardar";
-        btn.dataset.mode = "edit";
-        btn.dataset.editId = ph.id;
-
-        $("photoNumero").value = ph.numero || "";
-        $("photoCaption").value = ph.caption || "";
-
-        if (ph.imageData) {
-          const src = `data:${ph.imageMime || "image/jpeg"};base64,${ph.imageData}`;
-          $("photoPreview").src = src;
-          $("photoPreview").style.display = "block";
-          $("dropZone").classList.add("has-image");
-          modalImageData = ph.imageData;
-          modalImageMime = ph.imageMime;
-        }
-      } else {
-        $("modalTitle").textContent = "Añadir foto";
-        btn.textContent = "Añadir";
-        btn.dataset.mode = "add";
-        delete btn.dataset.editId;
-      }
-
-      setTimeout(() => $("dropZone")?.focus?.(), 50);
-    }
-
-    function closeModal() {
-      $("backdrop").classList.remove("active");
-      resetModalState();
-    }
-
-    // ---- Guardar foto ----
-    function savePhoto() {
-      const btn = $("btnSavePhoto");
-      const mode = btn.dataset.mode || "add";
-      const editId = btn.dataset.editId;
-
-      let numero = normalizeNumber($("photoNumero").value);
-      const caption = ($("photoCaption").value || "").trim();
-
-      if (!modalImageData && mode === "add") {
-        toast("Añade una foto antes de guardar.");
-        return;
-      }
-
-      if (!numero) numero = nextAutoNumber();
-
-      if (mode === "edit" && editId) {
-        const ph = state.photos.find(p => p.id === editId);
-        if (!ph) { toast("No se encontró la foto."); return; }
-
-        const dup = state.photos.find(p => p.id !== editId && (p.numero || "") === numero);
-        if (dup) { toast(`Ya existe la foto ${numero}. Usa otro Nº.`); return; }
-
-        ph.numero = numero;
-        ph.caption = caption;
-        if (modalImageData) { ph.imageData = modalImageData; ph.imageMime = modalImageMime; }
-        saveState(); renderList(); closeModal();
-        toast("Foto actualizada");
-      } else {
-        const dup = state.photos.find(p => (p.numero || "") === numero);
-        if (dup) { toast(`Ya existe la foto ${numero}. Usa otro Nº o edítala.`); return; }
-
-        state.photos.push({
-          id: safeId(),
-          numero,
-          caption,
-          imageData: modalImageData,
-          imageMime: modalImageMime || "image/jpeg",
-          createdAt: Date.now()
-        });
-        saveState(); renderList(); closeModal();
-        toast("Foto añadida");
-      }
-    }
-
-    function deletePhoto(id) {
-      const ph = state.photos.find(p => p.id === id);
-      const label = ph?.numero ? `Foto ${ph.numero}` : "esta foto";
-      if (!confirm(`¿Borrar ${label}?`)) return;
-      state.photos = state.photos.filter(p => p.id !== id);
-      saveState(); renderList();
-      toast("Foto borrada");
-    }
-
-    // ---- Guardar cabecera ----
-    function saveHeader() {
-      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(k => {
-        state.header[k] = ($(k).value || "").trim();
+    function saveHeaderFromInputs() {
+      ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
+        state.header[id] = ($(id).value || "").trim();
       });
       saveState();
       toast("Datos guardados");
     }
 
-    function resetAll() {
-      if (!confirm("¿Borrar TODOS los datos y fotos?")) return;
-      localStorage.removeItem(LS_KEY);
-      state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
-      state.photos = [];
-      renderHeader();
-      renderList();
-      toast("Borrado completo");
-    }
+    // ─── Render galería ──────────────────────────────────────────
+    function renderGallery() {
+      const grid = $("photoGrid");
+      const empty = $("emptyState");
 
-    // ================================================================
-    // EXPORTAR A ODT
-    // Genera un documento .odt (OpenDocument Text) con:
-    //   - Portada con los datos del registro
-    //   - Fotos en 2 columnas, 4 por página, con pie de foto debajo
-    // ================================================================
-    async function exportODT() {
-      if (!window.JSZip) { toast("No se pudo cargar JSZip."); return; }
-      if (state.photos.length === 0) { toast("No hay fotos que exportar."); return; }
+      // Eliminar tarjetas anteriores (no el empty)
+      [...grid.querySelectorAll(".photo-card")].forEach(c => c.remove());
 
-      const h = state.header;
-      const photos = [...state.photos].sort((a,b) => {
-        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero,10) : null;
-        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero,10) : null;
-        if (an !== null && bn !== null) return an - bn;
-        if (an !== null) return -1; if (bn !== null) return 1;
-        return (a.createdAt||0) - (b.createdAt||0);
+      const n = state.photos.length;
+      $("count").textContent = `${n} foto${n !== 1 ? "s" : ""}`;
+
+      if (n === 0) {
+        empty.style.display = "block";
+        return;
+      }
+      empty.style.display = "none";
+
+      state.photos.forEach((ph, idx) => {
+        const card = document.createElement("div");
+        card.className = "photo-card";
+        card.dataset.id = ph.id;
+
+        card.innerHTML = `
+          <div class="photo-img-wrap">
+            <img src="${escHtml(ph.dataUrl)}" alt="Foto ${idx+1}" loading="lazy" />
+            <span class="photo-num-badge">Foto ${String(idx+1).padStart(2,"0")}</span>
+            <button class="photo-del-btn" data-action="del" data-id="${escHtml(ph.id)}" type="button">✕</button>
+          </div>
+          <div class="photo-caption-area">
+            <div class="photo-caption-label">Pie de foto</div>
+            <textarea class="photo-caption-input" data-id="${escHtml(ph.id)}"
+              placeholder="Descripción de la fotografía..."
+              rows="3">${escHtml(ph.caption || "")}</textarea>
+          </div>
+        `;
+
+        grid.appendChild(card);
       });
 
-      // Formatos fecha
-      const fechaStr = h.fechaHora
-        ? new Date(h.fechaHora).toLocaleString("es-ES", {dateStyle:"long", timeStyle:"short"})
+      // Eventos: cambio de caption → guardar en estado
+      grid.querySelectorAll(".photo-caption-input").forEach(ta => {
+        ta.addEventListener("input", () => {
+          const id = ta.dataset.id;
+          const ph = state.photos.find(p => p.id === id);
+          if (ph) { ph.caption = ta.value; saveState(); }
+        });
+      });
+    }
+
+    function deletePhoto(id) {
+      const ph = state.photos.find(p => p.id === id);
+      if (!ph) return;
+      const idx = state.photos.indexOf(ph);
+      if (!confirm(`¿Borrar la Foto ${idx+1}?`)) return;
+      state.photos = state.photos.filter(p => p.id !== id);
+      saveState();
+      renderGallery();
+      toast("Foto eliminada");
+    }
+
+    // ─── Cámara ──────────────────────────────────────────────────
+    async function enumerateCameras() {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        videoDevices = devices.filter(d => d.kind === "videoinput");
+        const sel = $("cameraSelect");
+        sel.innerHTML = "";
+        videoDevices.forEach((d, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = d.label || `Cámara ${i+1}`;
+          sel.appendChild(opt);
+        });
+        if (videoDevices.length > 1) {
+          $("cameraSelectWrap").style.display = "block";
+          $("btnSwitchCam").style.display = "inline-flex";
+        } else {
+          $("cameraSelectWrap").style.display = "none";
+          $("btnSwitchCam").style.display = "none";
+        }
+      } catch(_){}
+    }
+
+    async function startCamera(deviceIndex) {
+      stopCamera();
+      const constraints = { video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } };
+      if (videoDevices.length > 0 && videoDevices[deviceIndex]) {
+        constraints.video = { deviceId: { exact: videoDevices[deviceIndex].deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } };
+      }
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+        const video = $("cameraVideo");
+        video.srcObject = currentStream;
+        await video.play();
+        await enumerateCameras();
+      } catch(err) {
+        toast("No se pudo acceder a la cámara. Comprueba los permisos.");
+        closeCameraModal();
+      }
+    }
+
+    function stopCamera() {
+      if (currentStream) {
+        currentStream.getTracks().forEach(t => t.stop());
+        currentStream = null;
+      }
+      const video = $("cameraVideo");
+      video.srcObject = null;
+    }
+
+    function capturePhoto() {
+      const video = $("cameraVideo");
+      const canvas = $("cameraCanvas");
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      capturedDataUrl = canvas.toDataURL("image/jpeg", 0.92);
+
+      // Mostrar preview
+      $("previewImg").src = capturedDataUrl;
+      $("captionInput").value = "";
+      $("cameraContainer").style.display = "none";
+      $("previewWrap").classList.add("active");
+      $("cameraHint").textContent = "Añade una nota y pulsa "Guardar foto", o vuelve a intentar.";
+      $("btnCapture").textContent = "Guardar foto";
+      $("btnCapture").dataset.mode = "save";
+      stopCamera();
+    }
+
+    function retakePhoto() {
+      capturedDataUrl = null;
+      $("cameraContainer").style.display = "block";
+      $("previewWrap").classList.remove("active");
+      $("cameraHint").textContent = "Apunta la cámara y pulsa \"Capturar\".";
+      $("btnCapture").textContent = "Capturar";
+      $("btnCapture").dataset.mode = "capture";
+      startCamera(currentDeviceIndex);
+    }
+
+    function savePhoto() {
+      if (!capturedDataUrl) return;
+      state.photos.push({
+        id: safeId(),
+        dataUrl: capturedDataUrl,
+        caption: ($("captionInput").value || "").trim(),
+        createdAt: Date.now()
+      });
+      saveState();
+      renderGallery();
+      toast("Foto añadida");
+      capturedDataUrl = null;
+      // Volver a cámara para tomar otra si se quiere
+      retakePhoto();
+    }
+
+    function openCameraModal() {
+      capturedDataUrl = null;
+      $("cameraContainer").style.display = "block";
+      $("previewWrap").classList.remove("active");
+      $("cameraHint").textContent = "Apunta la cámara y pulsa \"Capturar\".";
+      $("btnCapture").textContent = "Capturar";
+      $("btnCapture").dataset.mode = "capture";
+      $("cameraModal").classList.add("active");
+      currentDeviceIndex = 0;
+      startCamera(currentDeviceIndex);
+    }
+
+    function closeCameraModal() {
+      stopCamera();
+      $("cameraModal").classList.remove("active");
+      capturedDataUrl = null;
+      $("cameraContainer").style.display = "block";
+      $("previewWrap").classList.remove("active");
+      $("btnCapture").textContent = "Capturar";
+      $("btnCapture").dataset.mode = "capture";
+    }
+
+    // ─── Exportar ODT ────────────────────────────────────────────
+    // ODT es un ZIP con XML + imágenes
+    async function exportOdt() {
+      if (!window.JSZip) { toast("JSZip no disponible."); return; }
+      if (state.photos.length === 0) { toast("No hay fotos que exportar."); return; }
+
+      toast("Generando ODT…");
+
+      const h = state.header;
+      const fmtDate = h.fechaHora
+        ? new Date(h.fechaHora).toLocaleString("es-ES", { dateStyle:"long", timeStyle:"short" })
         : "";
 
-      // ---- Estilos del documento ----
-      // Página A4 (210x297mm), márgenes 20mm, 2 columnas de tabla del ~85mm c/u
-      // Para 4 fotos por página usamos una tabla de 2 cols x 2 rows por página
-      // Tamaño de imagen: ~8 cm de ancho, mantiene proporción
+      // Construimos el content.xml
+      // 2 columnas, 4 fotos por página → 2 filas × 2 cols por página
+      // Dimensiones A4 con márgenes: ancho útil ≈ 17cm → cada col ≈ 8.2cm
+      // Cada imagen: 8.2cm × 6.15cm (ratio 4:3)
+      const IMG_W_CM = "8.2cm";
+      const IMG_H_CM = "6.1cm";
+      const COL_W = "8.50cm"; // incluye padding
 
+      // Encabezados de página (estilos)
       const styles = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-styles
   xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
   xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
-  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
   xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
-  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
-  office:version="1.2">
-
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  office:version="1.3">
   <office:styles>
-    <style:style style:name="Default_Paragraph_Style" style:family="paragraph" style:display-name="Default Paragraph Style">
-      <style:paragraph-properties fo:margin-bottom="0.2cm"/>
-      <style:text-properties fo:font-family="Arial" fo:font-size="10pt"/>
-    </style:style>
-    <style:style style:name="Title" style:family="paragraph" style:display-name="Título">
-      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.4cm"/>
-      <style:text-properties fo:font-family="Arial" fo:font-size="16pt" fo:font-weight="bold" fo:color="#1a1a2e"/>
-    </style:style>
-    <style:style style:name="Subtitle" style:family="paragraph" style:display-name="Subtítulo">
-      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.2cm"/>
-      <style:text-properties fo:font-family="Arial" fo:font-size="10pt" fo:color="#555555"/>
-    </style:style>
-    <style:style style:name="HeaderLabel" style:family="paragraph">
-      <style:paragraph-properties fo:margin-bottom="0.1cm"/>
-      <style:text-properties fo:font-family="Arial" fo:font-size="9pt" fo:font-weight="bold" fo:color="#666666"/>
-    </style:style>
-    <style:style style:name="HeaderValue" style:family="paragraph">
-      <style:paragraph-properties fo:margin-bottom="0.25cm"/>
-      <style:text-properties fo:font-family="Arial" fo:font-size="10pt"/>
-    </style:style>
-    <style:style style:name="PhotoNumber" style:family="paragraph">
-      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.1cm"/>
-      <style:text-properties fo:font-family="Arial" fo:font-size="8pt" fo:font-weight="bold" fo:color="#c8986b"/>
-    </style:style>
-    <style:style style:name="Caption" style:family="paragraph">
-      <style:paragraph-properties fo:text-align="center" fo:margin-top="0.15cm" fo:margin-bottom="0.2cm"/>
-      <style:text-properties fo:font-family="Arial" fo:font-size="8.5pt" fo:font-style="italic" fo:color="#333333"/>
-    </style:style>
-    <style:style style:name="CellStyle" style:family="table-cell">
-      <style:table-cell-properties fo:padding="0.3cm" fo:border="0.05cm solid #dddddd"/>
-    </style:style>
+    <style:default-style style:family="paragraph">
+      <style:text-properties fo:font-family="Times New Roman" fo:font-size="10pt"/>
+    </style:default-style>
   </office:styles>
-
   <office:automatic-styles>
     <style:page-layout style:name="PageLayout">
       <style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm"
@@ -964,255 +960,236 @@
         fo:margin-left="2cm" fo:margin-right="2cm"/>
     </style:page-layout>
   </office:automatic-styles>
-
   <office:master-styles>
     <style:master-page style:name="Standard" style:page-layout-name="PageLayout"/>
   </office:master-styles>
 </office:document-styles>`;
 
-      // ---- Construir el content.xml ----
-      // Las fotos se incrustan en el ODT como Pictures/photoN.jpg y se referencian
-
-      const zip = new JSZip();
-      const imgFolder = zip.folder("Pictures");
-
-      // Añadir todas las fotos al ZIP
-      const imgEntries = []; // { name, mime, b64 }
-      for (let i = 0; i < photos.length; i++) {
-        const ph = photos[i];
-        if (!ph.imageData) continue;
-        const ext = (ph.imageMime || "image/jpeg").split("/")[1].replace("jpeg","jpg") || "jpg";
-        const fname = `photo_${String(i+1).padStart(3,"0")}.${ext}`;
-        imgFolder.file(fname, ph.imageData, { base64: true });
-        imgEntries[i] = { name: fname, mime: ph.imageMime || "image/jpeg" };
-      }
-
-      // Función para obtener dimensiones aproximadas del image (no podemos leer el EXIF desde JS sin libs)
-      // Usamos tamaño fijo: 8cm ancho, 6cm alto (ratio 4:3)
-      const IMG_W = "8cm";
-      const IMG_H = "6cm";
-
-      // Generar celdas de foto
-      function photoCell(idx) {
-        const ph = photos[idx];
-        if (!ph) {
-          // celda vacía para completar la fila
-          return `<table:table-cell table:style-name="CellStyle">
-            <text:p/>
-          </table:table-cell>`;
-        }
-
-        const entry = imgEntries[idx];
-        const imgXml = entry
-          ? `<draw:frame draw:name="img_${idx}" text:anchor-type="as-char"
-              svg:width="${IMG_W}" svg:height="${IMG_H}"
-              style:vertical-rel="line" style:vertical-pos="top">
-              <draw:image xlink:href="Pictures/${entry.name}" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>
-            </draw:frame>`
-          : ``;
-
-        const numText = ph.numero ? `FOTO ${ph.numero}` : `FOTO`;
-        const captionText = ph.caption
-          ? escXml(ph.caption)
-          : `<text:span text:style-name="Caption" style:font-style="italic" fo:color="#999999">Sin nota</text:span>`;
-
-        return `<table:table-cell table:style-name="CellStyle">
-          <text:p text:style-name="PhotoNumber">${escXml(numText)}</text:p>
-          <text:p text:style-name="Default_Paragraph_Style" fo:text-align="center">${imgXml}</text:p>
-          <text:p text:style-name="Caption">${escXml(ph.caption || "")}</text:p>
-        </table:table-cell>`;
-      }
-
-      function escXml(s) {
-        return (s ?? "").toString()
-          .replaceAll("&","&amp;").replaceAll("<","&lt;")
-          .replaceAll(">","&gt;").replaceAll('"',"&quot;")
-          .replaceAll("'","&apos;");
-      }
-
-      // Generar filas (2 fotos por fila, 2 filas por página → 4 fotos/página)
-      // Separador de página después de cada 2 filas
+      // Construir filas de tabla con fotos de a 2
+      const photos = [...state.photos];
       let tableRows = "";
+
       for (let i = 0; i < photos.length; i += 2) {
-        const isFirstInPage = (i % 4 === 0);
-        const isSecondRowOfPage = (i % 4 === 2);
-        const needsPageBreakAfter = isSecondRowOfPage && (i + 2 < photos.length);
+        const cells = [photos[i], photos[i+1] || null].map((ph, ci) => {
+          if (!ph) {
+            return `<table:table-cell table:style-name="TC" office:value-type="string">
+              <text:p/>
+            </table:table-cell>`;
+          }
+          const imgName = `img_${ph.id}.jpg`;
+          const capText = (ph.caption || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+          const photoNum = photos.indexOf(ph) + 1;
+          return `<table:table-cell table:style-name="TC" office:value-type="string">
+            <text:p text:style-name="PhotoNumStyle">Foto ${String(photoNum).padStart(2,"0")}</text:p>
+            <text:p text:style-name="PhotoImgStyle">
+              <draw:frame draw:style-name="PhotoFrame" draw:name="img${photoNum}"
+                text:anchor-type="as-char"
+                svg:width="${IMG_W_CM}" svg:height="${IMG_H_CM}">
+                <draw:image xlink:href="Pictures/${imgName}" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>
+              </draw:frame>
+            </text:p>
+            <text:p text:style-name="CaptionStyle">${capText}</text:p>
+          </table:table-cell>`;
+        }).join("\n");
 
-        const rowStyle = needsPageBreakAfter
-          ? `row_break_${i}`
-          : `RowStyle`;
+        tableRows += `<table:table-row table:style-name="TR">${cells}</table:table-row>\n`;
 
-        tableRows += `<table:table-row>
-          ${photoCell(i)}
-          ${photoCell(i+1)}
-        </table:table-row>`;
-
-        // Insertamos salto de página tras cada 2 filas (= 4 fotos)
-        if (needsPageBreakAfter) {
-          tableRows += `</table:table>
-          <text:p text:style-name="Default_Paragraph_Style"><text:soft-page-break/></text:p>
-          <table:table table:name="Photos${i}" table:style-name="PhotoTable">
-            <table:table-column table:style-name="PhotoCol" table:number-columns-repeated="2"/>`;
+        // Salto de página cada 2 filas (4 fotos)
+        const rowIndex = Math.floor(i / 2);
+        if ((rowIndex + 1) % 2 === 0 && i + 2 < photos.length) {
+          tableRows += `<table:table-row table:style-name="TR_Break">
+            <table:table-cell table:number-columns-spanned="2" office:value-type="string">
+              <text:p text:style-name="PageBreak"/>
+            </table:table-cell>
+          </table:table-row>\n`;
         }
       }
-
-      const headerSection = `
-    <text:p text:style-name="Title">Reportaje Fotográfico</text:p>
-    <text:p text:style-name="Subtitle">Registro de diligencia policial</text:p>
-    <text:p text:style-name="Default_Paragraph_Style">&#160;</text:p>
-    ${h.asunto ? `<text:p text:style-name="HeaderLabel">ASUNTO</text:p><text:p text:style-name="HeaderValue">${escXml(h.asunto)}</text:p>` : ""}
-    ${h.grupo ? `<text:p text:style-name="HeaderLabel">GRUPO / UNIDAD</text:p><text:p text:style-name="HeaderValue">${escXml(h.grupo)}</text:p>` : ""}
-    ${h.juzgado ? `<text:p text:style-name="HeaderLabel">JUZGADO</text:p><text:p text:style-name="HeaderValue">${escXml(h.juzgado)}</text:p>` : ""}
-    ${h.procedimiento ? `<text:p text:style-name="HeaderLabel">PROCEDIMIENTO</text:p><text:p text:style-name="HeaderValue">${escXml(h.procedimiento)}</text:p>` : ""}
-    ${fechaStr ? `<text:p text:style-name="HeaderLabel">FECHA Y HORA</text:p><text:p text:style-name="HeaderValue">${escXml(fechaStr)}</text:p>` : ""}
-    ${h.direccion ? `<text:p text:style-name="HeaderLabel">DIRECCIÓN</text:p><text:p text:style-name="HeaderValue">${escXml(h.direccion)}</text:p>` : ""}
-    <text:p text:style-name="Default_Paragraph_Style">&#160;</text:p>
-    <text:p text:style-name="Subtitle">Total de fotografías: ${photos.length}</text:p>
-    <text:p text:style-name="Default_Paragraph_Style"><text:soft-page-break/></text:p>`;
 
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <office:document-content
   xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
   xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
   xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
   xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
-  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
   xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
-  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
   xmlns:xlink="http://www.w3.org/1999/xlink"
-  office:version="1.2">
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+  office:version="1.3">
 
   <office:automatic-styles>
+    <!-- Estilos de párrafo -->
+    <style:style style:name="TitleStyle" style:family="paragraph">
+      <style:text-properties fo:font-size="16pt" fo:font-weight="bold" fo:color="#1a1a2e"/>
+      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.3cm"/>
+    </style:style>
+    <style:style style:name="SubtitleStyle" style:family="paragraph">
+      <style:text-properties fo:font-size="11pt" fo:color="#444444"/>
+      <style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.15cm"/>
+    </style:style>
+    <style:style style:name="HeaderSepStyle" style:family="paragraph">
+      <style:paragraph-properties fo:border-bottom="0.5pt solid #c8986b" fo:margin-bottom="0.5cm" fo:padding-bottom="0.2cm"/>
+    </style:style>
+    <style:style style:name="PhotoNumStyle" style:family="paragraph">
+      <style:text-properties fo:font-size="8pt" fo:font-weight="bold" fo:color="#c8986b" fo:font-family="Courier New, monospace"/>
+      <style:paragraph-properties fo:margin-bottom="0.1cm"/>
+    </style:style>
+    <style:style style:name="PhotoImgStyle" style:family="paragraph">
+      <style:paragraph-properties fo:margin-bottom="0.1cm"/>
+    </style:style>
+    <style:style style:name="CaptionStyle" style:family="paragraph">
+      <style:text-properties fo:font-size="9pt" fo:font-style="italic" fo:color="#333333"/>
+      <style:paragraph-properties fo:margin-bottom="0.3cm" fo:border-top="0.3pt solid #cccccc" fo:padding-top="0.1cm"/>
+    </style:style>
+    <style:style style:name="PageBreak" style:family="paragraph">
+      <style:paragraph-properties fo:break-before="page"/>
+    </style:style>
+    <style:style style:name="NormalP" style:family="paragraph">
+      <style:text-properties fo:font-size="10pt"/>
+      <style:paragraph-properties fo:margin-bottom="0.15cm"/>
+    </style:style>
+
+    <!-- Estilos de tabla -->
     <style:style style:name="PhotoTable" style:family="table">
-      <style:table-properties style:width="17cm" fo:margin-bottom="0cm" table:align="center"/>
+      <style:table-properties style:width="17cm" fo:margin-bottom="0.3cm"/>
     </style:style>
-    <style:style style:name="PhotoCol" style:family="table-column">
-      <style:table-column-properties style:column-width="8.5cm"/>
+    <style:style style:name="TC1" style:family="table-column">
+      <style:table-column-properties style:column-width="${COL_W}"/>
     </style:style>
-    <style:style style:name="RowStyle" style:family="table-row">
-      <style:table-row-properties style:row-height="7.5cm" style:use-optimal-row-height="false"/>
+    <style:style style:name="TR" style:family="table-row">
+      <style:table-row-properties style:row-height="auto" style:use-optimal-row-height="true"/>
+    </style:style>
+    <style:style style:name="TR_Break" style:family="table-row"/>
+    <style:style style:name="TC" style:family="table-cell">
+      <style:table-cell-properties fo:padding="0.2cm" fo:border="0.3pt solid #e0d0c0"/>
+    </style:style>
+
+    <!-- Estilo de imagen -->
+    <style:style style:name="PhotoFrame" style:family="graphic">
+      <style:graphic-properties fo:clip="rect(0cm,0cm,0cm,0cm)"
+        draw:luminance="0%" draw:contrast="0%"
+        draw:color-mode="standard"
+        style:run-through="foreground"
+        style:horizontal-pos="center"
+        style:horizontal-rel="paragraph"/>
     </style:style>
   </office:automatic-styles>
 
   <office:body>
     <office:text>
-      ${headerSection}
-      <table:table table:name="Photos0" table:style-name="PhotoTable">
-        <table:table-column table:style-name="PhotoCol" table:number-columns-repeated="2"/>
+      <!-- CABECERA DEL DOCUMENTO -->
+      <text:p text:style-name="TitleStyle">REPORTAJE FOTOGRÁFICO · DILIGENCIA DE REGISTRO</text:p>
+      ${h.asunto ? `<text:p text:style-name="SubtitleStyle">Asunto: ${h.asunto.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
+      ${h.grupo ? `<text:p text:style-name="SubtitleStyle">Grupo: ${h.grupo.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
+      ${h.juzgado ? `<text:p text:style-name="SubtitleStyle">Juzgado: ${h.juzgado.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
+      ${h.procedimiento ? `<text:p text:style-name="SubtitleStyle">Procedimiento: ${h.procedimiento.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
+      ${fmtDate ? `<text:p text:style-name="SubtitleStyle">Fecha y hora: ${fmtDate}</text:p>` : ""}
+      ${h.direccion ? `<text:p text:style-name="SubtitleStyle">Dirección: ${h.direccion.replace(/&/g,"&amp;").replace(/</g,"&lt;")}</text:p>` : ""}
+      <text:p text:style-name="HeaderSepStyle"/>
+      <text:p text:style-name="SubtitleStyle">Total de fotografías: ${photos.length}</text:p>
+      <text:p text:style-name="NormalP"/>
+
+      <!-- TABLA DE FOTOS (2 columnas) -->
+      <table:table table:name="Reportaje" table:style-name="PhotoTable">
+        <table:table-column table:style-name="TC1" table:number-columns-repeated="2"/>
         ${tableRows}
       </table:table>
+
     </office:text>
   </office:body>
 </office:document-content>`;
 
       const manifest = `<?xml version="1.0" encoding="UTF-8"?>
-<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3">
   <manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/>
   <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>
   <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>
-  ${photos.filter((_,i) => imgEntries[i]).map((_,i) => {
-    const e = imgEntries[i];
-    return `<manifest:file-entry manifest:full-path="Pictures/${e.name}" manifest:media-type="${e.mime}"/>`;
-  }).join("\n  ")}
+  ${photos.map(ph => `<manifest:file-entry manifest:full-path="Pictures/img_${ph.id}.jpg" manifest:media-type="image/jpeg"/>`).join("\n  ")}
 </manifest:manifest>`;
 
       const mimetype = "application/vnd.oasis.opendocument.text";
 
+      // Construir el ZIP
+      const zip = new JSZip();
       zip.file("mimetype", mimetype, { compression: "STORE" });
-      zip.file("content.xml", content);
-      zip.file("styles.xml", styles);
       zip.folder("META-INF").file("manifest.xml", manifest);
+      zip.file("styles.xml", styles);
+      zip.file("content.xml", content);
 
-      try {
-        const blob = await zip.generateAsync({ type: "blob", mimeType: mimetype });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        const fechaFile = h.fechaHora
-          ? new Date(h.fechaHora).toISOString().slice(0,10)
-          : new Date().toISOString().slice(0,10);
-        a.download = `reportaje_fotografico_${fechaFile}.odt`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        toast("ODT exportado correctamente");
-      } catch(err) {
-        console.error(err);
-        toast("Error al generar el ODT.");
+      // Añadir imágenes como JPEG desde dataUrl
+      const picFolder = zip.folder("Pictures");
+      for (const ph of photos) {
+        // Convertir dataUrl a Uint8Array
+        const b64 = ph.dataUrl.split(",")[1];
+        picFolder.file(`img_${ph.id}.jpg`, b64, { base64: true });
       }
+
+      const blob = await zip.generateAsync({ type:"blob", mimeType: mimetype });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const asunto = (h.asunto || "registro").replace(/[^a-zA-Z0-9_\-áéíóúñÁÉÍÓÚÑ ]/g,"").replace(/\s+/g,"_").slice(0,30);
+      a.download = `Reportaje_${asunto}.odt`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast("ODT exportado ✓");
     }
 
-    // ---- Bind events ----
+    // ─── Reset ───────────────────────────────────────────────────
+    function resetAll() {
+      if (!confirm("¿Borrar TODOS los datos y fotografías?")) return;
+      localStorage.removeItem(LS_KEY);
+      state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
+      state.photos = [];
+      renderHeader();
+      renderGallery();
+      toast("Borrado completo");
+    }
+
+    // ─── Eventos ─────────────────────────────────────────────────
     function bindEvents() {
-      $("btnGuardarCabecera")?.addEventListener("click", saveHeader);
+      $("btnGuardarCabecera")?.addEventListener("click", saveHeaderFromInputs);
       $("btnResetAll")?.addEventListener("click", resetAll);
-      $("btnOpenModal")?.addEventListener("click", () => openModal("add"));
-      $("btnCloseModal")?.addEventListener("click", closeModal);
-      $("btnClearFields")?.addEventListener("click", () => {
-        resetModalState();
-        $("photoNumero").value = "";
-        $("photoCaption").value = "";
+      $("btnExportOdt")?.addEventListener("click", exportOdt);
+
+      // Abrir cámara
+      $("btnOpenCamera")?.addEventListener("click", openCameraModal);
+      $("btnCloseCamera")?.addEventListener("click", closeCameraModal);
+
+      // Capturar / guardar
+      $("btnCapture")?.addEventListener("click", () => {
+        const mode = $("btnCapture").dataset.mode || "capture";
+        if (mode === "save") savePhoto();
+        else capturePhoto();
       });
 
-      $("backdrop")?.addEventListener("click", (e) => {
-        if (e.target === $("backdrop")) closeModal();
+      // Cambiar cámara
+      $("btnSwitchCam")?.addEventListener("click", () => {
+        currentDeviceIndex = (currentDeviceIndex + 1) % Math.max(videoDevices.length, 1);
+        $("cameraSelect").value = currentDeviceIndex;
+        startCamera(currentDeviceIndex);
       });
 
-      $("btnSavePhoto")?.addEventListener("click", savePhoto);
-
-      // Drop zone: click abre selector de archivo
-      $("dropZone")?.addEventListener("click", () => $("photoFileInput").click());
-
-      // Cambiar foto cuando ya hay una (overlay)
-      $("dropZone")?.querySelector(".drop-overlay-label")?.addEventListener("click", (e) => {
-        e.stopPropagation();
-        $("photoFileInput").click();
+      $("cameraSelect")?.addEventListener("change", () => {
+        currentDeviceIndex = parseInt($("cameraSelect").value, 10) || 0;
+        startCamera(currentDeviceIndex);
       });
 
-      $("photoFileInput")?.addEventListener("change", (e) => {
-        const file = e.target.files?.[0];
-        if (file) loadImageFile(file);
-        e.target.value = "";
+      // Click fuera del modal para cerrar
+      $("cameraModal")?.addEventListener("click", (e) => {
+        if (e.target === $("cameraModal")) closeCameraModal();
       });
 
-      // Drag & drop
-      $("dropZone")?.addEventListener("dragover", (e) => {
-        e.preventDefault();
-        $("dropZone").classList.add("drag-over");
-      });
-      $("dropZone")?.addEventListener("dragleave", () => {
-        $("dropZone").classList.remove("drag-over");
-      });
-      $("dropZone")?.addEventListener("drop", (e) => {
-        e.preventDefault();
-        $("dropZone").classList.remove("drag-over");
-        const file = e.dataTransfer?.files?.[0];
-        if (file) loadImageFile(file);
-      });
-
-      // Ctrl+Enter en textarea
-      $("photoCaption")?.addEventListener("keydown", (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-          e.preventDefault();
-          savePhoto();
-        }
-      });
-
-      // Delegación en lista
-      $("list")?.addEventListener("click", (e) => {
+      // Delegación en grid: borrar foto
+      $("photoGrid")?.addEventListener("click", (e) => {
         const btn = e.target?.closest?.("button");
         if (!btn) return;
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-        if (!action || !id) return;
-        if (action === "edit") openModal("edit", id);
-        if (action === "del") deletePhoto(id);
+        if (btn.dataset.action === "del") deletePhoto(btn.dataset.id);
       });
 
-      $("btnExportOdt")?.addEventListener("click", exportODT);
-
-      // Autoguardado cabecera
+      // Guardado automático de cabecera al cambiar campos
       ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
         $(id)?.addEventListener("change", () => {
           state.header[id] = ($(id).value || "").trim();
@@ -1221,10 +1198,11 @@
       });
     }
 
+    // ─── Init ────────────────────────────────────────────────────
     document.addEventListener("DOMContentLoaded", () => {
       loadState();
       renderHeader();
-      renderList();
+      renderGallery();
       bindEvents();
     });
   </script>
