@@ -300,6 +300,14 @@
       font-size: .95rem;
     }
 
+    /* FIX: btn-secondary no estaba definido — se añade */
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,.12); }
+
     .icon-btn.danger { border-color: rgba(255,120,120,.25); }
     .icon-btn.danger:hover { background: rgba(255,120,120,.12); }
 
@@ -437,7 +445,6 @@
       color: var(--text-muted);
     }
 
-
     .toast {
       position: fixed;
       left: 50%;
@@ -532,11 +539,12 @@
           <path d="M4 7h4l2-2h4l2 2h4v12H4V7z" stroke="currentColor" stroke-width="1.5"/>
           <circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.5"/>
         </svg>
-        Aún no has añadido fotografías. Pulsa “Añadir fotografía”.
+        Aún no has añadido fotografías. Pulsa "Añadir fotografía".
       </div>
     </section>
   </div>
 
+  <!-- MODAL AÑADIR / EDITAR FOTO -->
   <div class="modal-overlay" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
       <h2 id="modalTitle">Añadir fotografía</h2>
@@ -548,13 +556,17 @@
 
       <div class="form-group">
         <label class="form-label">Imagen</label>
-        <!-- Input oculto: abre la cámara nativa a pantalla completa -->
-        <input id="fotoArchivo" type="file" accept="image/*" capture="environment" style="display:none" />
-        <button class="btn-add" id="btnSolicitarCamara" type="button" style="width:100%;margin-bottom:10px;">📷 Tomar fotografía</button>
+        <!-- FIX: capture="environment" eliminado para permitir también galería en escritorio;
+             se añade también input sin capture para seleccionar archivo -->
+        <input id="fotoArchivo" type="file" accept="image/*" style="display:none" />
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-add" id="btnSolicitarCamara" type="button" style="flex:1;">📷 Cámara</button>
+          <button class="btn-export" id="btnSeleccionarArchivo" type="button" style="flex:1;">🖼️ Galería / archivo</button>
+        </div>
       </div>
 
       <div class="preview-box" id="previewBox">
-        <div class="preview-placeholder">Toma una fotografía para ver la vista previa.</div>
+        <div class="preview-placeholder" id="previewPlaceholder">Toma o selecciona una fotografía para ver la vista previa.</div>
       </div>
 
       <div class="form-group" style="margin-top:12px;">
@@ -576,9 +588,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
   <script>
+    'use strict';
+
     const LS_KEY = 'reportaje_fotografico_registro_v1';
     const $ = (id) => document.getElementById(id);
 
+    // ── Estado global ──────────────────────────────────────────────
     const state = {
       header: {
         asunto: '',
@@ -590,15 +605,22 @@
         observacionesGenerales: ''
       },
       photos: []
-      // {id, numero, note, fileName, mimeType, dataUrl, createdAt, source}
+      // {id, numero, note, fileName, mimeType, dataUrl, createdAt}
     };
 
+    // Imagen pendiente en el modal (DataURL + metadatos)
+    let pendingImage = null; // {dataUrl, fileName, mimeType}
+
+    // ID de la foto en edición (null = modo añadir)
+    let editingId = null;
+
+    // ── Utilidades ─────────────────────────────────────────────────
     function toast(msg) {
       const t = $('toast');
       t.textContent = msg;
       t.classList.add('show');
       clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+      toast._timer = setTimeout(() => t.classList.remove('show'), 2200);
     }
 
     function escapeHtml(str) {
@@ -641,8 +663,23 @@
       return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
     }
 
+    function formatFechaHora(isoString) {
+      if (!isoString) return '';
+      try {
+        return new Date(isoString).toLocaleString('es-ES', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch (_) { return isoString; }
+    }
+
+    // ── Persistencia ───────────────────────────────────────────────
     function saveState() {
-      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+      } catch (e) {
+        toast('⚠️ No se pudo guardar: almacenamiento lleno');
+      }
     }
 
     function loadState() {
@@ -657,12 +694,13 @@
       } catch (_e) {}
     }
 
+    // ── Render cabecera ────────────────────────────────────────────
     function renderHeader() {
-      ['asunto','grupo','juzgado','procedimiento','fechaHora','direccion','observacionesGenerales'].forEach(id => {
-        if ($(id)) $(id).value = state.header[id] || '';
-      });
+      ['asunto','grupo','juzgado','procedimiento','fechaHora','direccion','observacionesGenerales']
+        .forEach(id => { if ($(id)) $(id).value = state.header[id] || ''; });
     }
 
+    // ── Render lista de fotos ──────────────────────────────────────
     function sortedPhotos() {
       return [...state.photos].sort((a, b) => {
         const an = /^\d+$/.test(a.numero) ? parseInt(a.numero, 10) : null;
@@ -695,4 +733,506 @@
               <div class="photo-filename">${escapeHtml(photo.fileName || 'imagen')}</div>
             </div>
             <div class="photo-actions">
-              <button class="icon-btn" type="button" data-action="edit" data-id="${escapeHtml(photo.
+              <button class="icon-btn" type="button" data-action="edit" data-id="${escapeHtml(photo.id)}" title="Editar">✏️ Editar</button>
+              <button class="icon-btn danger" type="button" data-action="delete" data-id="${escapeHtml(photo.id)}" title="Eliminar">🗑️ Borrar</button>
+            </div>
+          </div>
+          <div class="photo-image-wrap">
+            ${photo.dataUrl
+              ? `<img src="${photo.dataUrl}" alt="Fotografía ${escapeHtml(photo.numero || '')}" loading="lazy" />`
+              : `<span style="color:var(--text-muted);font-size:.9rem;">Sin imagen</span>`}
+          </div>
+          ${photo.note ? `<p class="photo-note">${escapeHtml(photo.note)}</p>` : ''}
+        `;
+        list.appendChild(item);
+      }
+
+      // Delegar eventos en los botones de cada tarjeta
+      list.querySelectorAll('[data-action]').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const action = e.currentTarget.dataset.action;
+          const id = e.currentTarget.dataset.id;
+          if (action === 'edit') openEditModal(id);
+          if (action === 'delete') deletePhoto(id);
+        });
+      });
+    }
+
+    // ── Modal ──────────────────────────────────────────────────────
+    function openAddModal() {
+      editingId = null;
+      pendingImage = null;
+      $('modalTitle').textContent = 'Añadir fotografía';
+      $('btnAddPhoto').textContent = 'Añadir';
+      $('btnAddPhoto').dataset.mode = 'add';
+      $('fotoNumero').value = nextAutoNumber();
+      $('fotoNota').value = '';
+      resetPreview();
+      $('backdrop').classList.add('active');
+      $('fotoNumero').focus();
+    }
+
+    function openEditModal(id) {
+      const photo = state.photos.find(p => p.id === id);
+      if (!photo) return;
+      editingId = id;
+      pendingImage = photo.dataUrl
+        ? { dataUrl: photo.dataUrl, fileName: photo.fileName, mimeType: photo.mimeType }
+        : null;
+      $('modalTitle').textContent = 'Editar fotografía';
+      $('btnAddPhoto').textContent = 'Guardar cambios';
+      $('btnAddPhoto').dataset.mode = 'edit';
+      $('fotoNumero').value = photo.numero || '';
+      $('fotoNota').value = photo.note || '';
+      if (photo.dataUrl) {
+        showPreview(photo.dataUrl);
+      } else {
+        resetPreview();
+      }
+      $('backdrop').classList.add('active');
+    }
+
+    function closeModal() {
+      $('backdrop').classList.remove('active');
+      pendingImage = null;
+      editingId = null;
+    }
+
+    function clearModalFields() {
+      $('fotoNumero').value = editingId ? '' : nextAutoNumber();
+      $('fotoNota').value = '';
+      pendingImage = null;
+      resetPreview();
+    }
+
+    function resetPreview() {
+      const box = $('previewBox');
+      box.innerHTML = '<div class="preview-placeholder" id="previewPlaceholder">Toma o selecciona una fotografía para ver la vista previa.</div>';
+    }
+
+    function showPreview(dataUrl) {
+      const box = $('previewBox');
+      box.innerHTML = `<img src="${dataUrl}" alt="Vista previa" />`;
+    }
+
+    // ── Leer archivo → DataURL ─────────────────────────────────────
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        if (!file) return reject(new Error('Sin archivo'));
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target.result);
+        reader.onerror = () => reject(new Error('Error al leer el archivo'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // ── Añadir / guardar foto ──────────────────────────────────────
+    async function handleAddPhoto() {
+      const numero = normalizeNumber($('fotoNumero').value);
+      const note   = $('fotoNota').value.trim();
+
+      // Validar: necesitamos al menos número O imagen
+      if (!numero && !pendingImage) {
+        toast('⚠️ Indica un número de foto o añade una imagen.');
+        return;
+      }
+
+      const mode = $('btnAddPhoto').dataset.mode;
+
+      if (mode === 'edit' && editingId) {
+        // Actualizar foto existente
+        const idx = state.photos.findIndex(p => p.id === editingId);
+        if (idx === -1) { toast('Error: foto no encontrada.'); return; }
+        state.photos[idx].numero   = numero;
+        state.photos[idx].note     = note;
+        if (pendingImage) {
+          state.photos[idx].dataUrl  = pendingImage.dataUrl;
+          state.photos[idx].fileName = pendingImage.fileName;
+          state.photos[idx].mimeType = pendingImage.mimeType;
+        }
+        saveState();
+        renderList();
+        closeModal();
+        toast('✅ Fotografía actualizada.');
+      } else {
+        // Añadir nueva foto
+        // Comprobar número duplicado
+        if (numero && state.photos.some(p => p.numero === numero)) {
+          toast(`⚠️ Ya existe una foto con el número ${numero}.`);
+          return;
+        }
+        const photo = {
+          id: safeId(),
+          numero,
+          note,
+          dataUrl:   pendingImage ? pendingImage.dataUrl   : null,
+          fileName:  pendingImage ? pendingImage.fileName  : '',
+          mimeType:  pendingImage ? pendingImage.mimeType  : '',
+          createdAt: Date.now()
+        };
+        state.photos.push(photo);
+        saveState();
+        renderList();
+        closeModal();
+        toast(`✅ Fotografía ${numero || '—'} añadida.`);
+      }
+    }
+
+    // ── Eliminar foto ──────────────────────────────────────────────
+    function deletePhoto(id) {
+      const photo = state.photos.find(p => p.id === id);
+      if (!photo) return;
+      if (!confirm(`¿Eliminar la fotografía ${photo.numero || '—'}?`)) return;
+      state.photos = state.photos.filter(p => p.id !== id);
+      saveState();
+      renderList();
+      toast('🗑️ Fotografía eliminada.');
+    }
+
+    // ── Guardar cabecera ───────────────────────────────────────────
+    function saveHeader() {
+      ['asunto','grupo','juzgado','procedimiento','fechaHora','direccion','observacionesGenerales']
+        .forEach(id => { state.header[id] = $(id) ? $(id).value.trim() : ''; });
+      saveState();
+      toast('✅ Datos guardados.');
+    }
+
+    // ── Reset completo ─────────────────────────────────────────────
+    function resetAll() {
+      if (!confirm('¿Borrar todos los datos y fotografías? Esta acción no se puede deshacer.')) return;
+      state.photos = [];
+      state.header = { asunto:'', grupo:'', juzgado:'', procedimiento:'', fechaHora:'', direccion:'', observacionesGenerales:'' };
+      saveState();
+      renderHeader();
+      renderList();
+      toast('🗑️ Todo borrado.');
+    }
+
+    // ── Exportar JSON ──────────────────────────────────────────────
+    function exportJson() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      downloadBlob(blob, `reportaje_${sanitizeFilename(state.header.procedimiento || 'registro')}.json`);
+      toast('📥 JSON exportado.');
+    }
+
+    // ── Exportar ODT ───────────────────────────────────────────────
+    async function exportOdt() {
+      if (!window.JSZip) { toast('⚠️ JSZip no disponible.'); return; }
+      if (!state.photos.length) { toast('⚠️ No hay fotografías para exportar.'); return; }
+
+      const zip = new JSZip();
+      const sorted = sortedPhotos();
+      const h = state.header;
+      const imageFiles = {}; // filename → base64 data
+
+      // Construir imágenes embebidas
+      for (const p of sorted) {
+        if (p.dataUrl) {
+          const ext = (p.mimeType || 'image/jpeg').split('/')[1] || 'jpg';
+          const fname = `foto_${p.numero || p.id}.${ext}`;
+          imageFiles[fname] = p;
+        }
+      }
+
+      // Manifest
+      const manifest = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">',
+        ' <manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/>',
+        ' <manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>',
+        ' <manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>',
+        ...Object.keys(imageFiles).map(fn => {
+          const mime = imageFiles[fn].mimeType || 'image/jpeg';
+          return ` <manifest:file-entry manifest:full-path="Pictures/${fn}" manifest:media-type="${mime}"/>`;
+        }),
+        '</manifest:manifest>'
+      ].join('\n');
+
+      // Styles
+      const styles = `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-styles xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  office:version="1.2">
+  <office:styles>
+    <style:style style:name="Standard" style:family="paragraph" style:class="text">
+      <style:text-properties fo:font-size="11pt"/>
+    </style:style>
+    <style:style style:name="Heading" style:family="paragraph" style:parent-style-name="Standard">
+      <style:text-properties fo:font-size="14pt" fo:font-weight="bold" fo:color="#c8986b"/>
+    </style:style>
+    <style:style style:name="SubHeading" style:family="paragraph" style:parent-style-name="Standard">
+      <style:text-properties fo:font-size="10pt" fo:font-weight="bold" fo:color="#555555"/>
+    </style:style>
+  </office:styles>
+  <office:automatic-styles>
+    <style:page-layout style:name="pm1">
+      <style:page-layout-properties fo:margin-top="2cm" fo:margin-bottom="2cm"
+        fo:margin-left="2cm" fo:margin-right="2cm"/>
+    </style:page-layout>
+  </office:automatic-styles>
+  <office:master-styles>
+    <style:master-page style:name="Standard" style:page-layout-name="pm1"/>
+  </office:master-styles>
+</office:document-styles>`;
+
+      // Filas de 2 fotos
+      function photoRow(left, right) {
+        function cell(p) {
+          if (!p) return '<table:table-cell/>'; 
+          const ext = (p.mimeType || 'image/jpeg').split('/')[1] || 'jpg';
+          const fname = `foto_${p.numero || p.id}.${ext}`;
+          const imgTag = p.dataUrl
+            ? `<draw:frame draw:name="${escapeXml(fname)}" svg:width="8cm" svg:height="6cm" text:anchor-type="paragraph">
+                <draw:image xlink:href="Pictures/${escapeXml(fname)}" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>
+               </draw:frame>`
+            : '';
+          return `<table:table-cell>
+            <text:p text:style-name="SubHeading">Fotografía ${escapeXml(p.numero || '—')}</text:p>
+            <text:p>${imgTag}</text:p>
+            <text:p>${escapeXml(p.note || '')}</text:p>
+          </table:table-cell>`;
+        }
+        return `<table:table-row>${cell(left)}${cell(right)}</table:table-row>`;
+      }
+
+      let tableRows = '';
+      for (let i = 0; i < sorted.length; i += 2) {
+        tableRows += photoRow(sorted[i], sorted[i + 1] || null);
+      }
+
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+  xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  office:version="1.2">
+  <office:automatic-styles>
+    <style:style style:name="Table1" style:family="table">
+      <style:table-properties style:width="17cm" table:align="margins"/>
+    </style:style>
+    <style:style style:name="Table1.A" style:family="table-column">
+      <style:table-column-properties style:column-width="8.5cm"/>
+    </style:style>
+    <style:style style:name="Table1.A1" style:family="table-cell">
+      <style:table-cell-properties fo:padding="0.3cm" fo:border="0.05cm solid #c8986b"/>
+    </style:style>
+  </office:automatic-styles>
+  <office:body>
+    <office:text>
+      <text:p text:style-name="Heading">REPORTAJE FOTOGRÁFICO DE REGISTRO</text:p>
+      <text:p text:style-name="Standard"> </text:p>
+      <text:p text:style-name="Standard"><text:span text:style-name="SubHeading">Asunto: </text:span>${escapeXml(h.asunto)}</text:p>
+      <text:p text:style-name="Standard"><text:span text:style-name="SubHeading">Grupo: </text:span>${escapeXml(h.grupo)}</text:p>
+      <text:p text:style-name="Standard"><text:span text:style-name="SubHeading">Juzgado: </text:span>${escapeXml(h.juzgado)}</text:p>
+      <text:p text:style-name="Standard"><text:span text:style-name="SubHeading">Procedimiento: </text:span>${escapeXml(h.procedimiento)}</text:p>
+      <text:p text:style-name="Standard"><text:span text:style-name="SubHeading">Fecha y hora: </text:span>${escapeXml(formatFechaHora(h.fechaHora))}</text:p>
+      <text:p text:style-name="Standard"><text:span text:style-name="SubHeading">Dirección: </text:span>${escapeXml(h.direccion)}</text:p>
+      ${h.observacionesGenerales ? `<text:p text:style-name="Standard"><text:span text:style-name="SubHeading">Observaciones: </text:span>${escapeXml(h.observacionesGenerales)}</text:p>` : ''}
+      <text:p text:style-name="Standard"> </text:p>
+      <table:table table:name="Fotografias" table:style-name="Table1">
+        <table:table-column table:style-name="Table1.A" table:number-columns-repeated="2"/>
+        ${tableRows}
+      </table:table>
+    </office:text>
+  </office:body>
+</office:document-content>`;
+
+      zip.file('mimetype', 'application/vnd.oasis.opendocument.text', { compression: 'STORE' });
+      zip.folder('META-INF').file('manifest.xml', manifest);
+      zip.file('content.xml', content);
+      zip.file('styles.xml', styles);
+
+      const picsFolder = zip.folder('Pictures');
+      for (const [fname, p] of Object.entries(imageFiles)) {
+        if (p.dataUrl) {
+          const base64 = p.dataUrl.split(',')[1];
+          picsFolder.file(fname, base64, { base64: true });
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.oasis.opendocument.text' });
+      downloadBlob(blob, `reportaje_${sanitizeFilename(h.procedimiento || 'registro')}.odt`);
+      toast('📄 ODT exportado.');
+    }
+
+    // ── Exportar PDF ───────────────────────────────────────────────
+    async function exportPdf() {
+      if (!window.jspdf) { toast('⚠️ jsPDF no disponible.'); return; }
+      if (!state.photos.length) { toast('⚠️ No hay fotografías para exportar.'); return; }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+      const h = state.header;
+      const sorted = sortedPhotos();
+
+      const pageW = 210, pageH = 297;
+      const margin = 15;
+      const colW = (pageW - margin * 2 - 8) / 2;
+      const rowH = 85; // altura de cada celda de foto
+      const photosPerPage = 4;
+
+      // Cabecera en la primera página
+      doc.setFontSize(14);
+      doc.setTextColor(200, 152, 107);
+      doc.text('REPORTAJE FOTOGRÁFICO DE REGISTRO', margin, margin + 6);
+
+      doc.setFontSize(9);
+      doc.setTextColor(80, 80, 80);
+      let yMeta = margin + 14;
+      const metaLines = [
+        h.asunto       && `Asunto: ${h.asunto}`,
+        h.grupo        && `Grupo: ${h.grupo}`,
+        h.juzgado      && `Juzgado: ${h.juzgado}`,
+        h.procedimiento && `Procedimiento: ${h.procedimiento}`,
+        h.fechaHora    && `Fecha y hora: ${formatFechaHora(h.fechaHora)}`,
+        h.direccion    && `Dirección: ${h.direccion}`,
+        h.observacionesGenerales && `Observaciones: ${h.observacionesGenerales}`
+      ].filter(Boolean);
+
+      for (const line of metaLines) {
+        doc.text(line, margin, yMeta);
+        yMeta += 5;
+      }
+
+      let yStart = yMeta + 6;
+
+      for (let i = 0; i < sorted.length; i++) {
+        const col = i % 2;            // 0 = izquierda, 1 = derecha
+        const row = Math.floor(i / 2); // fila dentro de la página actual
+        const pageRow = row % 2;       // 0 o 1 dentro de una página
+
+        // Nueva página cada 4 fotos (excepto la primera)
+        if (i > 0 && i % photosPerPage === 0) {
+          doc.addPage();
+          yStart = margin;
+        }
+
+        const x = margin + col * (colW + 8);
+        const y = (i === 0 ? yStart : margin) + pageRow * (rowH + 6);
+
+        // Compensar que las primeras 2 fotos van después de la cabecera
+        const yActual = i < 2 ? yStart + Math.floor(i / 2) * (rowH + 6) + (col === 0 ? 0 : 0) : margin + pageRow * (rowH + 6);
+        // Simplificamos: recalcular correctamente
+        const pageIndex = Math.floor(i / photosPerPage);
+        const posInPage = i % photosPerPage;
+        const pRow = Math.floor(posInPage / 2);
+        const pCol = posInPage % 2;
+        const xPos = margin + pCol * (colW + 8);
+        const yPos = (pageIndex === 0 ? yStart : margin) + pRow * (rowH + 6);
+
+        const p = sorted[i];
+        doc.setDrawColor(200, 152, 107);
+        doc.setLineWidth(0.3);
+        doc.rect(xPos, yPos, colW, rowH);
+
+        doc.setFontSize(7);
+        doc.setTextColor(200, 152, 107);
+        doc.text(`FOTO ${p.numero || '—'}`, xPos + 2, yPos + 5);
+
+        if (p.dataUrl) {
+          try {
+            const imgType = (p.mimeType || 'image/jpeg').split('/')[1].toUpperCase();
+            const safeType = ['JPEG','JPG','PNG','WEBP'].includes(imgType) ? imgType : 'JPEG';
+            doc.addImage(p.dataUrl, safeType === 'JPG' ? 'JPEG' : safeType, xPos + 1, yPos + 7, colW - 2, rowH - 22);
+          } catch (_) { /* imagen no soportada */ }
+        }
+
+        if (p.note) {
+          doc.setFontSize(7);
+          doc.setTextColor(50, 50, 50);
+          const lines = doc.splitTextToSize(p.note, colW - 4);
+          doc.text(lines.slice(0, 3), xPos + 2, yPos + rowH - 12);
+        }
+      }
+
+      doc.save(`reportaje_${sanitizeFilename(h.procedimiento || 'registro')}.pdf`);
+      toast('📄 PDF exportado.');
+    }
+
+    // ── Descarga genérica ──────────────────────────────────────────
+    function downloadBlob(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+    }
+
+    function sanitizeFilename(str) {
+      return (str || 'export').replace(/[^a-zA-Z0-9_\-áéíóúÁÉÍÓÚñÑ]/g, '_').slice(0, 60);
+    }
+
+    // ── Event listeners ────────────────────────────────────────────
+    $('btnOpenModal').addEventListener('click', openAddModal);
+    $('btnCloseModal').addEventListener('click', closeModal);
+    $('btnClearFields').addEventListener('click', clearModalFields);
+    $('btnAddPhoto').addEventListener('click', handleAddPhoto);
+    $('btnGuardarCabecera').addEventListener('click', saveHeader);
+    $('btnResetAll').addEventListener('click', resetAll);
+    $('btnExportJson').addEventListener('click', exportJson);
+    $('btnExportOdt').addEventListener('click', exportOdt);
+    $('btnExportPdf').addEventListener('click', exportPdf);
+
+    // Cerrar modal al pulsar el fondo
+    $('backdrop').addEventListener('click', (e) => {
+      if (e.target === $('backdrop')) closeModal();
+    });
+
+    // Cerrar modal con Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && $('backdrop').classList.contains('active')) closeModal();
+    });
+
+    // Botón "Cámara" → abre input con capture=environment
+    $('btnSolicitarCamara').addEventListener('click', () => {
+      const inp = $('fotoArchivo');
+      inp.setAttribute('capture', 'environment');
+      inp.click();
+    });
+
+    // Botón "Galería / archivo" → abre input sin capture
+    $('btnSeleccionarArchivo').addEventListener('click', () => {
+      const inp = $('fotoArchivo');
+      inp.removeAttribute('capture');
+      inp.click();
+    });
+
+    // FIX PRINCIPAL: manejar el cambio del input de archivo
+    $('fotoArchivo').addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await readFileAsDataUrl(file);
+        pendingImage = {
+          dataUrl,
+          fileName: file.name,
+          mimeType: file.type || 'image/jpeg'
+        };
+        showPreview(dataUrl);
+        // Si no hay número aún, asignar automático
+        if (!$('fotoNumero').value.trim()) {
+          $('fotoNumero').value = nextAutoNumber();
+        }
+      } catch (err) {
+        toast('⚠️ No se pudo cargar la imagen.');
+        console.error(err);
+      }
+      // Reset el input para permitir seleccionar la misma foto dos veces
+      e.target.value = '';
+    });
+
+    // ── Arranque ───────────────────────────────────────────────────
+    loadState();
+    renderHeader();
+    renderList();
+  </script>
+</body>
+</html>
