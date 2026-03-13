@@ -3,631 +3,1644 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Reportaje Fotográfico · Registro</title>
+  <title>Registro · Reportaje Fotográfico</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --primary: #1a1a2e; --secondary: #16213e; --accent: #c8986b;
-      --accent-light: #d4ab7f; --text-light: #f5f5f5; --text-muted: #a0a0a0;
-      --surface: #0f0f1e; --border: rgba(200,152,107,0.2); --shadow: rgba(0,0,0,0.4);
+      --primary: #1a1a2e;
+      --secondary: #16213e;
+      --accent: #c8986b;
+      --accent-light: #d4ab7f;
+      --text-light: #f5f5f5;
+      --text-muted: #a0a0a0;
+      --surface: #0f0f1e;
+      --border: rgba(200, 152, 107, 0.2);
+      --shadow: rgba(0, 0, 0, 0.4);
+      --danger: rgba(255,120,120,.2);
     }
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family:'Crimson Pro',serif; background:linear-gradient(135deg,var(--surface) 0%,var(--primary) 100%); color:var(--text-light); min-height:100vh; padding:20px; line-height:1.6; }
-    .container { max-width:660px; margin:0 auto; animation:fadeIn .6s ease-out; }
-    @keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes slideDown { from{opacity:0;transform:translateY(-30px)} to{opacity:1;transform:translateY(0)} }
-    @keyframes scaleIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-    @keyframes slideInLeft { from{opacity:0;transform:translateX(-30px)} to{opacity:1;transform:translateX(0)} }
-    @keyframes modalSlideUp { from{opacity:0;transform:translateY(50px) scale(.9)} to{opacity:1;transform:translateY(0) scale(1)} }
 
-    .header { text-align:center; margin-bottom:28px; padding-bottom:22px; border-bottom:1px solid var(--border); animation:slideDown .8s ease-out; }
-    .header h1 { font-size:2.2rem; font-weight:700; letter-spacing:-.02em; margin-bottom:10px; background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
-    .header .subtitle { font-family:'DM Mono',monospace; font-size:.85rem; color:var(--text-muted); letter-spacing:.1em; text-transform:uppercase; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .info-card { background:rgba(22,33,62,.6); backdrop-filter:blur(10px); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:18px; box-shadow:0 8px 32px var(--shadow); animation:scaleIn .6s ease-out .2s backwards; }
-    .grid { display:grid; grid-template-columns:1fr; gap:14px; }
-    @media(min-width:520px){ .grid{grid-template-columns:1fr 1fr} .span2{grid-column:1/-1} }
-    .form-group { margin-bottom:0; }
-    .form-label { font-family:'DM Mono',monospace; font-size:.75rem; color:var(--accent); text-transform:uppercase; letter-spacing:.15em; margin-bottom:8px; display:block; font-weight:500; }
-    .form-input, .form-textarea { width:100%; padding:14px 16px; background:rgba(15,15,30,.6); border:1px solid var(--border); border-radius:10px; color:var(--text-light); font-family:'Crimson Pro',serif; font-size:1rem; transition:all .3s ease; }
-    .form-input:focus, .form-textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(200,152,107,.1); }
-    .form-textarea { min-height:80px; resize:vertical; }
+    body {
+      font-family: 'Crimson Pro', serif;
+      background: linear-gradient(135deg, var(--surface) 0%, var(--primary) 100%);
+      color: var(--text-light);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.55;
+    }
 
-    .button-group { display:flex; gap:12px; margin-top:16px; flex-wrap:wrap; animation:scaleIn .6s ease-out .35s backwards; }
-    .button-group + .button-group { margin-top:12px; }
-    .btn-add { flex:1; padding:16px; background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); color:var(--primary); border:none; border-radius:12px; font-family:'Crimson Pro',serif; font-size:1.05rem; font-weight:700; cursor:pointer; transition:all .3s ease; box-shadow:0 4px 20px rgba(200,152,107,.3); text-transform:uppercase; letter-spacing:.05em; }
-    .btn-add:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(200,152,107,.5); }
-    .btn-export { padding:16px 18px; background:rgba(255,255,255,.1); color:var(--text-light); border:1px solid var(--border); border-radius:12px; font-family:'Crimson Pro',serif; font-size:1.05rem; font-weight:700; cursor:pointer; transition:all .3s ease; text-transform:uppercase; letter-spacing:.05em; display:inline-flex; align-items:center; gap:10px; flex:1; justify-content:center; }
-    .btn-export:hover { background:rgba(255,255,255,.15); transform:translateY(-2px); }
-    .btn-danger { padding:16px 18px; background:rgba(255,255,255,.05); color:var(--text-light); border:1px solid rgba(255,120,120,.25); border-radius:12px; font-family:'Crimson Pro',serif; font-size:1.05rem; font-weight:700; cursor:pointer; transition:all .3s ease; text-transform:uppercase; letter-spacing:.05em; flex:1; justify-content:center; display:inline-flex; align-items:center; gap:10px; }
-    .btn-danger:hover { background:rgba(255,120,120,.1); transform:translateY(-2px); }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      animation: fadeIn 0.6s ease-out;
+    }
 
-    .photos-section { margin-top:26px; }
-    .photos-title { font-size:1.5rem; font-weight:700; margin-bottom:14px; color:var(--accent); display:flex; align-items:center; gap:12px; justify-content:space-between; }
-    .photos-title .left { display:flex; align-items:center; gap:12px; }
-    .photo-count { font-family:'DM Mono',monospace; font-size:.8rem; background:rgba(200,152,107,.2); padding:4px 12px; border-radius:20px; font-weight:500; color:var(--text-light); }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
 
-    .photos-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .photo-card { background:rgba(22,33,62,.4); border:1px solid var(--border); border-radius:14px; overflow:hidden; animation:slideInLeft .4s ease-out; transition:all .3s ease; display:flex; flex-direction:column; }
-    .photo-card:hover { border-color:rgba(200,152,107,.5); box-shadow:0 4px 20px rgba(0,0,0,.3); }
-    .photo-img-wrap { position:relative; width:100%; aspect-ratio:4/3; background:rgba(15,15,30,.8); overflow:hidden; }
-    .photo-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
-    .photo-num-badge { position:absolute; top:8px; left:8px; background:rgba(0,0,0,.65); border:1px solid var(--border); color:var(--accent); font-family:'DM Mono',monospace; font-size:.65rem; padding:3px 8px; border-radius:999px; letter-spacing:.12em; text-transform:uppercase; backdrop-filter:blur(4px); }
-    .photo-del-btn { position:absolute; top:8px; right:8px; background:rgba(180,40,40,.75); border:none; color:white; font-size:.7rem; font-weight:700; padding:4px 8px; border-radius:8px; cursor:pointer; backdrop-filter:blur(4px); transition:background .2s; font-family:'DM Mono',monospace; }
-    .photo-del-btn:hover { background:rgba(220,40,40,.95); }
-    .photo-caption-area { padding:10px 12px 12px; flex:1; }
-    .photo-caption-label { font-family:'DM Mono',monospace; font-size:.68rem; color:var(--accent); text-transform:uppercase; letter-spacing:.12em; margin-bottom:5px; }
-    .photo-caption-input { width:100%; background:rgba(15,15,30,.5); border:1px solid var(--border); border-radius:8px; color:var(--text-light); font-family:'Crimson Pro',serif; font-size:.92rem; padding:8px 10px; resize:none; min-height:56px; transition:border-color .2s; }
-    .photo-caption-input:focus { outline:none; border-color:var(--accent); }
-    .empty-state { text-align:center; padding:46px 16px; color:var(--text-muted); font-style:italic; border:1px dashed rgba(200,152,107,.25); border-radius:14px; background:rgba(22,33,62,.25); grid-column:1/-1; }
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+    }
 
-    /* Modal */
-    .modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,.88); backdrop-filter:blur(10px); z-index:1000; animation:fadeIn .3s ease; padding:16px; }
-    .modal-overlay.active { display:flex; align-items:flex-start; justify-content:center; padding-top:12px; }
-    .modal { background:var(--secondary); border:1px solid var(--border); border-radius:20px; padding:26px; max-width:500px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,.6); animation:modalSlideUp .4s ease-out; max-height:calc(100dvh - 24px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
-    .modal h2 { font-size:1.7rem; font-weight:700; margin-bottom:18px; color:var(--accent); letter-spacing:-.01em; }
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-    .camera-container { position:relative; width:100%; aspect-ratio:4/3; background:#000; border-radius:12px; overflow:hidden; margin-bottom:16px; }
-    #cameraVideo { width:100%; height:100%; object-fit:cover; display:block; }
-    #cameraCanvas { display:none; }
-    .preview-wrap { display:none; margin-bottom:14px; }
-    .preview-wrap.active { display:block; }
-    #previewImg { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:12px; margin-bottom:12px; display:block; }
+    .header .subtitle {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
 
-    .camera-select-wrap { margin-bottom:14px; display:none; }
-    .camera-select { width:100%; padding:10px 14px; background:rgba(15,15,30,.6); border:1px solid var(--border); border-radius:10px; color:var(--text-light); font-family:'DM Mono',monospace; font-size:.82rem; }
+    .info-card {
+      background: rgba(22, 33, 62, 0.62);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 32px var(--shadow);
+    }
 
-    .modal-buttons { display:flex; gap:12px; flex-wrap:wrap; position:sticky; bottom:0; background:var(--secondary); padding-top:14px; padding-bottom:calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--border); z-index:5; margin-top:14px; }
-    .btn { flex:1; padding:14px; border:none; border-radius:10px; font-family:'Crimson Pro',serif; font-size:1rem; font-weight:600; cursor:pointer; transition:all .3s ease; text-transform:uppercase; letter-spacing:.05em; }
-    .btn-primary { background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%); color:var(--primary); box-shadow:0 4px 15px rgba(200,152,107,.3); }
-    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(200,152,107,.5); }
-    .btn-secondary { background:rgba(255,255,255,.1); color:var(--text-light); border:1px solid var(--border); }
-    .btn-secondary:hover { background:rgba(255,255,255,.15); }
-    .hint { margin-top:10px; font-family:'DM Mono',monospace; font-size:.78rem; color:var(--text-muted); letter-spacing:.02em; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
 
-    .toast { position:fixed; left:50%; bottom:16px; transform:translateX(-50%); background:rgba(0,0,0,.75); border:1px solid var(--border); color:var(--text-light); padding:10px 18px; border-radius:999px; font-family:'DM Mono',monospace; font-size:.85rem; display:none; z-index:2000; max-width:calc(100% - 28px); text-align:center; }
+    @media (min-width: 720px){
+      .grid { grid-template-columns: 1fr 1fr; }
+      .span2 { grid-column: 1 / -1; }
+    }
+
+    .form-group { margin-bottom: 0; }
+
+    .form-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      margin-bottom: 8px;
+      display: block;
+      font-weight: 500;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-file {
+      width: 100%;
+      padding: 14px 16px;
+      background: rgba(15, 15, 30, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-light);
+      font-family: 'Crimson Pro', serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-file { padding: 12px 14px; }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-file:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200, 152, 107, 0.1);
+    }
+
+    .form-textarea { min-height: 120px; resize: vertical; }
+
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-add,
+    .btn-export,
+    .btn-danger {
+      padding: 15px 18px;
+      border-radius: 12px;
+      font-family: 'Crimson Pro', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      letter-spacing: 0.04em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border: none;
+      min-height: 52px;
+      flex: 1;
+    }
+
+    .btn-add {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: var(--primary);
+      box-shadow: 0 4px 20px rgba(200, 152, 107, 0.28);
+      text-transform: uppercase;
+    }
+
+    .btn-export {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      text-transform: uppercase;
+    }
+
+    .btn-danger {
+      background: rgba(255,255,255,.05);
+      color: var(--text-light);
+      border: 1px solid rgba(255,120,120,.28);
+      text-transform: uppercase;
+    }
+
+    .btn-add:hover,
+    .btn-export:hover,
+    .btn-danger:hover,
+    .icon-btn:hover,
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .photos-section { margin-top: 26px; }
+
+    .photos-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .evidence-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.8rem;
+      background: rgba(200, 152, 107, 0.2);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+      color: var(--text-light);
+      white-space: nowrap;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    @media (min-width: 720px){
+      .photo-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .photo-card {
+      background: rgba(22, 33, 62, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.18);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .photo-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .photo-number {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .photo-image-wrap {
+      background: rgba(0,0,0,.22);
+      border-radius: 12px;
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255,255,255,.06);
+    }
+
+    .photo-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-note {
+      color: var(--text-light);
+      font-size: 1rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding-top: 4px;
+    }
+
+    .photo-filename {
+      color: var(--text-muted);
+      font-size: .95rem;
+    }
+
+    .photo-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .icon-btn, .btn {
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-family: inherit;
+      font-size: .95rem;
+    }
+
+    .icon-btn.danger { border-color: rgba(255,120,120,.25); }
+    .icon-btn.danger:hover { background: rgba(255,120,120,.12); }
+
+    .empty-state {
+      text-align: center;
+      padding: 46px 16px;
+      color: var(--text-muted);
+      font-style: italic;
+      border: 1px dashed rgba(200, 152, 107, 0.25);
+      border-radius: 14px;
+      background: rgba(22,33,62,0.25);
+    }
+
+    .empty-state svg {
+      width: 72px;
+      height: 72px;
+      margin-bottom: 14px;
+      opacity: 0.25;
+      display:block;
+      margin-left:auto;
+      margin-right:auto;
+    }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      max-width: 640px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      margin-top: 12px;
+      max-height: calc(100dvh - 24px);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .modal h2 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: var(--accent);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+      position: sticky;
+      bottom: 0;
+      background: var(--secondary);
+      padding-top: 12px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+      border-top: 1px solid var(--border);
+      z-index: 5;
+    }
+
+    .hint {
+      margin-top: 10px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .preview-box {
+      margin-top: 10px;
+      background: rgba(0,0,0,.18);
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.05);
+      min-height: 140px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    .preview-box img {
+      max-width: 100%;
+      max-height: 280px;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .preview-placeholder { color: var(--text-muted); text-align:center; }
+
+    .capture-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .camera-box {
+      margin-top: 10px;
+      background: rgba(0,0,0,.18);
+      border-radius: 12px;
+      padding: 10px;
+      border: 1px solid rgba(255,255,255,.05);
+      display: none;
+      gap: 10px;
+      flex-direction: column;
+    }
+
+    .camera-box.active { display: flex; }
+
+    .camera-video {
+      width: 100%;
+      max-height: 320px;
+      background: #000;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .camera-note {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.75);
+      border: 1px solid var(--border);
+      color: var(--text-light);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 2000;
+      max-width: calc(100% - 28px);
+      text-align: center;
+    }
+
     .toast.show { display:block; }
 
-    @media(max-width:480px) {
-      body { padding:14px; } .header h1 { font-size:1.9rem; }
-      .modal { padding:18px; } .modal-buttons { flex-direction:column; }
-      .button-group { flex-direction:column; }
-      .btn-export,.btn-add,.btn-danger { justify-content:center; width:100%; }
-      .photos-grid { grid-template-columns:1fr; }
+    @media (max-width: 640px) {
+      body { padding: 14px; }
+      .button-group, .modal-buttons { flex-direction: column; }
+      .btn-add, .btn-export, .btn-danger, .btn { width: 100%; }
+      .modal { padding: 20px; }
+      .form-textarea { min-height: 90px; }
     }
   </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1>Reportaje Fotográfico</h1>
-    <div class="subtitle">Diligencia de Registro</div>
-  </div>
-
-  <section class="info-card" aria-label="Datos del registro">
-    <div class="grid">
-      <div class="form-group">
-        <label class="form-label" for="asunto">Asunto</label>
-        <input class="form-input" id="asunto" placeholder="Ej: Estafa informatica" />
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="grupo">Grupo de Investigacion</label>
-        <input class="form-input" id="grupo" placeholder="Ej: Grupo / Unidad" />
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="juzgado">Juzgado</label>
-        <input class="form-input" id="juzgado" placeholder="Ej: J. Instruccion num..." />
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="procedimiento">Procedimiento</label>
-        <input class="form-input" id="procedimiento" placeholder="Ej: Diligencias Previas 123/2026" />
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="fechaHora">Fecha y hora del registro</label>
-        <input class="form-input" id="fechaHora" type="datetime-local" />
-      </div>
-      <div class="form-group span2">
-        <label class="form-label" for="direccion">Direccion</label>
-        <input class="form-input" id="direccion" placeholder="C/ ..., num..., localidad" />
-      </div>
+  <div class="container">
+    <div class="header">
+      <h1>Reportaje Fotográfico de Registro</h1>
+      <div class="subtitle">Captura, organiza y exporta a ODT o PDF · 2 columnas · 4 fotos por página</div>
     </div>
+
+    <section class="info-card" aria-label="Datos del registro">
+      <div class="grid">
+        <div class="form-group">
+          <label class="form-label" for="asunto">Asunto</label>
+          <input class="form-input" id="asunto" placeholder="Ej: Entrada y registro en domicilio" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="grupo">Grupo de Investigación</label>
+          <input class="form-input" id="grupo" placeholder="Ej: Grupo / Unidad" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="juzgado">Juzgado</label>
+          <input class="form-input" id="juzgado" placeholder="Ej: J. Instrucción nº..." />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="procedimiento">Procedimiento</label>
+          <input class="form-input" id="procedimiento" placeholder="Ej: DP 123/2026" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fechaHora">Fecha y hora del registro</label>
+          <input class="form-input" id="fechaHora" type="datetime-local" />
+        </div>
+        <div class="form-group span2">
+          <label class="form-label" for="direccion">Dirección</label>
+          <input class="form-input" id="direccion" placeholder="C/ ..., nº..., localidad" />
+        </div>
+        <div class="form-group span2">
+          <label class="form-label" for="observacionesGenerales">Observaciones generales</label>
+          <textarea class="form-textarea" id="observacionesGenerales" placeholder="Observaciones generales del reportaje o del registro."></textarea>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-add" id="btnGuardarCabecera" type="button">Guardar datos</button>
+        <button class="btn-danger" id="btnResetAll" type="button">Borrar todo</button>
+      </div>
+    </section>
+
     <div class="button-group">
-      <button class="btn-add" id="btnGuardarCabecera" type="button">Guardar datos</button>
-      <button class="btn-danger" id="btnResetAll" type="button">Borrar todo</button>
+      <button class="btn-add" id="btnOpenModal" type="button">Añadir fotografía</button>
+      <button class="btn-export" id="btnExportJson" type="button">Exportar JSON</button>
+      <button class="btn-export" id="btnExportOdt" type="button">Exportar ODT</button>
+      <button class="btn-export" id="btnExportPdf" type="button">Exportar PDF</button>
     </div>
-  </section>
 
-  <div class="button-group">
-    <button class="btn-add" id="btnOpenCamera" type="button">Tomar foto</button>
-    <button class="btn-export" id="btnExportOdt" type="button">Exportar ODT</button>
-  </div>
-
-  <section class="photos-section">
-    <div class="photos-title">
-      <div class="left">
-        <span>Reportaje</span>
-        <span class="photo-count" id="count">0 fotos</span>
+    <section class="photos-section">
+      <div class="photos-title">
+        <span>Fotografías</span>
+        <span class="evidence-count" id="count">0 fotografías</span>
       </div>
-    </div>
-    <div class="photos-grid" id="photoGrid">
-      <div class="empty-state" id="emptyState">
-        <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:64px;height:64px;margin:0 auto 14px;opacity:.2;display:block">
-          <rect x="8" y="24" width="80" height="58" rx="8" stroke="currentColor" stroke-width="3"/>
-          <circle cx="48" cy="53" r="16" stroke="currentColor" stroke-width="3"/>
-          <circle cx="48" cy="53" r="7" stroke="currentColor" stroke-width="2.5"/>
-          <path d="M32 24l5-10h22l5 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <div id="list" class="photo-grid"></div>
+
+      <div id="empty" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7h4l2-2h4l2 2h4v12H4V7z" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="12" cy="13" r="3.5" stroke="currentColor" stroke-width="1.5"/>
         </svg>
-        Aun no hay fotos. Pulsa "Tomar foto".
+        Aún no has añadido fotografías. Pulsa “Añadir fotografía”.
       </div>
-    </div>
-  </section>
-</div>
+    </section>
+  </div>
 
-<!-- Modal camara -->
-<div class="modal-overlay" id="cameraModal" role="dialog" aria-modal="true">
-  <div class="modal">
-    <h2 id="cameraModalTitle">Tomar foto</h2>
+  <div class="modal-overlay" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <h2 id="modalTitle">Añadir fotografía</h2>
 
-    <div class="camera-select-wrap" id="cameraSelectWrap">
-      <label class="form-label" for="cameraSelect">Camara</label>
-      <select class="camera-select" id="cameraSelect"></select>
-    </div>
-
-    <!-- Video en vivo -->
-    <div class="camera-container" id="cameraContainer">
-      <video id="cameraVideo" autoplay playsinline muted></video>
-      <canvas id="cameraCanvas"></canvas>
-    </div>
-
-    <!-- Preview tras captura -->
-    <div class="preview-wrap" id="previewWrap">
-      <img id="previewImg" src="" alt="Foto capturada" />
       <div class="form-group">
-        <label class="form-label" for="captionInput">Pie de foto</label>
-        <textarea class="form-textarea" id="captionInput" placeholder="Describe lo que muestra la fotografia..."></textarea>
+        <label class="form-label" for="fotoNumero">Nº de foto</label>
+        <input class="form-input" id="fotoNumero" inputmode="numeric" placeholder="Ej: 001" />
       </div>
-    </div>
 
-    <p class="hint" id="cameraHint">Apunta la camara y pulsa Capturar.</p>
+      <div class="form-group">
+        <label class="form-label">Imagen</label>
+        <button class="btn-add" id="btnSolicitarCamara" type="button" style="width:100%;margin-bottom:10px;">📷 Abrir cámara</button>
+      </div>
 
-    <div class="modal-buttons">
-      <button class="btn btn-primary" id="btnCapture" type="button">Capturar</button>
-      <button class="btn btn-secondary" id="btnRetake" type="button" style="display:none">Repetir</button>
-      <button class="btn btn-secondary" id="btnSwitchCam" type="button" style="display:none">Cambiar camara</button>
-      <button class="btn btn-secondary" id="btnCloseCamera" type="button">Cerrar</button>
+      <div class="camera-box" id="cameraBox">
+        <video class="camera-video" id="cameraVideo" autoplay playsinline muted></video>
+        <button class="btn-add" id="btnCapturar" type="button" style="margin-top:8px;" disabled>Tomar foto</button>
+      </div>
+
+      <div class="preview-box" id="previewBox">
+        <div class="preview-placeholder">Abre la cámara y toma una foto.</div>
+      </div>
+
+      <div class="form-group" style="margin-top:12px;">
+        <label class="form-label" for="fotoNota">Nota / pie de foto</label>
+        <textarea class="form-textarea" id="fotoNota" placeholder="Ej: Vista general del salón a la entrada. Se aprecia mesa principal y equipo informático al fondo."></textarea>
+      </div>
+
+      <div class="modal-buttons">
+        <button class="btn btn-add" id="btnAddPhoto" type="button" data-mode="add">Añadir</button>
+        <button class="btn btn-secondary" id="btnClearFields" type="button">Limpiar</button>
+        <button class="btn btn-secondary" id="btnCloseModal" type="button">Cerrar</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="toast" id="toast"></div>
+  <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<script>
-  const LS_KEY = "reportaje_v2";
-  const $ = id => document.getElementById(id);
+  <script>
+    const LS_KEY = 'reportaje_fotografico_registro_v1';
+    const $ = (id) => document.getElementById(id);
 
-  const state = {
-    header: { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" },
-    photos: []
-  };
+    const state = {
+      header: {
+        asunto: '',
+        grupo: '',
+        juzgado: '',
+        procedimiento: '',
+        fechaHora: '',
+        direccion: '',
+        observacionesGenerales: ''
+      },
+      photos: []
+      // {id, numero, note, fileName, mimeType, dataUrl, createdAt, source}
+    };
 
-  let currentStream = null;
-  let capturedDataUrl = null;
-  let videoDevices = [];
-  let currentDeviceIndex = 0;
-  // Modos del modal: "live" | "preview"
-  let cameraMode = "live";
+    function toast(msg) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => t.classList.remove('show'), 1800);
+    }
 
-  // ── Persistencia ──────────────────────────────────────────────
-  function saveState() {
-    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(_) {}
-  }
-  function loadState() {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (!raw) return;
-      const p = JSON.parse(raw);
-      if (p && typeof p === "object") {
-        state.header = Object.assign({}, state.header, p.header || {});
-        state.photos = Array.isArray(p.photos) ? p.photos : [];
+    function escapeHtml(str) {
+      return (str ?? '')
+        .toString()
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function escapeXml(str) {
+      return (str ?? '')
+        .toString()
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&apos;');
+    }
+
+    function normalizeNumber(n) {
+      const s = (n ?? '').toString().trim();
+      if (!s) return '';
+      if (/^\d+$/.test(s)) return String(Math.min(parseInt(s, 10), 999999)).padStart(3, '0');
+      return s;
+    }
+
+    function nextAutoNumber() {
+      const nums = state.photos
+        .map(p => p.numero)
+        .filter(n => /^\d+$/.test(n))
+        .map(n => parseInt(n, 10));
+      const max = nums.length ? Math.max(...nums) : 0;
+      return String(max + 1).padStart(3, '0');
+    }
+
+    function safeId() {
+      return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function saveState() {
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          state.header = { ...state.header, ...(parsed.header || {}) };
+          state.photos = Array.isArray(parsed.photos) ? parsed.photos : [];
+        }
+      } catch (_e) {}
+    }
+
+    function renderHeader() {
+      ['asunto','grupo','juzgado','procedimiento','fechaHora','direccion','observacionesGenerales'].forEach(id => {
+        if ($(id)) $(id).value = state.header[id] || '';
+      });
+    }
+
+    function sortedPhotos() {
+      return [...state.photos].sort((a, b) => {
+        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero, 10) : null;
+        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero, 10) : null;
+        if (an !== null && bn !== null) return an - bn;
+        if (an !== null && bn === null) return -1;
+        if (an === null && bn !== null) return 1;
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      });
+    }
+
+    function renderList() {
+      const list = $('list');
+      list.innerHTML = '';
+      $('count').textContent = `${state.photos.length} fotografía${state.photos.length === 1 ? '' : 's'}`;
+
+      if (!state.photos.length) {
+        $('empty').style.display = 'block';
+        return;
       }
-    } catch(_) {}
-  }
+      $('empty').style.display = 'none';
 
-  // ── Toast ─────────────────────────────────────────────────────
-  function toast(msg) {
-    const t = $("toast");
-    t.textContent = msg;
-    t.classList.add("show");
-    clearTimeout(toast._t);
-    toast._t = setTimeout(() => t.classList.remove("show"), 2000);
-  }
+      for (const photo of sortedPhotos()) {
+        const item = document.createElement('article');
+        item.className = 'photo-card';
+        item.innerHTML = `
+          <div class="photo-meta">
+            <div>
+              <div class="photo-number">FOTOGRAFÍA ${escapeHtml(photo.numero || '—')}</div>
+              <div class="photo-filename">${escapeHtml(photo.fileName || 'imagen')}</div>
+            </div>
+            <div class="photo-actions">
+              <button class="icon-btn" type="button" data-action="edit" data-id="${escapeHtml(photo.id)}">Editar</button>
+              <button class="icon-btn danger" type="button" data-action="del" data-id="${escapeHtml(photo.id)}">Borrar</button>
+            </div>
+          </div>
+          <div class="photo-image-wrap">
+            <img src="${photo.dataUrl}" alt="Fotografía ${escapeHtml(photo.numero || '')}">
+          </div>
+          <div class="photo-note">${escapeHtml(photo.note || '')}</div>
+        `;
+        list.appendChild(item);
+      }
+    }
 
-  // ── Utilidades ────────────────────────────────────────────────
-  function safeId() {
-    return Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
-  }
-  function escHtml(s) {
-    return String(s || "")
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+    function saveHeaderFromInputs() {
+      ['asunto','grupo','juzgado','procedimiento','fechaHora','direccion','observacionesGenerales'].forEach(id => {
+        state.header[id] = ($(id).value || '').trim();
+      });
+      saveState();
+      toast('Datos guardados');
+    }
 
-  // ── Cabecera ──────────────────────────────────────────────────
-  function renderHeader() {
-    ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
-      $(id).value = state.header[id] || "";
-    });
-  }
-  function saveHeaderFromInputs() {
-    ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
-      state.header[id] = ($(id).value || "").trim();
-    });
-    saveState();
-    toast("Datos guardados");
-  }
+    function resetAll() {
+      if (!confirm('¿Borrar todos los datos y fotografías guardadas?')) return;
+      localStorage.removeItem(LS_KEY);
+      state.header = { asunto:'', grupo:'', juzgado:'', procedimiento:'', fechaHora:'', direccion:'', observacionesGenerales:'' };
+      state.photos = [];
+      renderHeader();
+      renderList();
+      toast('Borrado completo');
+    }
 
-  // ── Galeria ───────────────────────────────────────────────────
-  function renderGallery() {
-    const grid = $("photoGrid");
-    grid.querySelectorAll(".photo-card").forEach(c => c.remove());
-    const n = state.photos.length;
-    $("count").textContent = n + " foto" + (n !== 1 ? "s" : "");
-    $("emptyState").style.display = n === 0 ? "block" : "none";
+    function setPreview(dataUrl) {
+      const box = $('previewBox');
+      if (!dataUrl) {
+        box.innerHTML = '<div class="preview-placeholder">La vista previa aparecerá aquí.</div>';
+        return;
+      }
+      box.innerHTML = `<img src="${dataUrl}" alt="Vista previa">`;
+    }
 
-    state.photos.forEach((ph, idx) => {
-      const card = document.createElement("div");
-      card.className = "photo-card";
-      card.innerHTML =
-        '<div class="photo-img-wrap">' +
-          '<img src="' + ph.dataUrl + '" alt="Foto ' + (idx+1) + '" loading="lazy" />' +
-          '<span class="photo-num-badge">Foto ' + String(idx+1).padStart(2,"0") + '</span>' +
-          '<button class="photo-del-btn" data-id="' + ph.id + '" type="button">X</button>' +
-        '</div>' +
-        '<div class="photo-caption-area">' +
-          '<div class="photo-caption-label">Pie de foto</div>' +
-          '<textarea class="photo-caption-input" data-id="' + ph.id + '" rows="3" placeholder="Descripcion...">' +
-            escHtml(ph.caption || "") +
-          '</textarea>' +
-        '</div>';
+    function clearModalFields() {
+      $('fotoNumero').value = '';
+      $('fotoNota').value = '';
+      capturedDataUrl = '';
+      capturedMimeType = 'image/jpeg';
+      capturedFileName = '';
+      stopCamera();
+      setPreview('');
+      setTimeout(() => $('fotoNumero')?.focus(), 50);
+    }
 
-      card.querySelector(".photo-del-btn").addEventListener("click", () => {
-        if (confirm("Borrar la Foto " + (idx+1) + "?")) {
-          state.photos = state.photos.filter(p => p.id !== ph.id);
-          saveState();
-          renderGallery();
-          toast("Foto eliminada");
+    function openModal(mode, id = null) {
+      const backdrop = $('backdrop');
+      const title = $('modalTitle');
+      const btn = $('btnAddPhoto');
+      backdrop.classList.add('active');
+
+      if (mode === 'edit') {
+        const photo = state.photos.find(p => p.id === id);
+        if (!photo) {
+          toast('No se encontró la fotografía.');
+          return closeModal();
+        }
+        title.textContent = 'Editar fotografía';
+        btn.textContent = 'Guardar';
+        btn.dataset.mode = 'edit';
+        btn.dataset.editId = photo.id;
+        $('fotoNumero').value = photo.numero || '';
+        $('fotoNota').value = photo.note || '';
+        $('fotoArchivo').value = '';
+        $('fotoArchivo').dataset.existingDataUrl = photo.dataUrl || '';
+        $('fotoArchivo').dataset.existingMimeType = photo.mimeType || '';
+        $('fotoArchivo').dataset.existingFileName = photo.fileName || '';
+        setPreview(photo.dataUrl || '');
+      } else {
+        title.textContent = 'Añadir fotografía';
+        btn.textContent = 'Añadir';
+        btn.dataset.mode = 'add';
+        delete btn.dataset.editId;
+        clearModalFields();
+      }
+
+      setTimeout(() => $('fotoNumero')?.focus?.(), 50);
+    }
+
+    function closeModal() {
+      $('backdrop').classList.remove('active');
+      stopCamera();
+    }
+
+    let cameraStream = null;
+    let capturedDataUrl = '';
+    let capturedMimeType = 'image/jpeg';
+    let capturedFileName = '';
+
+    function setCameraStatus(_msg) {} // removed
+
+    async function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      const video = $('cameraVideo');
+      if (video) video.srcObject = null;
+      $('cameraBox')?.classList.remove('active');
+      const btn = $('btnCapturar');
+      if (btn) btn.disabled = true;
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        toast('Este navegador no permite acceso a la cámara.');
+        return;
+      }
+      try {
+        await stopCamera();
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false
+        });
+        const video = $('cameraVideo');
+        video.srcObject = cameraStream;
+        $('cameraBox').classList.add('active');
+        video.onloadedmetadata = () => {
+          const btn = $('btnCapturar');
+          if (btn) btn.disabled = false;
+        };
+      } catch (err) {
+        const reason = err.name === 'NotAllowedError' ? 'Permiso denegado para la cámara.'
+          : err.name === 'NotFoundError' ? 'No se detectó ninguna cámara.'
+          : 'No se pudo iniciar la cámara.';
+        toast(reason);
+      }
+    }
+
+    async function captureFromCamera() {
+      const video = $('cameraVideo');
+      if (!cameraStream || !video?.videoWidth) {
+        toast('La cámara todavía no está lista.');
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      capturedDataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      capturedMimeType = 'image/jpeg';
+      capturedFileName = `captura_${new Date().toISOString().replace(/[:.]/g, '-')}.jpg`;
+      setPreview(capturedDataUrl);
+      await stopCamera();
+      toast('Fotografía capturada — añade un pie y pulsa Añadir');
+    }
+
+    async function addPhoto() {
+      let numero = normalizeNumber($('fotoNumero').value);
+      const note = ($('fotoNota').value || '').trim();
+
+      if (!capturedDataUrl) {
+        toast('Primero abre la cámara y toma una fotografía.');
+        return;
+      }
+      if (!note) {
+        toast('Añade una nota o pie de foto.');
+        $('fotoNota').focus();
+        return;
+      }
+      if (!numero) numero = nextAutoNumber();
+
+      const dup = state.photos.find(p => (p.numero || '') === numero);
+      if (dup) {
+        toast(`Ya existe la fotografía ${numero}.`);
+        $('fotoNumero').focus();
+        return;
+      }
+
+      state.photos.push({
+        id: safeId(),
+        numero,
+        note,
+        fileName: capturedFileName || `captura_${numero}.jpg`,
+        mimeType: capturedMimeType,
+        dataUrl: capturedDataUrl,
+        createdAt: Date.now(),
+        source: 'camera'
+      });
+
+      saveState();
+      renderList();
+      closeModal();
+      clearModalFields();
+      toast('Fotografía añadida');
+    }
+
+    async function editPhoto(editId) {
+      let numero = normalizeNumber($('fotoNumero').value);
+      const note = ($('fotoNota').value || '').trim();
+      const photo = state.photos.find(p => p.id === editId);
+
+      if (!photo) { toast('No se encontró la fotografía.'); return; }
+      if (!note) { toast('Añade una nota o pie de foto.'); $('fotoNota').focus(); return; }
+      if (!numero) numero = photo.numero || nextAutoNumber();
+
+      const dup = state.photos.find(p => p.id !== editId && (p.numero || '') === numero);
+      if (dup) { toast(`Ya existe la fotografía ${numero}.`); $('fotoNumero').focus(); return; }
+
+      if (capturedDataUrl) {
+        photo.dataUrl = capturedDataUrl;
+        photo.mimeType = capturedMimeType;
+        photo.fileName = capturedFileName || photo.fileName;
+      }
+      photo.numero = numero;
+      photo.note = note;
+
+      saveState();
+      renderList();
+      closeModal();
+      clearModalFields();
+      toast('Cambios guardados');
+    }
+
+    function deletePhoto(id) {
+      const photo = state.photos.find(p => p.id === id);
+      const label = photo?.numero ? `Fotografía ${photo.numero}` : 'esta fotografía';
+      if (!confirm(`¿Borrar ${label}?`)) return;
+      state.photos = state.photos.filter(p => p.id !== id);
+      saveState();
+      renderList();
+      toast('Fotografía borrada');
+    }
+
+    function buildExportObject() {
+      return {
+        header: structuredClone(state.header),
+        photos: sortedPhotos().map(p => ({ ...p }))
+      };
+    }
+
+    function downloadBlob(filename, blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(buildExportObject(), null, 2)], { type: 'application/json;charset=utf-8' });
+      downloadBlob('reportaje_fotografico_registro.json', blob);
+      toast('JSON exportado');
+    }
+
+    function dataUrlToUint8Array(dataUrl) {
+      const base64 = dataUrl.split(',')[1] || '';
+      const binary = atob(base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+
+    function extensionFromMime(mime) {
+      const map = {
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp',
+        'image/gif': 'gif',
+        'image/bmp': 'bmp'
+      };
+      return map[(mime || '').toLowerCase()] || 'jpg';
+    }
+
+    function xmlParagraph(text, style = 'P1') {
+      return `<text:p text:style-name="${style}">${escapeXml(text || '')}</text:p>`;
+    }
+
+    async function exportODT() {
+      if (!window.JSZip) { toast('No se pudo cargar JSZip.'); return; }
+      const obj = buildExportObject();
+      if (!obj.photos.length) { toast('No hay fotografías para exportar.'); return; }
+      toast('Generando ODT…');
+
+      // Pre-load image dimensions
+      await Promise.all(obj.photos.map(p => loadImgDims(p)));
+
+      const zip = new JSZip();
+      zip.file('mimetype', 'application/vnd.oasis.opendocument.text', { compression: 'STORE' });
+
+      const picsFolder = zip.folder('Pictures');
+      obj.photos.forEach((photo, idx) => {
+        const ext = extensionFromMime(photo.mimeType);
+        photo._internalName = `photo_${String(idx + 1).padStart(3, '0')}.${ext}`;
+        picsFolder.file(photo._internalName, dataUrlToUint8Array(photo.dataUrl));
+      });
+
+      zip.folder('META-INF').file('manifest.xml', buildManifestXml(obj.photos));
+      zip.file('styles.xml', buildStylesXml());
+      zip.file('meta.xml', buildMetaXml());
+      zip.file('settings.xml', buildSettingsXml());
+      zip.file('content.xml', buildContentXml(obj));
+
+      const blob = await zip.generateAsync({ type: 'blob', mimeType: 'application/vnd.oasis.opendocument.text' });
+      downloadBlob('reportaje_fotografico_registro.odt', blob);
+      toast('ODT exportado');
+    }
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    function loadImgDims(photo) {
+      if (photo._w && photo._h) return Promise.resolve();
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => { photo._w = img.naturalWidth; photo._h = img.naturalHeight; resolve(); };
+        img.onerror = () => { photo._w = 4; photo._h = 3; resolve(); };
+        img.src = photo.dataUrl;
+      });
+    }
+
+    // For ODT: given fixed height (cm), compute width respecting aspect ratio, capped at maxW
+    function fitToCellOdt(photo, fixedH_cm, maxW_cm) {
+      const ratio = (photo._w && photo._h) ? photo._w / photo._h : 4 / 3;
+      const w = Math.min(parseFloat((fixedH_cm * ratio).toFixed(3)), maxW_cm);
+      return { w: w.toFixed(3), h: fixedH_cm.toFixed(3) };
+    }
+
+    // ── ODT builders ─────────────────────────────────────────────────────────
+
+    function buildManifestXml(photos) {
+      const files = photos.map(p =>
+        `\n  <manifest:file-entry manifest:media-type="${escapeXml(p.mimeType || 'image/jpeg')}" manifest:full-path="Pictures/${escapeXml(p._internalName || '')}"/>`
+      ).join('');
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">
+  <manifest:file-entry manifest:media-type="application/vnd.oasis.opendocument.text" manifest:full-path="/"/>
+  <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="content.xml"/>
+  <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="styles.xml"/>
+  <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="meta.xml"/>
+  <manifest:file-entry manifest:media-type="text/xml" manifest:full-path="settings.xml"/>${files}
+</manifest:manifest>`;
+    }
+
+    function buildStylesXml() {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-styles
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+  office:version="1.2">
+  <office:styles>
+    <style:default-style style:family="paragraph">
+      <style:paragraph-properties fo:margin-top="0cm" fo:margin-bottom="0.12cm"/>
+      <style:text-properties fo:font-size="10pt" style:font-name="Liberation Serif"/>
+    </style:default-style>
+    <style:style style:name="Standard" style:family="paragraph" style:class="text"/>
+  </office:styles>
+  <office:automatic-styles/>
+  <office:master-styles>
+    <style:master-page style:name="Standard">
+      <style:header>
+        <text:p xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" text:style-name="PHdrRight">
+          <text:span text:style-name="THdrRight">REPORTAJE FOTOGRÁFICO DE REGISTRO</text:span>
+        </text:p>
+      </style:header>
+    </style:master-page>
+  </office:master-styles>
+</office:document-styles>`;
+    }
+
+    function buildMetaXml() {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-meta xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:meta="urn:oasis:names:tc:opendocument:xmlns:meta:1.0" office:version="1.2">
+  <office:meta>
+    <meta:generator>Reportaje Fotográfico de Registro</meta:generator>
+    <meta:creation-date>${new Date().toISOString()}</meta:creation-date>
+  </office:meta>
+</office:document-meta>`;
+    }
+
+    function buildSettingsXml() {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-settings xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" office:version="1.2">
+  <office:settings/>
+</office:document-settings>`;
+    }
+
+    function buildHeaderLinesOdt(header) {
+      const rows = [];
+      const addRow = (label, value) => {
+        if (!value) return;
+        rows.push(`
+        <table:table-row>
+          <table:table-cell table:style-name="HdrCellLabel" office:value-type="string">
+            <text:p text:style-name="PHdrLabel">${escapeXml(label)}</text:p>
+          </table:table-cell>
+          <table:table-cell table:style-name="HdrCellValue" office:value-type="string">
+            <text:p text:style-name="PHdrValue">${escapeXml(value)}</text:p>
+          </table:table-cell>
+        </table:table-row>`);
+      };
+      addRow('Asunto', header.asunto);
+      addRow('Grupo de Investigación', header.grupo);
+      addRow('Juzgado', header.juzgado);
+      addRow('Procedimiento', header.procedimiento);
+      addRow('Fecha y hora del registro', header.fechaHora);
+      addRow('Dirección', header.direccion);
+      if (header.observacionesGenerales) {
+        rows.push(`
+        <table:table-row>
+          <table:table-cell table:style-name="HdrCellLabel" office:value-type="string">
+            <text:p text:style-name="PHdrLabel">Observaciones generales</text:p>
+          </table:table-cell>
+          <table:table-cell table:style-name="HdrCellValue" office:value-type="string">
+            <text:p text:style-name="PHdrValue">${escapeXml(header.observacionesGenerales)}</text:p>
+          </table:table-cell>
+        </table:table-row>`);
+      }
+      if (!rows.length) return '';
+      return `
+      <table:table table:name="TablaCabecera" table:style-name="HdrTable">
+        <table:table-column table:style-name="HdrColLabel"/>
+        <table:table-column table:style-name="HdrColValue"/>
+        ${rows.join('')}
+      </table:table>`;
+    }
+
+    // Fixed image height (cm) per cell; 4 photos fill the page height leaving room for captions
+    const ODT_IMG_H = 5.8; // cm — 2 rows × (5.8cm img + ~1.4cm caption+padding) ≈ 29.4cm body
+    const ODT_COL_W = 8.3; // cm — half of 17cm usable, with gap
+
+    function photoCellXml(photo, globalIdx) {
+      const picturePath = `Pictures/${photo._internalName}`;
+      const dims = fitToCellOdt(photo, ODT_IMG_H, ODT_COL_W - 0.2);
+      const numero = escapeXml(photo.numero || String(globalIdx + 1).padStart(3, '0'));
+      const note = escapeXml(photo.note || '');
+      return `<table:table-cell table:style-name="PhotoCell" office:value-type="string">
+          <text:p text:style-name="PPhotoNum">Fotografía ${numero}</text:p>
+          <text:p text:style-name="PImgPara">
+            <draw:frame draw:style-name="ImgFrame" draw:name="Foto_${globalIdx + 1}"
+              text:anchor-type="paragraph"
+              svg:width="${dims.w}cm" svg:height="${dims.h}cm">
+              <draw:image xlink:href="${escapeXml(picturePath)}"
+                xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>
+            </draw:frame>
+          </text:p>
+          <text:p text:style-name="PCaption">${note}</text:p>
+        </table:table-cell>`;
+    }
+
+    function buildPhotoTableXml(photos) {
+      const chunks = [];
+      for (let i = 0; i < photos.length; i += 4) {
+        const block = photos.slice(i, i + 4);
+        const c = (j) => block[j] ? photoCellXml(block[j], i + j) : '<table:table-cell table:style-name="PhotoCell"><text:p text:style-name="PCaption"/></table:table-cell>';
+        chunks.push(`
+      <table:table table:name="TablaFotos${Math.floor(i / 4) + 1}" table:style-name="PhotoTable">
+        <table:table-column table:style-name="PhotoCol"/>
+        <table:table-column table:style-name="PhotoCol"/>
+        <table:table-row table:style-name="PhotoRow">
+          ${c(0)}
+          ${c(1)}
+        </table:table-row>
+        <table:table-row table:style-name="PhotoRow">
+          ${c(2)}
+          ${c(3)}
+        </table:table-row>
+      </table:table>`);
+        if (i + 4 < photos.length) chunks.push('<text:p text:style-name="PPageBreak"/>');
+      }
+      return chunks.join('\n');
+    }
+
+    function buildContentXml(obj) {
+      return `<?xml version="1.0" encoding="UTF-8"?>
+<office:document-content
+  xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
+  xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"
+  xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"
+  xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"
+  xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
+  office:version="1.2">
+  <office:scripts/>
+  <office:automatic-styles>
+
+    <!-- Page layout -->
+    <style:page-layout style:name="PageLayout">
+      <style:page-layout-properties fo:page-width="21.001cm" fo:page-height="29.7cm"
+        fo:margin-top="2cm" fo:margin-bottom="1.8cm"
+        fo:margin-left="2cm" fo:margin-right="2cm"
+        style:print-orientation="portrait"/>
+      <style:header-style>
+        <style:header-footer-properties fo:min-height="0.8cm" fo:margin-bottom="0.4cm"/>
+      </style:header-style>
+    </style:page-layout>
+
+    <!-- Master page -->
+    <style:master-page style:name="Standard" style:page-layout-name="PageLayout">
+      <style:header>
+        <text:p text:style-name="PHdrRight">
+          <text:span text:style-name="THdrRight">REPORTAJE FOTOGRÁFICO DE REGISTRO</text:span>
+          <text:tab/><text:tab/><text:tab/>
+          <text:span text:style-name="THdrMuted">
+            ${escapeXml(obj.header.asunto || '')}
+          </text:span>
+        </text:p>
+        <text:p text:style-name="PHdrLine"/>
+      </style:header>
+    </style:master-page>
+
+    <!-- ── Paragraph styles ── -->
+    <style:style style:name="PTitleBig" style:family="paragraph">
+      <style:paragraph-properties fo:text-align="left" fo:margin-bottom="0.05cm" fo:margin-top="0cm"/>
+      <style:text-properties fo:font-size="18pt" fo:font-weight="bold" fo:color="#1a1a2e" style:font-name="Liberation Sans"/>
+    </style:style>
+    <style:style style:name="PTitleSub" style:family="paragraph">
+      <style:paragraph-properties fo:text-align="left" fo:margin-bottom="0.6cm" fo:margin-top="0.1cm"/>
+      <style:text-properties fo:font-size="9pt" fo:color="#6b7280" style:font-name="Liberation Sans"/>
+    </style:style>
+    <style:style style:name="PHdrLine" style:family="paragraph">
+      <style:paragraph-properties fo:margin-bottom="0.5cm" fo:border-bottom="0.04cm solid #c8986b"/>
+      <style:text-properties fo:font-size="1pt"/>
+    </style:style>
+    <style:style style:name="PHdrRight" style:family="paragraph">
+      <style:paragraph-properties fo:text-align="left"/>
+      <style:text-properties fo:font-size="7.5pt" style:font-name="Liberation Sans"/>
+    </style:style>
+    <style:style style:name="PSection" style:family="paragraph">
+      <style:paragraph-properties fo:margin-top="0.5cm" fo:margin-bottom="0.3cm"
+        fo:border-bottom="0.03cm solid #c8986b" fo:padding-bottom="0.1cm"/>
+      <style:text-properties fo:font-size="11pt" fo:font-weight="bold" fo:color="#1a1a2e"
+        fo:letter-spacing="0.05cm" style:font-name="Liberation Sans"/>
+    </style:style>
+    <style:style style:name="P1" style:family="paragraph">
+      <style:paragraph-properties fo:margin-bottom="0.08cm"/>
+      <style:text-properties fo:font-size="10pt"/>
+    </style:style>
+    <style:style style:name="PHdrLabel" style:family="paragraph">
+      <style:text-properties fo:font-size="8pt" fo:font-weight="bold" fo:color="#4b5563"
+        style:font-name="Liberation Sans" fo:text-transform="uppercase" fo:letter-spacing="0.04cm"/>
+    </style:style>
+    <style:style style:name="PHdrValue" style:family="paragraph">
+      <style:text-properties fo:font-size="10pt" fo:color="#111827" style:font-name="Liberation Serif"/>
+    </style:style>
+    <style:style style:name="PPhotoNum" style:family="paragraph">
+      <style:paragraph-properties fo:margin-bottom="0.12cm"/>
+      <style:text-properties fo:font-size="7.5pt" fo:font-weight="bold" fo:color="#c8986b"
+        fo:text-transform="uppercase" fo:letter-spacing="0.08cm" style:font-name="Liberation Sans"/>
+    </style:style>
+    <style:style style:name="PImgPara" style:family="paragraph">
+      <style:paragraph-properties fo:text-align="left" fo:margin-bottom="0.1cm"/>
+    </style:style>
+    <style:style style:name="PCaption" style:family="paragraph">
+      <style:paragraph-properties fo:margin-bottom="0.15cm"/>
+      <style:text-properties fo:font-size="8.5pt" fo:color="#374151" style:font-name="Liberation Serif" fo:font-style="italic"/>
+    </style:style>
+    <style:style style:name="PPageBreak" style:family="paragraph">
+      <style:paragraph-properties fo:break-after="page"/>
+      <style:text-properties fo:font-size="1pt"/>
+    </style:style>
+    <style:style style:name="PEmpty" style:family="paragraph">
+      <style:text-properties fo:font-size="2pt"/>
+    </style:style>
+
+    <!-- ── Text span styles ── -->
+    <style:style style:name="THdrRight" style:family="text">
+      <style:text-properties fo:font-size="7pt" fo:font-weight="bold" fo:color="#6b7280"
+        fo:text-transform="uppercase" fo:letter-spacing="0.06cm" style:font-name="Liberation Sans"/>
+    </style:style>
+    <style:style style:name="THdrMuted" style:family="text">
+      <style:text-properties fo:font-size="7pt" fo:color="#9ca3af" style:font-name="Liberation Sans"/>
+    </style:style>
+
+    <!-- ── Header info table ── -->
+    <style:style style:name="HdrTable" style:family="table">
+      <style:table-properties table:align="margins" style:width="17cm"
+        fo:margin-bottom="0.4cm"
+        fo:border="0.04cm solid #e5e7eb"
+        fo:background-color="#f9fafb"/>
+    </style:style>
+    <style:style style:name="HdrColLabel" style:family="table-column">
+      <style:table-column-properties style:column-width="4.6cm"/>
+    </style:style>
+    <style:style style:name="HdrColValue" style:family="table-column">
+      <style:table-column-properties style:column-width="12.4cm"/>
+    </style:style>
+    <style:style style:name="HdrCellLabel" style:family="table-cell">
+      <style:table-cell-properties fo:padding="0.22cm" fo:background-color="#f3f4f6"
+        fo:border-right="0.03cm solid #e5e7eb" fo:border-bottom="0.02cm solid #e5e7eb"/>
+    </style:style>
+    <style:style style:name="HdrCellValue" style:family="table-cell">
+      <style:table-cell-properties fo:padding="0.22cm" fo:border-bottom="0.02cm solid #e5e7eb"/>
+    </style:style>
+
+    <!-- ── Photo table ── -->
+    <style:style style:name="PhotoTable" style:family="table">
+      <style:table-properties table:align="margins" style:width="17cm" fo:margin-top="0.3cm"
+        fo:border="0.05cm solid #e5e7eb"/>
+    </style:style>
+    <style:style style:name="PhotoCol" style:family="table-column">
+      <style:table-column-properties style:column-width="8.5cm"/>
+    </style:style>
+    <style:style style:name="PhotoRow" style:family="table-row">
+      <style:table-row-properties style:min-row-height="7cm"/>
+    </style:style>
+    <style:style style:name="PhotoCell" style:family="table-cell">
+      <style:table-cell-properties fo:padding="0.25cm"
+        fo:border="0.04cm solid #e5e7eb" fo:background-color="#ffffff"/>
+    </style:style>
+
+    <!-- ── Graphic frame ── -->
+    <style:style style:name="ImgFrame" style:family="graphic">
+      <style:graphic-properties
+        fo:margin-left="0cm" fo:margin-right="0cm"
+        fo:margin-top="0cm" fo:margin-bottom="0cm"
+        style:vertical-pos="top" style:vertical-rel="paragraph"
+        style:horizontal-pos="left" style:horizontal-rel="paragraph"
+        draw:stroke="solid" svg:stroke-width="0.02cm" svg:stroke-color="#d1d5db"
+        draw:fill="none"/>
+    </style:style>
+
+  </office:automatic-styles>
+  <office:body>
+    <office:text>
+
+      <!-- ══ COVER HEADER ══ -->
+      <text:p text:style-name="PTitleBig">Reportaje fotográfico del registro</text:p>
+      <text:p text:style-name="PTitleSub">Documento generado el ${escapeXml(new Date().toLocaleString('es-ES'))}</text:p>
+      <text:p text:style-name="PHdrLine"/>
+
+      <!-- ══ INFO TABLE ══ -->
+      ${buildHeaderLinesOdt(obj.header)}
+
+      <!-- ══ PHOTO SECTION ══ -->
+      <text:p text:style-name="PSection">RELACIÓN FOTOGRÁFICA</text:p>
+      ${buildPhotoTableXml(obj.photos)}
+      <text:p text:style-name="PEmpty"/>
+
+    </office:text>
+  </office:body>
+</office:document-content>`;
+    }
+
+    // ── PDF EXPORT ────────────────────────────────────────────────────────────
+
+    async function exportPDF() {
+      if (!window.jspdf) { toast('No se pudo cargar jsPDF.'); return; }
+      const obj = buildExportObject();
+      if (!obj.photos.length) { toast('No hay fotografías para exportar.'); return; }
+      toast('Generando PDF…');
+
+      await Promise.all(obj.photos.map(p => loadImgDims(p)));
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+      const PW = 210, PH = 297;
+      const ML = 18, MR = 18, MT = 18, MB = 16;
+      const CW = (PW - ML - MR - 5) / 2; // column width
+      const ACCENT = [200, 152, 107];
+      const DARK   = [26, 26, 46];
+      const GREY   = [107, 114, 128];
+      const LIGHT  = [243, 244, 246];
+      const WHITE  = [255, 255, 255];
+      const BORDER = [209, 213, 219];
+
+      const h = obj.header;
+
+      // ── helpers ──
+      const rgb = (c) => ({ r: c[0], g: c[1], b: c[2] });
+      function setColor(c) { doc.setTextColor(c[0], c[1], c[2]); }
+      function setFill(c)  { doc.setFillColor(c[0], c[1], c[2]); }
+      function setDraw(c)  { doc.setDrawColor(c[0], c[1], c[2]); }
+
+      // ── COVER PAGE ──────────────────────────────────────────────────────────
+      // Gold top bar
+      setFill(ACCENT);
+      doc.rect(0, 0, PW, 2.5, 'F');
+
+      // Title block
+      let y = MT + 4;
+      setColor(DARK);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(20);
+      doc.text('REPORTAJE FOTOGRÁFICO', ML, y);
+      y += 8;
+      doc.setFontSize(13);
+      doc.text('DE REGISTRO', ML, y);
+
+      // Accent rule
+      y += 5;
+      setDraw(ACCENT);
+      doc.setLineWidth(0.5);
+      doc.line(ML, y, PW - MR, y);
+      y += 6;
+
+      // Date subtitle
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      setColor(GREY);
+      doc.text(`Documento generado el ${new Date().toLocaleString('es-ES')}`, ML, y);
+      y += 10;
+
+      // ── Info table ──────────────────────────────────────────────────────────
+      const infoRows = [
+        ['Asunto', h.asunto],
+        ['Grupo de Investigación', h.grupo],
+        ['Juzgado', h.juzgado],
+        ['Procedimiento', h.procedimiento],
+        ['Fecha y hora del registro', h.fechaHora],
+        ['Dirección', h.direccion],
+      ].filter(r => r[1]);
+
+      if (h.observacionesGenerales) infoRows.push(['Observaciones generales', h.observacionesGenerales]);
+
+      if (infoRows.length) {
+        const TW = PW - ML - MR;
+        const LC = 46; // label column width
+        const VC = TW - LC;
+        const RPAD = 3;
+        const LPAD = 3.5;
+        const ROW_H = 7;
+
+        // table border
+        setDraw(BORDER);
+        doc.setLineWidth(0.25);
+
+        infoRows.forEach((row, i) => {
+          const ry = y + i * ROW_H;
+          // label cell bg
+          setFill(LIGHT);
+          doc.rect(ML, ry, LC, ROW_H, 'F');
+          // value cell bg
+          setFill(WHITE);
+          doc.rect(ML + LC, ry, VC, ROW_H, 'F');
+          // row border
+          setDraw(BORDER);
+          doc.rect(ML, ry, TW, ROW_H);
+          doc.line(ML + LC, ry, ML + LC, ry + ROW_H);
+
+          // label text
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(7);
+          setColor(GREY);
+          doc.text(row[0].toUpperCase(), ML + LPAD, ry + ROW_H / 2 + 2);
+
+          // value text (wrap if needed)
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(9.5);
+          setColor(DARK);
+          const lines = doc.splitTextToSize(row[1] || '', VC - RPAD * 2);
+          doc.text(lines[0], ML + LC + RPAD, ry + ROW_H / 2 + 2.2);
+        });
+
+        y += infoRows.length * ROW_H + 10;
+      }
+
+      // ── PHOTO PAGES ─────────────────────────────────────────────────────────
+      // Layout: 2 cols × 2 rows = 4 per page
+      // Fixed image height so all thumbnails align; respect aspect ratio within cell
+      const photos = obj.photos;
+      const CELL_PAD = 3;
+      const NUM_H = 5;      // photo number label height
+      const CAPTION_H = 9;  // caption area height (2 lines max)
+      const CELL_GAP = 5;   // gap between columns/rows
+
+      // Available vertical space for photos section per page
+      const PHOTOS_Y_START = MT + 18; // after small page header
+      const USABLE_H = PH - PHOTOS_Y_START - MB;
+      const IMG_H = (USABLE_H - CELL_GAP - (NUM_H + CAPTION_H + CELL_PAD * 2) * 2) / 2;
+      const CELL_H = NUM_H + CELL_PAD + IMG_H + CELL_PAD + CAPTION_H;
+
+      function drawPageHeader(doc, h) {
+        // Thin gold rule at top
+        setFill(ACCENT);
+        doc.rect(0, 0, PW, 1.5, 'F');
+        // Header text
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        setColor(GREY);
+        doc.text('REPORTAJE FOTOGRÁFICO DE REGISTRO', ML, MT - 4);
+        if (h.asunto) {
+          doc.setFont('helvetica', 'normal');
+          doc.text(`· ${h.asunto}`, ML + 65, MT - 4);
+        }
+        setDraw([229, 231, 235]);
+        doc.setLineWidth(0.2);
+        doc.line(ML, MT - 2, PW - MR, MT - 2);
+      }
+
+      function drawPhotoCell(doc, photo, gIdx, x, y) {
+        const cellW = CW;
+
+        // Cell background + border
+        setFill(WHITE);
+        setDraw(BORDER);
+        doc.setLineWidth(0.25);
+        doc.roundedRect(x, y, cellW, CELL_H, 1.5, 1.5, 'FD');
+
+        // Photo number label
+        const numero = photo.numero || String(gIdx + 1).padStart(3, '0');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.5);
+        setColor(ACCENT);
+        doc.text(`FOTOGRAFÍA ${numero}`, x + CELL_PAD, y + NUM_H - 0.5);
+
+        // Thin accent underline below label
+        setDraw(ACCENT);
+        doc.setLineWidth(0.18);
+        doc.line(x + CELL_PAD, y + NUM_H + 0.4, x + cellW - CELL_PAD, y + NUM_H + 0.4);
+
+        // Image: respect aspect ratio, centered in the image slot
+        const imgSlotW = cellW - CELL_PAD * 2;
+        const ratio = (photo._w && photo._h) ? photo._w / photo._h : 4 / 3;
+        let iW = imgSlotW;
+        let iH = iW / ratio;
+        if (iH > IMG_H) { iH = IMG_H; iW = iH * ratio; }
+        const ix = x + CELL_PAD + (imgSlotW - iW) / 2;
+        const iy = y + NUM_H + CELL_PAD;
+
+        // Image background
+        setFill(LIGHT);
+        doc.rect(x + CELL_PAD, iy, imgSlotW, IMG_H, 'F');
+
+        try {
+          const fmt = (photo.mimeType || '').includes('png') ? 'PNG' : 'JPEG';
+          doc.addImage(photo.dataUrl, fmt, ix, iy + (IMG_H - iH) / 2, iW, iH, undefined, 'MEDIUM');
+        } catch (_) {
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(7);
+          setColor(GREY);
+          doc.text('[imagen no disponible]', x + cellW / 2, iy + IMG_H / 2, { align: 'center' });
+        }
+
+        // Caption
+        if (photo.note) {
+          const captionY = y + NUM_H + CELL_PAD + IMG_H + CELL_PAD + 2;
+          setDraw([229, 231, 235]);
+          doc.setLineWidth(0.15);
+          doc.line(x + CELL_PAD, captionY - 1.5, x + cellW - CELL_PAD, captionY - 1.5);
+          doc.setFont('helvetica', 'italic');
+          doc.setFontSize(7.5);
+          setColor([55, 65, 81]);
+          const cLines = doc.splitTextToSize(photo.note, cellW - CELL_PAD * 2);
+          doc.text(cLines.slice(0, 2), x + CELL_PAD, captionY + 1);
+        }
+      }
+
+      // Draw photo pages
+      for (let i = 0; i < photos.length; i++) {
+        const posInPage = i % 4;
+        if (posInPage === 0) {
+          if (i > 0) doc.addPage();
+          drawPageHeader(doc, h);
+        }
+        const col = posInPage % 2;
+        const row = Math.floor(posInPage / 2);
+        const x = ML + col * (CW + CELL_GAP);
+        const y = PHOTOS_Y_START + row * (CELL_H + CELL_GAP);
+        drawPhotoCell(doc, photos[i], i, x, y);
+      }
+
+      // Page numbers
+      const totalPages = doc.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        setColor(GREY);
+        doc.text(`${p} / ${totalPages}`, PW - MR, PH - 8, { align: 'right' });
+      }
+
+      const slug = (h.asunto || 'reportaje').replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ0-9 _-]/g, '').trim().replace(/ +/g, '_');
+      doc.save(`${slug || 'reportaje_fotografico'}.pdf`);
+      toast('PDF exportado');
+    }
+
+
+    function bindEvents() {
+      $('btnGuardarCabecera')?.addEventListener('click', saveHeaderFromInputs);
+      $('btnResetAll')?.addEventListener('click', resetAll);
+      $('btnOpenModal')?.addEventListener('click', () => openModal('add'));
+      $('btnCloseModal')?.addEventListener('click', closeModal);
+      $('btnClearFields')?.addEventListener('click', clearModalFields);
+      $('btnExportJson')?.addEventListener('click', exportJSON);
+      $('btnExportOdt')?.addEventListener('click', exportODT);
+      $('btnExportPdf')?.addEventListener('click', exportPDF);
+      $('btnSolicitarCamara')?.addEventListener('click', startCamera);
+      $('btnCapturar')?.addEventListener('click', captureFromCamera);
+
+      $('backdrop')?.addEventListener('click', (e) => {
+        if (e.target === $('backdrop')) closeModal();
+      });
+
+      $('btnAddPhoto')?.addEventListener('click', async () => {
+        const mode = $('btnAddPhoto').dataset.mode || 'add';
+        if (mode === 'edit') {
+          const editId = $('btnAddPhoto').dataset.editId;
+          if (!editId) return toast('No hay fotografía seleccionada.');
+          await editPhoto(editId);
+        } else {
+          await addPhoto();
         }
       });
-      card.querySelector(".photo-caption-input").addEventListener("input", function() {
-        const p = state.photos.find(x => x.id === this.dataset.id);
-        if (p) { p.caption = this.value; saveState(); }
+
+      $('fotoNota')?.addEventListener('keydown', async (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+          e.preventDefault();
+          $('btnAddPhoto').click();
+        }
       });
 
-      grid.appendChild(card);
-    });
-  }
-
-  // ── Camara ────────────────────────────────────────────────────
-  function stopCamera() {
-    if (currentStream) {
-      currentStream.getTracks().forEach(t => t.stop());
-      currentStream = null;
-    }
-    $("cameraVideo").srcObject = null;
-  }
-
-  async function enumerateCameras() {
-    try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      videoDevices = devices.filter(d => d.kind === "videoinput");
-      const sel = $("cameraSelect");
-      sel.innerHTML = "";
-      videoDevices.forEach((d, i) => {
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = d.label || ("Camara " + (i+1));
-        sel.appendChild(opt);
+      $('list')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const action = btn.dataset.action;
+        const id = btn.dataset.id;
+        if (!action || !id) return;
+        if (action === 'edit') openModal('edit', id);
+        if (action === 'del') deletePhoto(id);
       });
-      $("cameraSelectWrap").style.display = videoDevices.length > 1 ? "block" : "none";
-      $("btnSwitchCam").style.display = videoDevices.length > 1 ? "" : "none";
-    } catch(_) {}
-  }
 
-  async function startCamera(idx) {
-    stopCamera();
-    let constraints = { video: { facingMode: "environment" } };
-    if (videoDevices.length > 0 && videoDevices[idx]) {
-      constraints = { video: { deviceId: { exact: videoDevices[idx].deviceId } } };
+      ['asunto','grupo','juzgado','procedimiento','fechaHora','direccion','observacionesGenerales'].forEach((id) => {
+        $(id)?.addEventListener('change', () => {
+          state.header[id] = ($(id).value || '').trim();
+          saveState();
+        });
+      });
     }
-    try {
-      currentStream = await navigator.mediaDevices.getUserMedia(constraints);
-      const video = $("cameraVideo");
-      video.srcObject = currentStream;
-      video.play();
-      await enumerateCameras();
-    } catch(err) {
-      console.error(err);
-      toast("No se pudo acceder a la camara. Revisa permisos del navegador.");
-      closeCameraModal();
-    }
-  }
 
-  function showLiveView() {
-    cameraMode = "live";
-    $("cameraContainer").style.display = "block";
-    $("previewWrap").classList.remove("active");
-    $("btnCapture").textContent = "Capturar";
-    $("btnRetake").style.display = "none";
-    $("cameraHint").textContent = "Apunta la camara y pulsa Capturar.";
-    capturedDataUrl = null;
-  }
-
-  function showPreviewView(dataUrl) {
-    cameraMode = "preview";
-    capturedDataUrl = dataUrl;
-    $("previewImg").src = dataUrl;
-    $("captionInput").value = "";
-    $("cameraContainer").style.display = "none";
-    $("previewWrap").classList.add("active");
-    $("btnCapture").textContent = "Guardar foto";
-    $("btnRetake").style.display = "";
-    $("cameraHint").textContent = "Aniade una nota y pulsa Guardar foto, o pulsa Repetir para volver.";
-  }
-
-  function doCapture() {
-    const video = $("cameraVideo");
-    const canvas = $("cameraCanvas");
-    const w = video.videoWidth || 640;
-    const h = video.videoHeight || 480;
-    canvas.width = w;
-    canvas.height = h;
-    canvas.getContext("2d").drawImage(video, 0, 0, w, h);
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
-    stopCamera();
-    showPreviewView(dataUrl);
-  }
-
-  function doSavePhoto() {
-    if (!capturedDataUrl) { toast("No hay foto capturada."); return; }
-    state.photos.push({
-      id: safeId(),
-      dataUrl: capturedDataUrl,
-      caption: ($("captionInput").value || "").trim(),
-      createdAt: Date.now()
+    document.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      renderHeader();
+      renderList();
+      bindEvents();
     });
-    saveState();
-    renderGallery();
-    toast("Foto guardada");
-    // Volver a la camara para tomar otra
-    showLiveView();
-    startCamera(currentDeviceIndex);
-  }
-
-  function openCameraModal() {
-    showLiveView();
-    $("cameraModal").classList.add("active");
-    startCamera(currentDeviceIndex);
-  }
-
-  function closeCameraModal() {
-    stopCamera();
-    $("cameraModal").classList.remove("active");
-    showLiveView();
-  }
-
-  // ── Exportar ODT ──────────────────────────────────────────────
-  async function exportOdt() {
-    if (!window.JSZip) { toast("JSZip no disponible."); return; }
-    if (state.photos.length === 0) { toast("No hay fotos que exportar."); return; }
-    toast("Generando ODT...");
-
-    const h = state.header;
-    const fmtDate = h.fechaHora
-      ? new Date(h.fechaHora).toLocaleString("es-ES", { dateStyle:"long", timeStyle:"short" })
-      : "";
-
-    const IMG_W = "8.0cm";
-    const IMG_H = "6.0cm";
-    const COL_W = "8.50cm";
-
-    const photos = state.photos.slice();
-    let tableRows = "";
-
-    for (let i = 0; i < photos.length; i += 2) {
-      const pair = [photos[i], photos[i+1] || null];
-      const cells = pair.map((ph, ci) => {
-        if (!ph) return '<table:table-cell table:style-name="TC"><text:p/></table:table-cell>';
-        const num = String(photos.indexOf(ph) + 1).padStart(2, "0");
-        const cap = (ph.caption || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-        return '<table:table-cell table:style-name="TC">' +
-          '<text:p text:style-name="PhotoNum">Foto ' + num + '</text:p>' +
-          '<text:p text:style-name="PhotoImg">' +
-            '<draw:frame draw:style-name="PhotoFrame" draw:name="f' + num + '"' +
-              ' text:anchor-type="as-char"' +
-              ' svg:width="' + IMG_W + '" svg:height="' + IMG_H + '">' +
-              '<draw:image xlink:href="Pictures/img_' + ph.id + '.jpg"' +
-                ' xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/>' +
-            '</draw:frame>' +
-          '</text:p>' +
-          '<text:p text:style-name="Caption">' + cap + '</text:p>' +
-        '</table:table-cell>';
-      }).join("");
-      tableRows += '<table:table-row table:style-name="TR">' + cells + '</table:table-row>\n';
-
-      // Salto de pagina cada 4 fotos (cada 2 filas)
-      const rowIdx = Math.floor(i / 2);
-      if ((rowIdx + 1) % 2 === 0 && i + 2 < photos.length) {
-        tableRows +=
-          '<table:table-row table:style-name="TR">' +
-            '<table:table-cell table:number-columns-spanned="2" table:style-name="TC">' +
-              '<text:p text:style-name="PBreak"/>' +
-            '</table:table-cell>' +
-          '</table:table-row>\n';
-      }
-    }
-
-    function xmlEsc(s) {
-      return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    }
-
-    const content =
-'<?xml version="1.0" encoding="UTF-8"?>' +
-'<office:document-content' +
-' xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"' +
-' xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"' +
-' xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"' +
-' xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0"' +
-' xmlns:draw="urn:oasis:names:tc:opendocument:xmlns:drawing:1.0"' +
-' xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"' +
-' xmlns:xlink="http://www.w3.org/1999/xlink"' +
-' xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"' +
-' office:version="1.3">' +
-'<office:automatic-styles>' +
-  '<style:style style:name="Title" style:family="paragraph"><style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.3cm"/><style:text-properties fo:font-size="16pt" fo:font-weight="bold"/></style:style>' +
-  '<style:style style:name="Sub" style:family="paragraph"><style:paragraph-properties fo:text-align="center" fo:margin-bottom="0.15cm"/><style:text-properties fo:font-size="10pt"/></style:style>' +
-  '<style:style style:name="Sep" style:family="paragraph"><style:paragraph-properties fo:border-bottom="0.5pt solid #c8986b" fo:margin-bottom="0.5cm" fo:padding-bottom="0.2cm"/></style:style>' +
-  '<style:style style:name="PhotoNum" style:family="paragraph"><style:paragraph-properties fo:margin-bottom="0.1cm"/><style:text-properties fo:font-size="8pt" fo:font-weight="bold" fo:color="#c8986b"/></style:style>' +
-  '<style:style style:name="PhotoImg" style:family="paragraph"><style:paragraph-properties fo:margin-bottom="0.1cm"/></style:style>' +
-  '<style:style style:name="Caption" style:family="paragraph"><style:paragraph-properties fo:margin-bottom="0.2cm" fo:border-top="0.3pt solid #cccccc" fo:padding-top="0.1cm"/><style:text-properties fo:font-size="9pt" fo:font-style="italic"/></style:style>' +
-  '<style:style style:name="PBreak" style:family="paragraph"><style:paragraph-properties fo:break-before="page"/></style:style>' +
-  '<style:style style:name="PhotoTable" style:family="table"><style:table-properties style:width="17cm"/></style:style>' +
-  '<style:style style:name="TC1" style:family="table-column"><style:table-column-properties style:column-width="' + COL_W + '"/></style:style>' +
-  '<style:style style:name="TR" style:family="table-row"><style:table-row-properties style:use-optimal-row-height="true"/></style:style>' +
-  '<style:style style:name="TC" style:family="table-cell"><style:table-cell-properties fo:padding="0.2cm" fo:border="0.3pt solid #e0d0c0"/></style:style>' +
-  '<style:style style:name="PhotoFrame" style:family="graphic"><style:graphic-properties style:horizontal-pos="center" style:horizontal-rel="paragraph" draw:color-mode="standard"/></style:style>' +
-'</office:automatic-styles>' +
-'<office:body><office:text>' +
-  '<text:p text:style-name="Title">REPORTAJE FOTOGRAFICO - DILIGENCIA DE REGISTRO</text:p>' +
-  (h.asunto    ? '<text:p text:style-name="Sub">Asunto: '         + xmlEsc(h.asunto)         + '</text:p>' : '') +
-  (h.grupo     ? '<text:p text:style-name="Sub">Grupo: '          + xmlEsc(h.grupo)          + '</text:p>' : '') +
-  (h.juzgado   ? '<text:p text:style-name="Sub">Juzgado: '        + xmlEsc(h.juzgado)        + '</text:p>' : '') +
-  (h.procedimiento ? '<text:p text:style-name="Sub">Procedimiento: ' + xmlEsc(h.procedimiento) + '</text:p>' : '') +
-  (fmtDate     ? '<text:p text:style-name="Sub">Fecha y hora: '   + xmlEsc(fmtDate)          + '</text:p>' : '') +
-  (h.direccion ? '<text:p text:style-name="Sub">Direccion: '      + xmlEsc(h.direccion)      + '</text:p>' : '') +
-  '<text:p text:style-name="Sep"/>' +
-  '<text:p text:style-name="Sub">Total de fotografias: ' + photos.length + '</text:p>' +
-  '<text:p text:style-name="Sub"/>' +
-  '<table:table table:name="Fotos" table:style-name="PhotoTable">' +
-    '<table:table-column table:style-name="TC1" table:number-columns-repeated="2"/>' +
-    tableRows +
-  '</table:table>' +
-'</office:text></office:body>' +
-'</office:document-content>';
-
-    const styles =
-'<?xml version="1.0" encoding="UTF-8"?>' +
-'<office:document-styles' +
-' xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"' +
-' xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0"' +
-' xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0"' +
-' office:version="1.3">' +
-'<office:automatic-styles>' +
-  '<style:page-layout style:name="PL">' +
-    '<style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm"' +
-      ' fo:margin-top="2cm" fo:margin-bottom="2cm"' +
-      ' fo:margin-left="2cm" fo:margin-right="2cm"/>' +
-  '</style:page-layout>' +
-'</office:automatic-styles>' +
-'<office:master-styles>' +
-  '<style:master-page style:name="Standard" style:page-layout-name="PL"/>' +
-'</office:master-styles>' +
-'</office:document-styles>';
-
-    const manifest =
-'<?xml version="1.0" encoding="UTF-8"?>' +
-'<manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.3">' +
-  '<manifest:file-entry manifest:full-path="/" manifest:media-type="application/vnd.oasis.opendocument.text"/>' +
-  '<manifest:file-entry manifest:full-path="content.xml" manifest:media-type="text/xml"/>' +
-  '<manifest:file-entry manifest:full-path="styles.xml" manifest:media-type="text/xml"/>' +
-  photos.map(ph =>
-    '<manifest:file-entry manifest:full-path="Pictures/img_' + ph.id + '.jpg" manifest:media-type="image/jpeg"/>'
-  ).join("") +
-'</manifest:manifest>';
-
-    const zip = new JSZip();
-    zip.file("mimetype", "application/vnd.oasis.opendocument.text", { compression:"STORE" });
-    zip.folder("META-INF").file("manifest.xml", manifest);
-    zip.file("styles.xml", styles);
-    zip.file("content.xml", content);
-    const pics = zip.folder("Pictures");
-    photos.forEach(ph => {
-      const b64 = ph.dataUrl.split(",")[1];
-      pics.file("img_" + ph.id + ".jpg", b64, { base64: true });
-    });
-
-    const blob = await zip.generateAsync({ type:"blob", mimeType:"application/vnd.oasis.opendocument.text" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    const slug = (h.asunto || "registro").replace(/[^a-zA-Z0-9]/g,"_").slice(0,30);
-    a.download = "Reportaje_" + slug + ".odt";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    toast("ODT exportado");
-  }
-
-  // ── Reset ─────────────────────────────────────────────────────
-  function resetAll() {
-    if (!confirm("Borrar TODOS los datos y fotografias?")) return;
-    localStorage.removeItem(LS_KEY);
-    state.header = { asunto:"", grupo:"", juzgado:"", procedimiento:"", fechaHora:"", direccion:"" };
-    state.photos = [];
-    renderHeader();
-    renderGallery();
-    toast("Borrado completo");
-  }
-
-  // ── Eventos ───────────────────────────────────────────────────
-  $("btnGuardarCabecera").addEventListener("click", saveHeaderFromInputs);
-  $("btnResetAll").addEventListener("click", resetAll);
-  $("btnExportOdt").addEventListener("click", exportOdt);
-
-  $("btnOpenCamera").addEventListener("click", openCameraModal);
-  $("btnCloseCamera").addEventListener("click", closeCameraModal);
-
-  $("btnCapture").addEventListener("click", function() {
-    if (cameraMode === "live") doCapture();
-    else doSavePhoto();
-  });
-
-  $("btnRetake").addEventListener("click", function() {
-    showLiveView();
-    startCamera(currentDeviceIndex);
-  });
-
-  $("btnSwitchCam").addEventListener("click", function() {
-    if (videoDevices.length < 2) return;
-    currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
-    $("cameraSelect").value = currentDeviceIndex;
-    startCamera(currentDeviceIndex);
-  });
-
-  $("cameraSelect").addEventListener("change", function() {
-    currentDeviceIndex = parseInt(this.value, 10) || 0;
-    startCamera(currentDeviceIndex);
-  });
-
-  $("cameraModal").addEventListener("click", function(e) {
-    if (e.target === this) closeCameraModal();
-  });
-
-  ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach(id => {
-    $(id).addEventListener("change", function() {
-      state.header[id] = (this.value || "").trim();
-      saveState();
-    });
-  });
-
-  // ── Init ──────────────────────────────────────────────────────
-  loadState();
-  renderHeader();
-  renderGallery();
-</script>
+  </script>
 </body>
 </html>
