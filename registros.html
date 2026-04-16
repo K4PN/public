@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Registro · Evidencias</title>
 
-  <!-- Fuentes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -93,7 +92,6 @@
       to   { opacity: 1; transform: scale(1); }
     }
 
-    /* Cabecera (inputs) */
     .grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -138,7 +136,6 @@
 
     .form-textarea { min-height: 110px; resize: vertical; }
 
-    /* Botonera */
     .button-group {
       display: flex;
       gap: 12px;
@@ -208,9 +205,26 @@
     }
     .btn-danger:hover { background: rgba(255, 120, 120, 0.10); transform: translateY(-2px); }
 
-    /* Evidencias */
-    .evidences-section { margin-top: 26px; }
+    .btn-mini {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: 'Crimson Pro', serif;
+      font-size: .98rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .25s ease;
+      flex: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .btn-mini:hover { background: rgba(255,255,255,.14); transform: translateY(-1px); }
 
+    .evidences-section { margin-top: 26px; }
     .evidences-title {
       font-size: 1.5rem;
       font-weight: 700;
@@ -221,13 +235,11 @@
       gap: 12px;
       justify-content: space-between;
     }
-
     .evidences-title .left {
       display:flex;
       align-items:center;
       gap:12px;
     }
-
     .evidence-count {
       font-family: 'DM Mono', monospace;
       font-size: 0.8rem;
@@ -277,6 +289,32 @@
       white-space: pre-wrap;
       word-break: break-word;
     }
+    .evidence-thumb {
+      width: 88px;
+      height: 88px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      background: rgba(255,255,255,0.05);
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+    }
+    .evidence-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .evidence-thumb.empty {
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
 
     .evidence-actions { display:flex; gap:10px; flex: 0 0 auto; }
 
@@ -292,13 +330,8 @@
       letter-spacing: 0.02em;
     }
     .icon-btn:hover { background: rgba(255, 255, 255, 0.14); transform: translateY(-1px); }
-
-    .icon-btn.danger {
-      border-color: rgba(255, 120, 120, 0.25);
-    }
-    .icon-btn.danger:hover {
-      background: rgba(255, 120, 120, 0.12);
-    }
+    .icon-btn.danger { border-color: rgba(255, 120, 120, 0.25); }
+    .icon-btn.danger:hover { background: rgba(255, 120, 120, 0.12); }
 
     .empty-state {
       text-align: center;
@@ -319,7 +352,6 @@
       margin-right:auto;
     }
 
-    /* Modal */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -403,7 +435,37 @@
       letter-spacing: 0.02em;
     }
 
-    /* Toast */
+    .photo-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .photo-preview {
+      margin-top: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(15,15,30,.35);
+      display: none;
+    }
+    .photo-preview.active { display: block; }
+    .photo-preview img {
+      width: 100%;
+      max-height: 240px;
+      object-fit: contain;
+      border-radius: 10px;
+      display: block;
+      background: rgba(255,255,255,.04);
+    }
+    .photo-meta {
+      margin-top: 8px;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: .78rem;
+      word-break: break-word;
+    }
+
     .toast {
       position: fixed;
       left: 50%;
@@ -429,30 +491,23 @@
       .modal { padding: 22px; }
       .modal-buttons { flex-direction: column; }
       .button-group { flex-direction: column; }
-      .btn-export, .btn-add, .btn-danger { justify-content: center; width: 100%; }
+      .btn-export, .btn-add, .btn-danger, .btn-mini { justify-content: center; width: 100%; }
       .evidence-actions { flex-direction: column; }
       .evidence-item { align-items: flex-start; }
+      .photo-actions { flex-direction: column; }
     }
 
-    .button-group + .button-group{
-      margin-top: 12px;
-    }
+    .button-group + .button-group{ margin-top: 12px; }
 
-    /* =========================================================
-       FIX MÓVIL + TECLADO (IMPORTANTE)
-       - Modal se pega arriba
-       - Scroll dentro del modal
-       - Botonera sticky (siempre visible)
-       ========================================================= */
     .modal-overlay.active{
-      align-items: flex-start;         /* antes estaba centrado */
+      align-items: flex-start;
       justify-content: center;
       padding-top: 12px;
       padding-bottom: 12px;
     }
 
     .modal{
-      max-height: calc(100dvh - 24px); /* viewport dinámico, funciona mejor con teclado */
+      max-height: calc(100dvh - 24px);
       overflow: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -468,13 +523,11 @@
       z-index: 5;
     }
 
-    /* Un poco menos de alto del textarea en móvil para que se vean botones */
     @media (max-width: 480px){
       .form-textarea{ min-height: 80px; }
     }
   </style>
 </head>
-
 <body>
   <div class="container">
     <div class="header">
@@ -482,34 +535,28 @@
       <div class="subtitle"></div>
     </div>
 
-    <!-- Datos del registro -->
     <section class="info-card" aria-label="Datos del registro">
       <div class="grid">
         <div class="form-group">
           <label class="form-label" for="asunto">Asunto</label>
           <input class="form-input" id="asunto" placeholder="Ej: Estafa informática" />
         </div>
-
         <div class="form-group">
           <label class="form-label" for="grupo">Grupo de Investigación</label>
           <input class="form-input" id="grupo" placeholder="Ej: Grupo / Unidad" />
         </div>
-
         <div class="form-group">
           <label class="form-label" for="juzgado">Juzgado</label>
           <input class="form-input" id="juzgado" placeholder="Ej: J. Instrucción nº..." />
         </div>
-
         <div class="form-group">
           <label class="form-label" for="procedimiento">Procedimiento</label>
           <input class="form-input" id="procedimiento" placeholder="Ej: Diligencias Previas 123/2026" />
         </div>
-
         <div class="form-group">
           <label class="form-label" for="fechaHora">Fecha y hora del registro</label>
           <input class="form-input" id="fechaHora" type="datetime-local" />
         </div>
-
         <div class="form-group span2">
           <label class="form-label" for="direccion">Dirección</label>
           <input class="form-input" id="direccion" placeholder="C/ ..., nº..., localidad" />
@@ -522,7 +569,6 @@
       </div>
     </section>
 
-    <!-- Botón principal: añadir evidencia -->
     <div class="button-group">
       <button class="btn-add" id="btnOpenModal" type="button">Añadir evidencia</button>
       <button class="btn-export" id="btnExportTxt" type="button">Exportar TXT</button>
@@ -532,7 +578,6 @@
       <button class="btn-export" id="btnExportPdf" type="button">Exportar PDF</button>
     </div>
 
-    <!-- Evidencias -->
     <section class="evidences-section">
       <div class="evidences-title">
         <div class="left">
@@ -553,7 +598,6 @@
     </section>
   </div>
 
-  <!-- Modal (añadir / editar evidencia) -->
   <div class="modal-overlay" id="backdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal">
       <h2 id="modalTitle">Añadir evidencia</h2>
@@ -568,11 +612,22 @@
         <textarea class="form-textarea" id="evDesc" placeholder="Ej: Teléfono móvil marca X, modelo Y, IMEI..., intervenido en..."></textarea>
       </div>
 
-      <div class="hint">Tip: si dejas el Nº vacío, se asigna automáticamente el siguiente disponible.</div>
+      <div class="form-group">
+        <label class="form-label">Fotografía de la evidencia</label>
+        <input id="evPhotoInput" type="file" accept="image/*" capture="environment" hidden />
+        <div class="photo-actions">
+          <button class="btn-mini" id="btnOpenCamera" type="button">Abrir cámara</button>
+          <button class="btn-mini" id="btnRemovePhoto" type="button">Quitar foto</button>
+        </div>
+        <div class="photo-preview" id="photoPreview">
+          <img id="photoPreviewImg" alt="Vista previa de la fotografía de la evidencia" />
+          <div class="photo-meta" id="photoMeta">Sin foto</div>
+        </div>
+      </div>
 
-      <!-- Botonera: "Añadir" sigue aquí, pero al ser sticky siempre se ve -->
+      <div class="hint">Tip: si dejas el Nº vacío, se asigna automáticamente el siguiente disponible. La foto se conserva para la exportación a PDF y JSON.</div>
+
       <div class="modal-buttons">
-        <!-- Orden recomendado: AÑADIR primero -->
         <button class="btn btn-primary" id="btnAddEvidence" type="button" data-mode="add">Añadir</button>
         <button class="btn btn-secondary" id="btnClearFields" type="button">Limpiar</button>
         <button class="btn btn-secondary" id="btnCloseModal" type="button">Cerrar</button>
@@ -582,21 +637,10 @@
 
   <div class="toast" id="toast"></div>
 
-  <!-- jsPDF (exportar PDF) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-  
   <script>
-    // =============================
-    // Registro de Evidencias (LOCAL)
-    // - Persistencia en localStorage
-    // - Alta/edición/borrado de evidencias
-    // - Export TXT / JSON / PDF
-    // =============================
-
-    const LS_KEY = "evidencias_registro_v2_style";
+    const LS_KEY = "evidencias_registro_v3_fotos";
     const $ = (id) => document.getElementById(id);
 
     const state = {
@@ -608,12 +652,18 @@
         fechaHora: "",
         direccion: ""
       },
-      evidences: [] // { id, numero, desc, createdAt }
+      evidences: []
     };
 
-    // -----------------------------
-    // Persistencia
-    // -----------------------------
+    const modalPhotoState = {
+      dataUrl: "",
+      name: "",
+      width: 0,
+      height: 0,
+      size: 0,
+      type: ""
+    };
+
     function loadState() {
       try {
         const raw = localStorage.getItem(LS_KEY);
@@ -629,18 +679,17 @@
     function saveState() {
       try {
         localStorage.setItem(LS_KEY, JSON.stringify(state));
-      } catch (_e) {}
+      } catch (_e) {
+        toast("No se pudo guardar: almacenamiento insuficiente.");
+      }
     }
 
-    // -----------------------------
-    // UI
-    // -----------------------------
     function toast(msg) {
       const t = $("toast");
       t.textContent = msg;
       t.classList.add("show");
       clearTimeout(toast._timer);
-      toast._timer = setTimeout(() => t.classList.remove("show"), 1700);
+      toast._timer = setTimeout(() => t.classList.remove("show"), 1800);
     }
 
     function normalizeNumber(n) {
@@ -676,9 +725,21 @@
         .replaceAll("'", "&#039;");
     }
 
-    // -----------------------------
-    // Render
-    // -----------------------------
+    function formatBytes(bytes) {
+      if (!bytes) return "";
+      if (bytes < 1024) return `${bytes} B`;
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+    }
+
+    function formatDateTimeLocal(value) {
+      if (!value) return "";
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return value;
+      const pad = (n) => String(n).padStart(2, "0");
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
     function renderHeader() {
       $("asunto").value = state.header.asunto || "";
       $("grupo").value = state.header.grupo || "";
@@ -688,10 +749,76 @@
       $("direccion").value = state.header.direccion || "";
     }
 
+    function renderPhotoPreview() {
+      const wrap = $("photoPreview");
+      const img = $("photoPreviewImg");
+      const meta = $("photoMeta");
+      if (!modalPhotoState.dataUrl) {
+        wrap.classList.remove("active");
+        img.removeAttribute("src");
+        meta.textContent = "Sin foto";
+        return;
+      }
+      wrap.classList.add("active");
+      img.src = modalPhotoState.dataUrl;
+      const info = [];
+      if (modalPhotoState.name) info.push(modalPhotoState.name);
+      if (modalPhotoState.width && modalPhotoState.height) info.push(`${modalPhotoState.width}×${modalPhotoState.height}`);
+      if (modalPhotoState.size) info.push(formatBytes(modalPhotoState.size));
+      meta.textContent = info.join(" · ") || "Foto cargada";
+    }
+
+    function resetModalPhoto() {
+      modalPhotoState.dataUrl = "";
+      modalPhotoState.name = "";
+      modalPhotoState.width = 0;
+      modalPhotoState.height = 0;
+      modalPhotoState.size = 0;
+      modalPhotoState.type = "";
+      if ($("evPhotoInput")) $("evPhotoInput").value = "";
+      renderPhotoPreview();
+    }
+
+    function fillModalPhoto(photo) {
+      modalPhotoState.dataUrl = photo?.dataUrl || "";
+      modalPhotoState.name = photo?.name || "";
+      modalPhotoState.width = photo?.width || 0;
+      modalPhotoState.height = photo?.height || 0;
+      modalPhotoState.size = photo?.size || 0;
+      modalPhotoState.type = photo?.type || "";
+      renderPhotoPreview();
+    }
+
+    async function readFileAsDataURL(file) {
+      return await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("No se pudo leer la imagen."));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handlePhotoSelection(file) {
+      if (!file) return;
+      if (!file.type.startsWith("image/")) {
+        toast("Selecciona una imagen válida.");
+        return;
+      }
+      const dataUrl = await readFileAsDataURL(file);
+      const img = await loadImage(dataUrl);
+      modalPhotoState.dataUrl = dataUrl;
+      modalPhotoState.name = file.name || "foto_evidencia";
+      modalPhotoState.width = img.naturalWidth || img.width || 0;
+      modalPhotoState.height = img.naturalHeight || img.height || 0;
+      modalPhotoState.size = file.size || 0;
+      modalPhotoState.type = file.type || "image/jpeg";
+      renderPhotoPreview();
+      toast("Foto cargada");
+    }
+
     function renderList() {
       const list = $("list");
       list.innerHTML = "";
-
       $("count").textContent = `${state.evidences.length} elemento${state.evidences.length === 1 ? "" : "s"}`;
 
       if (state.evidences.length === 0) {
@@ -700,45 +827,34 @@
       }
       $("empty").style.display = "none";
 
-      // Orden: por número si es numérico, si no por creación
-      const sorted = [...state.evidences].sort((a, b) => {
-        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero, 10) : null;
-        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero, 10) : null;
-        if (an !== null && bn !== null) return an - bn;
-        if (an !== null && bn === null) return -1;
-        if (an === null && bn !== null) return 1;
-        return (a.createdAt || 0) - (b.createdAt || 0);
-      });
-
+      const sorted = sortEvidences(state.evidences);
       for (const ev of sorted) {
         const item = document.createElement("div");
         item.className = "evidence-item";
-
         const numeroShow = ev.numero ? escapeHtml(ev.numero) : "—";
+        const thumbHtml = ev.photo?.dataUrl
+          ? `<div class="evidence-thumb"><img src="${escapeHtml(ev.photo.dataUrl)}" alt="Foto evidencia ${numeroShow}"></div>`
+          : `<div class="evidence-thumb empty">Sin foto</div>`;
 
         item.innerHTML = `
           <div class="evidence-main">
             <div class="evidence-number">EVIDENCIA ${numeroShow}</div>
             <div class="evidence-description">${escapeHtml(ev.desc || "")}</div>
+            ${thumbHtml}
           </div>
           <div class="evidence-actions">
             <button class="icon-btn" type="button" data-action="edit" data-id="${escapeHtml(ev.id)}">Editar</button>
             <button class="icon-btn danger" type="button" data-action="del" data-id="${escapeHtml(ev.id)}">Borrar</button>
           </div>
         `;
-
         list.appendChild(item);
       }
     }
 
-    // -----------------------------
-    // Modal helpers
-    // -----------------------------
     function openModal(mode, evidenceId = null) {
       const backdrop = $("backdrop");
       const title = $("modalTitle");
       const btn = $("btnAddEvidence");
-
       backdrop.classList.add("active");
 
       if (mode === "edit") {
@@ -751,24 +867,20 @@
         btn.textContent = "Guardar";
         btn.dataset.mode = "edit";
         btn.dataset.editId = ev.id;
-
         $("evNumero").value = ev.numero || "";
         $("evDesc").value = ev.desc || "";
+        fillModalPhoto(ev.photo || null);
       } else {
         title.textContent = "Añadir evidencia";
         btn.textContent = "Añadir";
         btn.dataset.mode = "add";
         delete btn.dataset.editId;
-
         $("evNumero").value = "";
         $("evDesc").value = "";
+        resetModalPhoto();
       }
 
-      // Foco: nº evidencia, si no, textarea
-      setTimeout(() => {
-        const target = $("evNumero");
-        target?.focus?.();
-      }, 50);
+      setTimeout(() => $("evNumero")?.focus?.(), 50);
     }
 
     function closeModal() {
@@ -778,12 +890,22 @@
     function clearModalFields() {
       $("evNumero").value = "";
       $("evDesc").value = "";
+      resetModalPhoto();
       $("evNumero").focus();
     }
 
-    // -----------------------------
-    // Acciones evidencias
-    // -----------------------------
+    function buildPhotoPayload() {
+      if (!modalPhotoState.dataUrl) return null;
+      return {
+        dataUrl: modalPhotoState.dataUrl,
+        name: modalPhotoState.name,
+        width: modalPhotoState.width,
+        height: modalPhotoState.height,
+        size: modalPhotoState.size,
+        type: modalPhotoState.type
+      };
+    }
+
     function addEvidence() {
       const numeroRaw = $("evNumero").value;
       let numero = normalizeNumber(numeroRaw);
@@ -794,10 +916,8 @@
         $("evDesc").focus();
         return;
       }
-
       if (!numero) numero = nextAutoNumber();
 
-      // Evitar duplicados de número (si numérico o mismo string)
       const dup = state.evidences.find((e) => (e.numero || "") === numero);
       if (dup) {
         toast(`Ya existe la evidencia ${numero}. Usa otro Nº o edítala.`);
@@ -809,6 +929,7 @@
         id: safeId(),
         numero,
         desc,
+        photo: buildPhotoPayload(),
         createdAt: Date.now()
       });
 
@@ -828,7 +949,6 @@
         $("evDesc").focus();
         return;
       }
-
       if (!numero) numero = nextAutoNumber();
 
       const ev = state.evidences.find((e) => e.id === editId);
@@ -846,7 +966,7 @@
 
       ev.numero = numero;
       ev.desc = desc;
-
+      ev.photo = buildPhotoPayload();
       saveState();
       renderList();
       closeModal();
@@ -857,16 +977,12 @@
       const ev = state.evidences.find((e) => e.id === id);
       const label = ev?.numero ? `Evidencia ${ev.numero}` : "Evidencia";
       if (!confirm(`¿Borrar ${label}?`)) return;
-
       state.evidences = state.evidences.filter((e) => e.id !== id);
       saveState();
       renderList();
       toast("Evidencia borrada");
     }
 
-    // -----------------------------
-    // Cabecera
-    // -----------------------------
     function saveHeaderFromInputs() {
       state.header.asunto = ($("asunto").value || "").trim();
       state.header.grupo = ($("grupo").value || "").trim();
@@ -885,16 +1001,23 @@
       state.evidences = [];
       renderHeader();
       renderList();
+      resetModalPhoto();
       toast("Borrado completo");
     }
 
-    // -----------------------------
-    // Exportaciones
-    // -----------------------------
+    function sortEvidences(list) {
+      return [...list].sort((a, b) => {
+        const an = /^\d+$/.test(a.numero) ? parseInt(a.numero, 10) : null;
+        const bn = /^\d+$/.test(b.numero) ? parseInt(b.numero, 10) : null;
+        if (an !== null && bn !== null) return an - bn;
+        if (an !== null && bn === null) return -1;
+        if (an === null && bn !== null) return 1;
+        return (a.createdAt || 0) - (b.createdAt || 0);
+      });
+    }
+
     function buildExportObject() {
-      // Mantener orden consistente
-      const evidences = [...state.evidences].sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-      return { header: state.header, evidences };
+      return { header: state.header, evidences: sortEvidences(state.evidences) };
     }
 
     function downloadText(filename, text, mime = "text/plain;charset=utf-8") {
@@ -910,15 +1033,13 @@
     }
 
     function exportJSON() {
-      const obj = buildExportObject();
-      downloadText("registro_evidencias.json", JSON.stringify(obj, null, 2), "application/json;charset=utf-8");
+      downloadText("registro_evidencias.json", JSON.stringify(buildExportObject(), null, 2), "application/json;charset=utf-8");
       toast("JSON exportado");
     }
 
     function exportTXT() {
       const obj = buildExportObject();
       const h = obj.header;
-
       const lines = [];
       lines.push("REGISTRO DE EVIDENCIAS");
       lines.push("=".repeat(22));
@@ -926,105 +1047,302 @@
       lines.push(`Grupo: ${h.grupo || ""}`);
       lines.push(`Juzgado: ${h.juzgado || ""}`);
       lines.push(`Procedimiento: ${h.procedimiento || ""}`);
-      lines.push(`Fecha/Hora: ${h.fechaHora || ""}`);
+      lines.push(`Fecha/Hora: ${formatDateTimeLocal(h.fechaHora) || h.fechaHora || ""}`);
       lines.push(`Dirección: ${h.direccion || ""}`);
       lines.push("");
       lines.push(`EVIDENCIAS (${obj.evidences.length}):`);
       lines.push("-".repeat(22));
-
       for (const ev of obj.evidences) {
         lines.push(`[${ev.numero || "—"}] ${ev.desc || ""}`.trim());
+        if (ev.photo?.name) lines.push(`Foto: ${ev.photo.name}`);
         lines.push("");
       }
-
       downloadText("registro_evidencias.txt", lines.join("\n"));
       toast("TXT exportado");
     }
 
-    async function exportPDF() {
-      const jspdf = window.jspdf?.jsPDF;
-      if (!jspdf) {
-        toast("No se pudo cargar jsPDF.");
-        return;
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error("No se pudo cargar la imagen."));
+        img.src = src;
+      });
+    }
+
+    function getImageFormatFromDataUrl(dataUrl, fallback = "JPEG") {
+      const match = /^data:image\/([a-zA-Z0-9+.-]+);base64,/.exec(dataUrl || "");
+      const mime = (match?.[1] || "jpeg").toLowerCase();
+      if (mime.includes("png")) return "PNG";
+      if (mime.includes("webp")) return "WEBP";
+      return fallback;
+    }
+
+    function drawMultilineText(doc, text, x, y, width, fontSize, lineHeight, maxLines) {
+      doc.setFontSize(fontSize);
+      const lines = doc.splitTextToSize(text || "", width);
+      const used = lines.slice(0, maxLines);
+      let cy = y;
+      for (const line of used) {
+        doc.text(line, x, cy);
+        cy += lineHeight;
+      }
+      if (lines.length > maxLines) {
+        const ellipsisY = y + (maxLines - 1) * lineHeight;
+        doc.text("…", x + width - 8, ellipsisY);
+      }
+      return { lines: used.length, totalLines: lines.length };
+    }
+
+    function calcEvidenceCardMetrics(doc, ev, cardW) {
+      const pad = 12;
+      const titleH = 16;
+      const photoBoxH = 118;
+      const gap = 8;
+      const descW = cardW - pad * 2;
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(ev.desc || "", descW);
+      const descLines = Math.max(4, lines.length || 1);
+      const shownLines = Math.min(descLines, 12);
+      const descH = shownLines * 12;
+      const cardH = pad + titleH + gap + photoBoxH + gap + descH + pad;
+      return { pad, titleH, photoBoxH, gap, descW, descLines, shownLines, descH, cardH };
+    }
+
+    async function drawEvidenceCard(doc, ev, x, y, cardW) {
+      const metrics = calcEvidenceCardMetrics(doc, ev, cardW);
+      const { pad, titleH, photoBoxH, gap, descW, shownLines, cardH } = metrics;
+
+      doc.setDrawColor(200, 152, 107);
+      doc.setLineWidth(0.8);
+      doc.roundedRect(x, y, cardW, cardH, 8, 8);
+
+      doc.setFont("times", "bold");
+      doc.setFontSize(11);
+      doc.text(`EVIDENCIA ${ev.numero || "—"}`, x + pad, y + pad + 10);
+
+      const photoX = x + pad;
+      const photoY = y + pad + titleH + gap;
+      const photoW = cardW - pad * 2;
+      doc.setDrawColor(190, 190, 190);
+      doc.roundedRect(photoX, photoY, photoW, photoBoxH, 6, 6);
+
+      if (ev.photo?.dataUrl) {
+        try {
+          const img = await loadImage(ev.photo.dataUrl);
+          const naturalW = img.naturalWidth || img.width || photoW;
+          const naturalH = img.naturalHeight || img.height || photoBoxH;
+          const ratio = Math.min(photoW / naturalW, photoBoxH / naturalH);
+          const drawW = naturalW * ratio;
+          const drawH = naturalH * ratio;
+          const drawX = photoX + (photoW - drawW) / 2;
+          const drawY = photoY + (photoBoxH - drawH) / 2;
+          const fmt = getImageFormatFromDataUrl(ev.photo.dataUrl);
+          doc.addImage(ev.photo.dataUrl, fmt, drawX, drawY, drawW, drawH, undefined, 'FAST');
+        } catch (_e) {
+          doc.setFont("times", "italic");
+          doc.setFontSize(10);
+          doc.text("No se pudo cargar la foto", photoX + 10, photoY + 22);
+        }
+      } else {
+        doc.setFont("times", "italic");
+        doc.setFontSize(10);
+        doc.text("Sin fotografía", photoX + 10, photoY + 22);
       }
 
-      const doc = new jspdf({ unit: "pt", format: "a4" });
+      const descX = x + pad;
+      const descY = photoY + photoBoxH + gap + 10;
+      doc.setFont("times", "normal");
+      doc.setFontSize(10);
+      drawMultilineText(doc, ev.desc || "", descX, descY, descW, 10, 12, shownLines);
 
+      return { cardH, descLines: metrics.descLines };
+    }
+
+    async function exportPDF() {
+      const jspdf = window.jspdf?.jsPDF;
+      if (!jspdf) return toast("No se pudo cargar jsPDF.");
+
+      const doc = new jspdf({ unit: "pt", format: "a4" });
       const obj = buildExportObject();
       const h = obj.header;
-
-      const margin = 48;
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
-      const maxW = pageW - margin * 2;
+      const margin = 42;
+      const innerW = pageW - margin * 2;
 
-      let y = margin;
+      // Portada
+      doc.setFillColor(26, 26, 46);
+      doc.rect(0, 0, pageW, pageH, 'F');
+      doc.setTextColor(245, 245, 245);
+      doc.setDrawColor(200, 152, 107);
+      doc.setLineWidth(1.2);
+      doc.roundedRect(margin, 84, innerW, pageH - 168, 16, 16);
+      doc.setFont("times", "bold");
+      doc.setFontSize(26);
+      doc.text("ANEXO: Registro de Evidencias", margin + 26, 140);
+      doc.setFont("times", "normal");
+      doc.setFontSize(13);
+      doc.text("Datos principales", margin + 26, 176);
 
-      function addLine(text, fontSize = 12, spacing = 16) {
+      const coverLines = [
+        ["Asunto", h.asunto || "—"],
+        ["Grupo de Investigación", h.grupo || "—"],
+        ["Juzgado", h.juzgado || "—"],
+        ["Procedimiento", h.procedimiento || "—"],
+        ["Fecha y hora del registro", formatDateTimeLocal(h.fechaHora) || h.fechaHora || "—"],
+        ["Dirección", h.direccion || "—"],
+        ["Número total de evidencias", String(obj.evidences.length)]
+      ];
+
+      let cy = 220;
+      for (const [label, value] of coverLines) {
+        doc.setFont("times", "bold");
+        doc.setFontSize(12);
+        doc.text(`${label}:`, margin + 26, cy);
         doc.setFont("times", "normal");
-        doc.setFontSize(fontSize);
-        const chunks = doc.splitTextToSize(text, maxW);
-        for (const ch of chunks) {
-          if (y + spacing > pageH - margin) {
+        const split = doc.splitTextToSize(String(value), innerW - 180);
+        let first = true;
+        for (const line of split) {
+          doc.text(line, margin + 170, cy);
+          if (first) first = false;
+          cy += 17;
+        }
+        cy += 7;
+      }
+
+      doc.setFont("times", "italic");
+      doc.setFontSize(10);
+      doc.text("Las evidencias se muestran en las páginas siguientes, distribuidas en dos columnas y con fotografía asociada cuando exista.", margin + 26, pageH - 72);
+
+      doc.addPage();
+      doc.setTextColor(20, 20, 20);
+
+      const gapX = 18;
+      const cardW = (innerW - gapX) / 2;
+      const topY = 54;
+      const maxBottom = pageH - 44;
+      const maxPerPage = 4;
+      let pageCountOnCurrentPage = 0;
+      let topRowMaxHeight = 0;
+      let bottomRowMaxHeight = 0;
+      let currentY = topY;
+      let col = 0;
+
+      for (let i = 0; i < obj.evidences.length; i++) {
+        const ev = obj.evidences[i];
+        const metrics = calcEvidenceCardMetrics(doc, ev, cardW);
+
+        if (pageCountOnCurrentPage === 0) {
+          currentY = topY;
+          topRowMaxHeight = 0;
+          bottomRowMaxHeight = 0;
+          col = 0;
+        }
+
+        if (pageCountOnCurrentPage === 2) {
+          const projectedY = topY + topRowMaxHeight + 16;
+          const projectedBottom = projectedY + metrics.cardH;
+          if (projectedBottom > maxBottom) {
             doc.addPage();
-            y = margin;
+            pageCountOnCurrentPage = 0;
+            currentY = topY;
+            topRowMaxHeight = 0;
+            bottomRowMaxHeight = 0;
+            col = 0;
+          } else {
+            currentY = projectedY;
+            col = 0;
           }
-          doc.text(ch, margin, y);
-          y += spacing;
+        }
+
+        if (pageCountOnCurrentPage === maxPerPage) {
+          doc.addPage();
+          pageCountOnCurrentPage = 0;
+          currentY = topY;
+          topRowMaxHeight = 0;
+          bottomRowMaxHeight = 0;
+          col = 0;
+        }
+
+        const x = margin + (col === 1 ? cardW + gapX : 0);
+        const drawn = await drawEvidenceCard(doc, ev, x, currentY, cardW);
+
+        if (pageCountOnCurrentPage < 2) {
+          topRowMaxHeight = Math.max(topRowMaxHeight, drawn.cardH);
+        } else {
+          bottomRowMaxHeight = Math.max(bottomRowMaxHeight, drawn.cardH);
+        }
+
+        pageCountOnCurrentPage += 1;
+
+        if (col === 0) {
+          col = 1;
+        } else {
+          col = 0;
+          if (pageCountOnCurrentPage === 2) {
+            if (topY + topRowMaxHeight + 16 + 220 > maxBottom) {
+              doc.addPage();
+              pageCountOnCurrentPage = 0;
+              currentY = topY;
+              topRowMaxHeight = 0;
+              bottomRowMaxHeight = 0;
+              col = 0;
+            }
+          }
+        }
+
+        if (pageCountOnCurrentPage === 4 || i === obj.evidences.length - 1) {
+          if (i !== obj.evidences.length - 1) {
+            doc.addPage();
+            pageCountOnCurrentPage = 0;
+            currentY = topY;
+            topRowMaxHeight = 0;
+            bottomRowMaxHeight = 0;
+            col = 0;
+          }
         }
       }
 
-      doc.setFontSize(18);
-      doc.setFont("times", "bold");
-      doc.text("Registro de Evidencias", margin, y);
-      y += 26;
-
-      doc.setFont("times", "normal");
-      addLine(`Asunto: ${h.asunto || ""}`);
-      addLine(`Grupo: ${h.grupo || ""}`);
-      addLine(`Juzgado: ${h.juzgado || ""}`);
-      addLine(`Procedimiento: ${h.procedimiento || ""}`);
-      addLine(`Fecha/Hora: ${h.fechaHora || ""}`);
-      addLine(`Dirección: ${h.direccion || ""}`);
-      y += 10;
-
-      doc.setFont("times", "bold");
-      doc.setFontSize(14);
-      doc.text(`Evidencias (${obj.evidences.length})`, margin, y);
-      y += 20;
-
-      doc.setFont("times", "normal");
-      doc.setFontSize(12);
-
-      for (const ev of obj.evidences) {
-        addLine(`Evidencia ${ev.numero || "—"}`, 12, 16);
-        addLine(ev.desc || "", 12, 16);
-        y += 8;
+      const totalPages = doc.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+        doc.setFont("times", "normal");
+        doc.setFontSize(9);
+        if (p > 1) doc.setTextColor(90, 90, 90);
+        doc.text(`Página ${p} de ${totalPages}`, pageW - 92, pageH - 18);
       }
 
       doc.save("registro_evidencias.pdf");
       toast("PDF exportado");
     }
 
-    // -----------------------------
-    // Init + eventos
-    // -----------------------------
     function bindEvents() {
-      // Cabecera
       $("btnGuardarCabecera")?.addEventListener("click", saveHeaderFromInputs);
       $("btnResetAll")?.addEventListener("click", resetAll);
-
-      // Modal open/close
       $("btnOpenModal")?.addEventListener("click", () => openModal("add"));
       $("btnCloseModal")?.addEventListener("click", closeModal);
       $("btnClearFields")?.addEventListener("click", clearModalFields);
+      $("btnOpenCamera")?.addEventListener("click", () => $("evPhotoInput")?.click());
+      $("btnRemovePhoto")?.addEventListener("click", () => {
+        resetModalPhoto();
+        toast("Foto eliminada");
+      });
 
-      // Click fuera para cerrar
+      $("evPhotoInput")?.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+          await handlePhotoSelection(file);
+        } catch (_e) {
+          toast("No se pudo cargar la foto.");
+        }
+      });
+
       $("backdrop")?.addEventListener("click", (e) => {
         if (e.target === $("backdrop")) closeModal();
       });
 
-      // Añadir / guardar
       $("btnAddEvidence")?.addEventListener("click", () => {
         const mode = $("btnAddEvidence").dataset.mode || "add";
         if (mode === "edit") {
@@ -1036,7 +1354,6 @@
         }
       });
 
-      // Atajo teclado: Ctrl+Enter en textarea para añadir/guardar
       $("evDesc")?.addEventListener("keydown", (e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
           e.preventDefault();
@@ -1044,24 +1361,20 @@
         }
       });
 
-      // Acciones en lista (delegación)
       $("list")?.addEventListener("click", (e) => {
         const btn = e.target?.closest?.("button");
         if (!btn) return;
         const action = btn.dataset.action;
         const id = btn.dataset.id;
         if (!action || !id) return;
-
         if (action === "edit") openModal("edit", id);
         if (action === "del") deleteEvidence(id);
       });
 
-      // Export
       $("btnExportTxt")?.addEventListener("click", exportTXT);
       $("btnExportJson")?.addEventListener("click", exportJSON);
       $("btnExportPdf")?.addEventListener("click", exportPDF);
 
-      // Guardado automático de cabecera (opcional): al salir del input
       ["asunto","grupo","juzgado","procedimiento","fechaHora","direccion"].forEach((id) => {
         $(id)?.addEventListener("change", () => {
           state.header[id] = ($(id).value || "").trim();
@@ -1074,6 +1387,7 @@
       loadState();
       renderHeader();
       renderList();
+      renderPhotoPreview();
       bindEvents();
     });
   </script>
