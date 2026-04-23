@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Seguimiento de Vigilancia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    :root{
+      --bg:#04070d;
+      --bg2:#09111f;
+      --panel:#0b1524;
+      --panel2:#101d31;
+      --glass:rgba(255,255,255,0.02);
+      --glass2:rgba(255,255,255,0.04);
+      --border:rgba(71,163,255,0.22);
+      --border2:rgba(71,163,255,0.48);
+      --text:#e3eefc;
+      --text2:#b4c7e6;
+      --muted:#6f88ad;
+      --accent:#2fa4ff;
+      --accent2:#8ad5ff;
+      --accent-glow:rgba(47,164,255,0.22);
+      --ok:#19d3a2;
+      --ok2:#8ff0d5;
+      --warn:#ffb020;
+      --danger:#eb4d4b;
+      --danger2:#ff8f8f;
+      --shadow:0 0 0 1px rgba(47,164,255,0.08), 0 14px 40px rgba(0,0,0,0.42);
+      --shadow-sm:0 0 0 1px rgba(47,164,255,0.06), 0 4px 12px rgba(0,0,0,0.28);
+      --radius:0px;
+      --radius-sm:0px;
+      --mono:'DM Mono', monospace;
+      --display:'Syne', sans-serif;
+      --body:'Inter', sans-serif;
+    }
+
+    *{box-sizing:border-box; margin:0; padding:0}
+    html{scroll-behavior:smooth}
+    html,body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:var(--body);
+      min-height:100%;
+      -webkit-font-smoothing:antialiased;
+    }
+    body{
+      background:
+        linear-gradient(180deg, rgba(47,164,255,0.08), transparent 16%),
+        repeating-linear-gradient(90deg, rgba(47,164,255,0.05) 0, rgba(47,164,255,0.05) 1px, transparent 1px, transparent 24px),
+        linear-gradient(180deg, #06101c 0%, #03070d 100%);
+      padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);
+    }
+
+    .app{
+      width:min(100%, 740px);
+      margin:0 auto;
+      padding:16px 14px 130px;
+    }
+
+    /* ── HERO ── */
+    .hero{
+      padding:18px 18px 16px;
+      margin-bottom:14px;
+      background:rgba(6,10,18,0.92);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:0 0 0 1px rgba(59,158,255,0.05), var(--shadow);
+    }
+
+    .hero-header{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+    }
+
+    .hero-icon{
+      width:38px;
+      height:38px;
+      border-radius:0;
+      background:linear-gradient(135deg, rgba(47,164,255,0.22), rgba(10,30,60,0.5));
+      border:1px solid var(--border2);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:1.2rem;
+      flex-shrink:0;
+    }
+
+    .hero-title{
+      font-family:var(--display);
+      font-size:1.18rem;
+      font-weight:800;
+      letter-spacing:-0.01em;
+      line-height:1.1;
+    }
+
+    .hero-sub{
+      font-size:.78rem;
+      color:var(--muted);
+      margin-top:2px;
+    }
+
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .toolbar button{
+      flex:1 1 auto;
+      min-width:0;
+      justify-content:center;
+    }
+
+    /* ── BUTTONS ── */
+    button, .btn{
+      appearance:none;
+      border:none;
+      border-radius:var(--radius-sm);
+      padding:10px 14px;
+      font-size:.875rem;
+      font-weight:600;
+      font-family:var(--body);
+      cursor:pointer;
+      transition:all .15s ease;
+      min-height:40px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      white-space:nowrap;
+    }
+
+    button:active{transform:scale(0.97)}
+
+    button.secondary, .btn.secondary{
+      color:var(--text2);
+      background:var(--glass2);
+      border:1px solid var(--border);
+    }
+    button.secondary:hover{border-color:var(--border2); color:var(--text)}
+
+    button.warn{
+      color:#1a0e00;
+      background:linear-gradient(135deg,#ffd07a,var(--warn));
+      box-shadow:0 0 16px rgba(245,166,35,0.2), var(--shadow-sm);
+    }
+
+    button.danger{
+      color:#fff;
+      background:linear-gradient(135deg, var(--danger2), var(--danger));
+      box-shadow:0 0 14px rgba(232,64,64,0.18), var(--shadow-sm);
+    }
+
+    button.ok{
+      color:#042018;
+      background:linear-gradient(135deg, var(--ok2), var(--ok));
+      box-shadow:0 0 16px rgba(16,217,168,0.2), var(--shadow-sm);
+    }
+
+    /* ── CARDS ── */
+    .card{
+      background:linear-gradient(135deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-bottom:12px;
+    }
+
+    .card-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:14px;
+    }
+
+    .card-head h2{
+      font-family:var(--display);
+      font-size:.95rem;
+      font-weight:700;
+      letter-spacing:.01em;
+      color:var(--text);
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    /* ── FIELDS ── */
+    .grid{display:grid; gap:10px}
+    .grid-2{grid-template-columns:1fr 1fr}
+
+    .field label{
+      display:block;
+      margin-bottom:6px;
+      color:var(--accent2);
+      font-size:.78rem;
+      font-weight:600;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    input[type="text"], input[type="datetime-local"], textarea, select{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:var(--radius-sm);
+      padding:11px 13px;
+      background:rgba(0,0,0,0.3);
+      color:var(--text);
+      font-size:.95rem;
+      font-family:var(--body);
+      outline:none;
+      transition:border-color .2s, box-shadow .2s;
+    }
+
+    input:focus, textarea:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(59,158,255,0.12);
+    }
+
+    textarea{
+      min-height:110px;
+      resize:vertical;
+      line-height:1.5;
+    }
+
+    /* ── SUMMARY PILLS ── */
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+
+    .pill{
+      background:rgba(0,0,0,0.25);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 14px;
+      position:relative;
+      overflow:hidden;
+    }
+
+    .pill::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      background:linear-gradient(135deg, rgba(59,158,255,0.04), transparent);
+      pointer-events:none;
+    }
+
+    .pill .k{
+      display:block;
+      color:var(--muted);
+      font-size:.72rem;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      margin-bottom:6px;
+    }
+
+    .pill .v{
+      display:block;
+      font-size:1.3rem;
+      font-weight:700;
+      font-family:var(--display);
+      color:var(--accent2);
+    }
+
+    /* ── TIMELINE ── */
+    .timeline{display:grid; gap:10px}
+
+    .entry{
+      background:linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+      position:relative;
+      overflow:hidden;
+      transition:border-color .2s;
+    }
+
+    .entry:hover{border-color:var(--border2)}
+
+    .entry::before{
+      content:"";
+      position:absolute;
+      left:0; top:0; bottom:0;
+      width:3px;
+      background:linear-gradient(180deg, var(--accent), var(--ok), transparent);
+      border-radius:2px 0 0 2px;
+    }
+
+    .entry-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      margin-bottom:10px;
+    }
+
+    .entry-time{
+      font-family:var(--mono);
+      font-weight:500;
+      font-size:.95rem;
+      color:var(--accent2);
+    }
+
+    .entry-index{
+      font-family:var(--mono);
+      color:var(--muted);
+      font-size:.75rem;
+      margin-top:3px;
+    }
+
+    .entry-location{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      margin-top:7px;
+      font-size:.82rem;
+      color:var(--text2);
+      background:rgba(59,158,255,0.08);
+      border:1px solid rgba(59,158,255,0.2);
+      border-radius:0;
+      padding:5px 11px;
+    }
+
+    .entry-text{
+      white-space:pre-wrap;
+      line-height:1.55;
+      font-size:.93rem;
+      margin:10px 0;
+      color:var(--text2);
+    }
+
+    .meta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:.75rem;
+      font-family:var(--mono);
+      margin-bottom:6px;
+    }
+
+    .photos{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .photos img{
+      width:100%;
+      height:180px;
+      object-fit:contain;
+      object-position:center center;
+      border-radius:0;
+      border:1px solid var(--border);
+      background:#05090f;
+      cursor:pointer;
+      transition:border-color .2s, transform .2s;
+      padding:4px;
+    }
+
+    .photos img:hover{border-color:var(--border2); transform:scale(1.01)}
+
+    /* ── CAMERA ── */
+    .camera-panel{
+      padding:14px;
+      margin-top:12px;
+      display:none;
+      background:rgba(0,0,0,0.3);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+    }
+
+    .camera-panel.active{display:block}
+
+    .camera-box{
+      background:#02060d;
+      border-radius:12px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      position:relative;
+      aspect-ratio:3/4;
+      width:100%;
+    }
+
+    video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      background:black;
+    }
+
+    /* ── THUMB STRIP ── */
+    .thumb-strip{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
+      gap:8px;
+      margin-top:10px;
+    }
+
+    .thumb{position:relative}
+
+    .thumb img{
+      width:100%; height:80px; object-fit:contain; object-position:center center;
+      border-radius:0; border:1px solid var(--border);
+      background:#05090f;
+      padding:3px;
+    }
+
+    .thumb button{
+      position:absolute; top:4px; right:4px;
+      min-height:auto; padding:3px 7px; font-size:.7rem;
+      border-radius:999px;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty{
+      color:var(--muted);
+      text-align:center;
+      padding:28px 18px;
+      border:1px dashed rgba(80,130,200,0.15);
+      border-radius:var(--radius);
+      font-size:.9rem;
+      line-height:1.5;
+    }
+
+    .empty .empty-icon{font-size:2rem; display:block; margin-bottom:10px; opacity:.5}
+
+    /* ── ACTIONS ROW ── */
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .actions button, .actions .btn{
+      flex:1 1 auto;
+      min-width:0;
+      justify-content:center;
+    }
+
+    /* ── BADGE ── */
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      padding:3px 9px;
+      border-radius:999px;
+      font-size:.72rem;
+      font-weight:600;
+      letter-spacing:.03em;
+    }
+    .badge-blue{background:rgba(59,158,255,0.12); color:var(--accent2); border:1px solid rgba(59,158,255,0.2)}
+
+    /* ── FOOTER BAR ── */
+    .footer-bar{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      background:rgba(6,10,18,0.9);
+      backdrop-filter:blur(20px);
+      -webkit-backdrop-filter:blur(20px);
+      border-top:1px solid var(--border);
+      padding:12px 14px calc(12px + env(safe-area-inset-bottom));
+      z-index:25;
+    }
+
+    .footer-inner{
+      width:min(100%,740px);
+      margin:0 auto;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    /* ── MODAL ── */
+    .modal{
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.88);
+      display:none; align-items:center; justify-content:center;
+      z-index:50; padding:16px;
+      backdrop-filter:blur(8px);
+    }
+
+    .modal.active{display:flex}
+
+    .modal-inner{
+      max-width:900px; width:100%;
+      padding:8px;
+      background:rgba(15,25,41,0.9);
+      border:1px solid var(--border2);
+      border-radius:var(--radius);
+    }
+
+    .modal img{max-width:100%; max-height:84vh; border-radius:10px; display:block; margin:0 auto}
+
+    /* ── UTILS ── */
+    .hidden{display:none !important}
+    .print-only{display:none}
+
+    @media (min-width:760px){
+      .app{padding-top:24px}
+      .photos{grid-template-columns:repeat(3,1fr)}
+      .camera-box{aspect-ratio:16/10}
+    }
+
+    @media (max-width:480px){
+      .grid-2{grid-template-columns:1fr}
+      .summary .pill .v{font-size:1.1rem}
+    }
+
+    @media print{
+      :root{--text:#111827; --muted:#4b5563; --border:#d1d5db}
+      body{background:white; color:#111827; padding:0}
+      .app{width:100%; max-width:none; padding:0}
+      .hero,.card,.entry{box-shadow:none; background:white; border-color:#e5e7eb}
+      .hero{position:static; margin:0 0 10mm; padding:0; border:none}
+      .toolbar,.actions,.footer-bar,.camera-panel,.no-print{display:none !important}
+      .print-only{display:block}
+      .summary{grid-template-columns:repeat(3,1fr); gap:6mm}
+      .pill{background:white}
+      .timeline{gap:8mm}
+      .entry{break-inside:avoid; page-break-inside:avoid; border-radius:0; padding:5mm}
+      .photos{grid-template-columns:repeat(2,1fr); gap:4mm}
+      .photos img{height:auto; max-height:90mm; object-fit:contain; object-position:center center; background:white; border-radius:0; padding:0}
+      input,textarea{border:none; padding:0}
+      @page{size:A4; margin:12mm}
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+
+    <section class="hero">
+      <div class="hero-header">
+        <div class="hero-icon">🔍</div>
+        <div>
+          <div class="hero-title">Seguimiento de Vigilancia</div>
+          <div class="hero-sub">Registro cronológico local · Datos guardados en este dispositivo</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="secondary" id="btnNewReport">✦ Nuevo informe</button>
+        <button class="secondary" id="btnSave">💾 Guardar</button>
+        <button class="warn" id="btnExportPdf">⬇ Descargar PDF</button>
+      </div>
+    </section>
+
+    <section class="card print-only" id="coverPage" style="page-break-after:always; min-height:260mm; display:none; border:1.4px solid #193252; padding:18mm 14mm; position:relative;">
+      <div style="position:absolute; inset:0; background:linear-gradient(180deg, #071224 0%, #0a1a30 18%, transparent 18%, transparent 100%); opacity:1;"></div>
+      <div style="position:relative; z-index:1; color:#0f172a;">
+        <div style="background:#071224; color:#8ad5ff; padding:10mm 8mm; margin:-18mm -14mm 16mm; border-bottom:2mm solid #2fa4ff;">
+          <div style="font-size:24pt; font-weight:800; letter-spacing:.02em; text-transform:uppercase;">Informe de Vigilancia</div>
+          <div style="font-size:13pt; margin-top:2mm; color:#dbeafe;" id="coverTitle">Seguimiento cronológico</div>
+        </div>
+        <div style="border:1px solid #193252; padding:0; margin-bottom:10mm;">
+          <table style="width:100%; border-collapse:collapse; font-size:10.5pt;">
+            <tr><td style="width:34%; padding:4mm; border-right:1px solid #193252; background:#eef6ff; font-weight:700;">Operativo / título</td><td id="coverTitleValue" style="padding:4mm;">—</td></tr>
+            <tr><td style="padding:4mm; border-right:1px solid #193252; border-top:1px solid #193252; background:#eef6ff; font-weight:700;">Fecha de referencia</td><td id="coverDateValue" style="padding:4mm; border-top:1px solid #193252;">—</td></tr>
+            <tr><td style="padding:4mm; border-right:1px solid #193252; border-top:1px solid #193252; background:#eef6ff; font-weight:700;">Número de registros</td><td id="coverEntriesValue" style="padding:4mm; border-top:1px solid #193252;">0</td></tr>
+            <tr><td style="padding:4mm; border-right:1px solid #193252; border-top:1px solid #193252; background:#eef6ff; font-weight:700;">Número de fotografías</td><td id="coverPhotosValue" style="padding:4mm; border-top:1px solid #193252;">0</td></tr>
+            <tr><td style="padding:4mm; border-right:1px solid #193252; border-top:1px solid #193252; background:#eef6ff; font-weight:700;">Generado</td><td id="coverGeneratedValue" style="padding:4mm; border-top:1px solid #193252;">—</td></tr>
+          </table>
+        </div>
+        <div style="border:1px solid #193252;">
+          <div style="padding:4mm; background:#eef6ff; font-weight:700; border-bottom:1px solid #193252;">Observaciones generales</div>
+          <div id="coverSummaryValue" style="padding:5mm; min-height:90mm; line-height:1.55;">Sin observaciones generales.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>📋 Datos del informe</h2>
+      </div>
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="reportTitle">Título / operativo</label>
+          <input id="reportTitle" type="text" placeholder="Ej.: Vigilancia discreta — objetivo A" />
+        </div>
+        <div class="field">
+          <label for="reportDate">Fecha de referencia</label>
+          <input id="reportDate" type="datetime-local" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label for="reportSummary">Observaciones generales</label>
+        <textarea id="reportSummary" placeholder="Contexto inicial, objetivo, equipo interviniente, vehículo, incidencias previas, etc."></textarea>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>📊 Resumen</h2>
+      </div>
+      <div class="summary">
+        <div class="pill"><span class="k">Entradas</span><span class="v" id="sumEntries">0</span></div>
+        <div class="pill"><span class="k">Fotografías</span><span class="v" id="sumPhotos">0</span></div>
+        <div class="pill"><span class="k">Último registro</span><span class="v" id="sumLast" style="font-size:.85rem;color:var(--text2)">—</span></div>
+      </div>
+    </section>
+
+    <section class="card no-print">
+      <div class="card-head">
+        <h2>✏️ Nuevo registro</h2>
+        <span class="badge badge-blue">EN CURSO</span>
+      </div>
+      <div class="grid grid-2">
+        <div class="field">
+          <label for="entryDateTime">Fecha y hora</label>
+          <input id="entryDateTime" type="datetime-local" />
+        </div>
+        <div class="field">
+          <label for="entryLocation">Ubicación / referencia</label>
+          <input id="entryLocation" type="text" placeholder="Calle, matrícula, punto de observación…" />
+        </div>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label for="entryText">Anotación</label>
+        <textarea id="entryText" placeholder="Describe lo observado paso a paso…"></textarea>
+      </div>
+      <div class="actions" style="margin-top:12px">
+        <label class="btn secondary" for="fileInput">📎 Adjuntar imágenes</label>
+        <input id="fileInput" class="hidden" type="file" accept="image/*" multiple />
+        <label class="btn secondary" for="cameraInput">📷 Cámara del móvil</label>
+        <input id="cameraInput" class="hidden" type="file" accept="image/*" capture="environment" multiple />
+        <button class="ok" id="btnAddEntry">＋ Añadir registro</button>
+      </div>
+
+      <div id="pendingPhotosWrap" class="hidden" style="margin-top:14px">
+        <div class="card-head" style="margin-bottom:8px">
+          <h2 style="font-size:.85rem">🖼 Imágenes pendientes</h2>
+        </div>
+        <div class="thumb-strip" id="pendingPhotos"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-head">
+        <h2>🕐 Cronología</h2>
+      </div>
+      <div class="timeline" id="timeline"></div>
+    </section>
+
+    <section class="print-only" id="printHeader" style="margin-bottom:8mm">
+      <h1 style="margin:0 0 4mm;font-size:20pt">Informe cronológico de vigilancia</h1>
+    </section>
+
+  </div>
+
+  <div class="footer-bar no-print">
+    <div class="footer-inner">
+      <button class="ok" id="btnQuickNow">⚡ Registro rápido ahora</button>
+      <button class="danger" id="btnClearAll">🗑 Borrar todo</button>
+    </div>
+  </div>
+
+  <div class="modal" id="imageModal">
+    <div class="modal-inner"><img id="modalImg" alt="Vista ampliada" /></div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'seguimiento_vigilancia_android_v2';
+
+    const state = {
+      report:{ title:'', date:'', summary:'' },
+      entries:[],
+      pendingPhotos:[]
+    };
+
+    const els = {
+      reportTitle:       document.getElementById('reportTitle'),
+      reportDate:        document.getElementById('reportDate'),
+      reportSummary:     document.getElementById('reportSummary'),
+      entryDateTime:     document.getElementById('entryDateTime'),
+      entryLocation:     document.getElementById('entryLocation'),
+      entryText:         document.getElementById('entryText'),
+      fileInput:         document.getElementById('fileInput'),
+      cameraInput:       document.getElementById('cameraInput'),
+      timeline:          document.getElementById('timeline'),
+      pendingPhotos:     document.getElementById('pendingPhotos'),
+      pendingPhotosWrap: document.getElementById('pendingPhotosWrap'),
+      imageModal:        document.getElementById('imageModal'),
+      modalImg:          document.getElementById('modalImg'),
+      sumEntries:        document.getElementById('sumEntries'),
+      sumPhotos:         document.getElementById('sumPhotos'),
+      sumLast:           document.getElementById('sumLast')
+    };
+
+    function nowLocalInputValue() {
+      const d = new Date();
+      const p = n => String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    }
+
+    function formatDateTime(dt) {
+      if (!dt) return '—';
+      const d = new Date(dt);
+      if (isNaN(d)) return dt;
+      return d.toLocaleString('es-ES',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+    }
+
+    function escapeHtml(s='') {
+      return s.replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    }
+
+    function saveState() {
+      syncReportFieldsToState();
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+      renderSummary();
+    }
+
+    function loadState() {
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          state.report = parsed.report || state.report;
+          state.entries = Array.isArray(parsed.entries) ? parsed.entries : [];
+          state.pendingPhotos = Array.isArray(parsed.pendingPhotos) ? parsed.pendingPhotos : [];
+        }
+      }catch(e){ console.error('Estado no cargado', e); }
+    }
+
+    function syncReportFieldsToState() {
+      state.report.title   = els.reportTitle.value.trim();
+      state.report.date    = els.reportDate.value;
+      state.report.summary = els.reportSummary.value.trim();
+    }
+
+    function syncStateToReportFields() {
+      els.reportTitle.value   = state.report.title   || '';
+      els.reportDate.value    = state.report.date    || nowLocalInputValue();
+      els.reportSummary.value = state.report.summary || '';
+    }
+
+    function renderPendingPhotos() {
+      const list = state.pendingPhotos || [];
+      els.pendingPhotosWrap.classList.toggle('hidden', list.length === 0);
+      els.pendingPhotos.innerHTML = list.map((src,i) => `
+        <div class="thumb">
+          <img src="${src}" alt="Pendiente ${i+1}" data-full="${src}" />
+          <button class="danger" data-remove-pending="${i}">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function renderTimeline() {
+      const ordered = [...state.entries].sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
+      if (!ordered.length) {
+        els.timeline.innerHTML = `<div class="empty"><span class="empty-icon">📭</span>Todavía no hay registros.<br>Añade el primero desde el formulario superior.</div>`;
+        renderSummary();
+        return;
+      }
+      els.timeline.innerHTML = ordered.map((entry, idx) => `
+        <article class="entry">
+          <div class="entry-top">
+            <div>
+              <div class="entry-time">${escapeHtml(formatDateTime(entry.datetime))}</div>
+              <div class="entry-index">Registro #${String(idx+1).padStart(2,'0')}</div>
+              ${entry.location ? `<div class="entry-location">📍 ${escapeHtml(entry.location)}</div>` : ''}
+            </div>
+            <div class="actions no-print" style="justify-content:flex-end">
+              <button class="secondary" data-edit-id="${entry.id}">Editar</button>
+              <button class="danger" data-delete-id="${entry.id}">Eliminar</button>
+            </div>
+          </div>
+          <div class="meta">
+            <span>📷 ${entry.photos?.length || 0} foto(s)</span>
+            <span>ID ${escapeHtml(entry.id)}</span>
+          </div>
+          <div class="entry-text">${escapeHtml(entry.text || '')}</div>
+          ${entry.photos && entry.photos.length ? `
+            <div class="photos">
+              ${entry.photos.map(src => `<img src="${src}" alt="Foto del registro" data-full="${src}" />`).join('')}
+            </div>` : ''}
+        </article>
+      `).join('');
+      renderSummary();
+    }
+
+    function renderSummary() {
+      els.sumEntries.textContent = state.entries.length;
+      const totalPhotos = state.entries.reduce((n,e) => n+(e.photos?.length||0),0) + (state.pendingPhotos?.length||0);
+      els.sumPhotos.textContent = totalPhotos;
+      const ordered = [...state.entries].sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
+      els.sumLast.textContent = ordered.length ? formatDateTime(ordered[ordered.length-1].datetime) : '—';
+      updatePrintHeader();
+    }
+
+    function updatePrintHeader() {
+      const title   = state.report.title || 'Sin título';
+      const date    = state.report.date  ? formatDateTime(state.report.date) : formatDateTime(new Date());
+      const summary = state.report.summary ? state.report.summary.replace(/\n/g,'<br>') : 'Sin observaciones generales.';
+      document.getElementById('printHeader').innerHTML = `
+        <h1 style="margin:0 0 4mm;font-size:20pt">${escapeHtml(title)}</h1>
+        <div style="margin-bottom:3mm"><strong>Fecha:</strong> ${escapeHtml(date)}</div>
+        <div style="margin-bottom:4mm"><strong>Resumen:</strong><br>${summary}</div>
+      `;
+    }
+
+    function addEntry() {
+      const datetime = els.entryDateTime.value || nowLocalInputValue();
+      const text     = els.entryText.value.trim();
+      const location = els.entryLocation.value.trim();
+      if (!text) { alert('Escribe una anotación antes de añadir el registro.'); return; }
+      state.entries.push({ id:String(Date.now()), datetime, location, text, photos:[...state.pendingPhotos] });
+      state.pendingPhotos = [];
+      els.entryDateTime.value = nowLocalInputValue();
+      els.entryLocation.value = '';
+      els.entryText.value = '';
+      renderPendingPhotos();
+      renderTimeline();
+      saveState();
+      window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
+    }
+
+    function deleteEntry(id) {
+      if (!confirm('¿Eliminar este registro de la cronología?')) return;
+      state.entries = state.entries.filter(e => e.id !== id);
+      renderTimeline(); saveState();
+    }
+
+    function editEntry(id) {
+      const entry = state.entries.find(e => e.id === id);
+      if (!entry) return;
+      const newText = prompt('Editar anotación:', entry.text || '');
+      if (newText === null) return;
+      entry.text = newText.trim();
+      const newLocation = prompt('Editar ubicación / referencia:', entry.location || '');
+      if (newLocation !== null) entry.location = newLocation.trim();
+      const newDt = prompt('Editar fecha y hora (p. ej. 2026-04-23T18:45):', entry.datetime || '');
+      if (newDt !== null && newDt.trim()) entry.datetime = newDt.trim();
+      renderTimeline(); saveState();
+    }
+
+    function clearAll() {
+      if (!confirm('Se borrará todo el informe, incluida la cronología e imágenes guardadas.')) return;
+      state.report = { title:'', date:nowLocalInputValue(), summary:'' };
+      state.entries = []; state.pendingPhotos = [];
+      syncStateToReportFields();
+      els.entryDateTime.value = nowLocalInputValue();
+      els.entryLocation.value = '';
+      els.entryText.value = '';
+      renderPendingPhotos(); renderTimeline(); saveState();
+    }
+
+    function newReport() {
+      if (!confirm('Se iniciará un nuevo informe. ¿Continuar?')) return;
+      clearAll();
+    }
+
+    function addImagesFromFiles(fileList) {
+      Array.from(fileList||[]).filter(f => f.type.startsWith('image/')).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = () => { state.pendingPhotos.push(reader.result); renderPendingPhotos(); saveState(); };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    /* ── PDF DOWNLOAD ── */
+    function inferImageFormat(src='') {
+      return src.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+    }
+
+    function loadImageInfo(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve({ width: img.naturalWidth || img.width, height: img.naturalHeight || img.height, src, format: inferImageFormat(src) });
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    function fitBox(srcW, srcH, boxW, boxH) {
+      const ratio = Math.min(boxW / srcW, boxH / srcH);
+      const w = srcW * ratio;
+      const h = srcH * ratio;
+      return { w, h, x: (boxW - w) / 2, y: (boxH - h) / 2 };
+    }
+
+    async function exportPdf() {
+      syncReportFieldsToState(); saveState();
+      if (!state.entries.length) { alert('Añade al menos un registro antes de exportar.'); return; }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+      const pw = doc.internal.pageSize.getWidth();
+      const ph = doc.internal.pageSize.getHeight();
+      const margin = 12;
+      const usable = pw - margin * 2;
+      const pageBottom = ph - margin;
+      let y = margin;
+
+      const addPage = () => { doc.addPage(); y = margin; };
+      const ensureSpace = needed => { if (y + needed > pageBottom) addPage(); };
+
+      const totalPhotos = state.entries.reduce((n,e) => n+(e.photos?.length||0),0);
+      const reportDate = state.report.date ? formatDateTime(state.report.date) : formatDateTime(new Date());
+      const generatedAt = formatDateTime(new Date());
+
+      // CARÁTULA PRINCIPAL
+      doc.setFillColor(6, 18, 36);
+      doc.rect(0, 0, pw, 42, 'F');
+      doc.setDrawColor(47, 164, 255);
+      doc.setLineWidth(1.2);
+      doc.line(0, 42, pw, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(138, 213, 255);
+      doc.setFontSize(20);
+      doc.text('INFORME DE VIGILANCIA', margin, 18);
+      doc.setFontSize(12);
+      doc.setTextColor(230, 241, 255);
+      doc.text(state.report.title || 'Seguimiento cronológico', margin, 28);
+
+      let cy = 55;
+      const rowH = 12;
+      const leftW = 52;
+      const rightW = usable - leftW;
+      const drawDataRow = (label, value) => {
+        doc.setFillColor(238, 246, 255);
+        doc.rect(margin, cy, leftW, rowH, 'F');
+        doc.setDrawColor(25, 50, 82);
+        doc.rect(margin, cy, usable, rowH);
+        doc.line(margin + leftW, cy, margin + leftW, cy + rowH);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(9.5);
+        doc.setTextColor(16, 34, 60);
+        doc.text(label, margin + 3, cy + 7.5);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(24, 39, 63);
+        const lines = doc.splitTextToSize(String(value || '—'), rightW - 6);
+        doc.text(lines, margin + leftW + 3, cy + 7.5);
+        cy += rowH;
+      };
+      drawDataRow('Operativo / título', state.report.title || '—');
+      drawDataRow('Fecha de referencia', reportDate);
+      drawDataRow('Número de registros', String(state.entries.length));
+      drawDataRow('Número de fotografías', String(totalPhotos));
+      drawDataRow('Generado', generatedAt);
+
+      cy += 10;
+      doc.setFillColor(238, 246, 255);
+      doc.rect(margin, cy, usable, 12, 'F');
+      doc.setDrawColor(25, 50, 82);
+      doc.rect(margin, cy, usable, 12);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(16, 34, 60);
+      doc.text('Observaciones generales', margin + 3, cy + 7.5);
+      cy += 12;
+
+      const summaryLines = doc.splitTextToSize(state.report.summary || 'Sin observaciones generales.', usable - 8);
+      const summaryH = Math.max(120, 10 + summaryLines.length * 5.4);
+      doc.rect(margin, cy, usable, summaryH);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9.5);
+      doc.setTextColor(30, 40, 60);
+      doc.text(summaryLines, margin + 4, cy + 8);
+
+      // Nueva página para cronología
+      addPage();
+
+      const ordered = [...state.entries].sort((a,b) => new Date(a.datetime) - new Date(b.datetime));
+      const imageInfoCache = new Map();
+      async function getInfo(src) {
+        if (!imageInfoCache.has(src)) imageInfoCache.set(src, loadImageInfo(src).catch(() => null));
+        return await imageInfoCache.get(src);
+      }
+
+      function getEntryCardHeight(entry) {
+        const textLines = doc.splitTextToSize(entry.text || '', usable - 12);
+        const textH = Math.max(12, textLines.length * 5.2);
+        return (entry.location ? 26 : 20) + textH + 4;
+      }
+
+      function estimatePhotoBlockHeight(photoInfos, startIndex) {
+        if (!photoInfos || startIndex >= photoInfos.length) return 0;
+        const infoA = photoInfos[startIndex];
+        const infoB = photoInfos[startIndex + 1];
+        const isPortraitA = infoA.height > infoA.width;
+
+        const gapLabel = 7; // etiqueta + separación
+
+        if (!infoB) {
+          const singleH = isPortraitA ? 116 : 68;
+          return gapLabel + singleH + 6;
+        }
+
+        const isPortraitB = infoB.height > infoB.width;
+        if (isPortraitA && isPortraitB) {
+          return gapLabel + 116 + 6;
+        }
+
+        const boxAH = isPortraitA ? 88 : 56;
+        const boxBH = isPortraitB ? 88 : 56;
+        return gapLabel + Math.max(boxAH, boxBH) + 6;
+      }
+
+      function getMinimumBlockHeightForEntry(entry, photoInfos) {
+        const cardH = getEntryCardHeight(entry) + 4;
+        if (!photoInfos || !photoInfos.length) return cardH;
+        return cardH + estimatePhotoBlockHeight(photoInfos, 0);
+      }
+
+      function drawEntryHeader(entry, index) {
+        const textLines = doc.splitTextToSize(entry.text || '', usable - 12);
+        const textH = Math.max(12, textLines.length * 5.2);
+        const cardH = (entry.location ? 26 : 20) + textH + 4;
+
+        doc.setFillColor(246, 249, 255);
+        doc.rect(margin, y, usable, cardH, 'F');
+        doc.setDrawColor(210, 222, 238);
+        doc.rect(margin, y, usable, cardH);
+        doc.setFillColor(47, 164, 255);
+        doc.rect(margin, y, 3, cardH, 'F');
+
+        doc.setFillColor(47, 164, 255);
+        doc.rect(margin + 6, y + 4, 24, 8, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`REG #${String(index + 1).padStart(2,'0')}`, margin + 8, y + 9.4);
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.2);
+        doc.setTextColor(25, 56, 110);
+        doc.text(formatDateTime(entry.datetime), margin + 36, y + 9.5);
+
+        if (entry.location) {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(8.8);
+          doc.setTextColor(70, 100, 160);
+          doc.text(`Ubicación: ${entry.location}`, margin + 6, y + 18);
+        }
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(9.4);
+        doc.setTextColor(30, 40, 60);
+        doc.text(textLines, margin + 6, y + (entry.location ? 24 : 18));
+        y += cardH + 4;
+      }
+
+      async function drawPhotoPair(currentInfo, nextInfo, currentSrc, nextSrc) {
+        const isPortraitA = currentInfo.height > currentInfo.width;
+        const isPortraitB = nextInfo && nextInfo.height > nextInfo.width;
+
+        const label = nextSrc ? 'Fotografías adjuntas (2)' : 'Fotografía adjunta (1)';
+        ensureSpace(8);
+        doc.setFont('helvetica','italic');
+        doc.setFontSize(8);
+        doc.setTextColor(92, 112, 148);
+        doc.text(label, margin, y + 2);
+        y += 5;
+
+        // Cajas fijas calculadas para A4 vertical
+        const gap = 4;
+        const doubleBoxW = (usable - gap) / 2;
+        const landscapeBox = { w: doubleBoxW, h: 56 };
+        const portraitBox  = { w: 64, h: 88 };
+
+        if (!nextSrc) {
+          const singleBox = isPortraitA ? { w: 84, h: 116 } : { w: usable, h: 68 };
+          ensureSpace(singleBox.h + 6);
+          const fx = fitBox(currentInfo.width, currentInfo.height, singleBox.w, singleBox.h);
+          doc.setDrawColor(210, 222, 238);
+          doc.rect(margin + (usable - singleBox.w)/2, y, singleBox.w, singleBox.h);
+          doc.addImage(currentSrc, currentInfo.format, margin + (usable - singleBox.w)/2 + fx.x, y + fx.y, fx.w, fx.h, undefined, 'MEDIUM');
+          y += singleBox.h + 6;
+          return 1;
+        }
+
+        // Regla solicitada: dos verticales seguidas => separar de página
+        if (isPortraitA && isPortraitB) {
+          const singleBox = { w: 84, h: 116 };
+          ensureSpace(singleBox.h + 6);
+          let fx = fitBox(currentInfo.width, currentInfo.height, singleBox.w, singleBox.h);
+          doc.setDrawColor(210, 222, 238);
+          doc.rect(margin + (usable - singleBox.w)/2, y, singleBox.w, singleBox.h);
+          doc.addImage(currentSrc, currentInfo.format, margin + (usable - singleBox.w)/2 + fx.x, y + fx.y, fx.w, fx.h, undefined, 'MEDIUM');
+          y += singleBox.h + 6;
+          addPage();
+          return 1;
+        }
+
+        // Dos horizontales o una vertical + una horizontal: misma página
+        const boxA = isPortraitA ? portraitBox : landscapeBox;
+        const boxB = isPortraitB ? portraitBox : landscapeBox;
+        const rowH = Math.max(boxA.h, boxB.h);
+        ensureSpace(rowH + 6);
+
+        const ax = margin;
+        const bx = margin + usable - boxB.w;
+        const ay = y + (rowH - boxA.h) / 2;
+        const by = y + (rowH - boxB.h) / 2;
+        const fitA = fitBox(currentInfo.width, currentInfo.height, boxA.w, boxA.h);
+        const fitB = fitBox(nextInfo.width, nextInfo.height, boxB.w, boxB.h);
+
+        doc.setDrawColor(210, 222, 238);
+        doc.rect(ax, ay, boxA.w, boxA.h);
+        doc.rect(bx, by, boxB.w, boxB.h);
+        doc.addImage(currentSrc, currentInfo.format, ax + fitA.x, ay + fitA.y, fitA.w, fitA.h, undefined, 'MEDIUM');
+        doc.addImage(nextSrc, nextInfo.format, bx + fitB.x, by + fitB.y, fitB.w, fitB.h, undefined, 'MEDIUM');
+        y += rowH + 6;
+        return 2;
+      }
+
+      for (let i = 0; i < ordered.length; i++) {
+        const entry = ordered[i];
+        const photos = entry.photos || [];
+        const photoInfos = [];
+        for (const src of photos) {
+          const info = await getInfo(src);
+          if (info) photoInfos.push(info);
+        }
+
+        const minimumBlockHeight = getMinimumBlockHeightForEntry(entry, photoInfos);
+        ensureSpace(minimumBlockHeight + 3);
+
+        drawEntryHeader(entry, i);
+
+        let pi = 0;
+        while (pi < photos.length) {
+          const infoA = await getInfo(photos[pi]);
+          if (!infoA) { pi += 1; continue; }
+          const infoB = (pi + 1 < photos.length) ? await getInfo(photos[pi + 1]) : null;
+          const used = await drawPhotoPair(infoA, infoB, photos[pi], photos[pi + 1]);
+          pi += used;
+        }
+        y += 3;
+      }
+
+      const totalPages = doc.internal.getNumberOfPages();
+      for (let p = 1; p <= totalPages; p++) {
+        doc.setPage(p);
+        doc.setFillColor(240, 244, 255);
+        doc.rect(0, ph - 10, pw, 10, 'F');
+        doc.setFont('helvetica','normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(110, 130, 160);
+        doc.text('Herramienta local de seguimiento de vigilancia', margin, ph - 4);
+        doc.text(`Página ${p} / ${totalPages}`, pw - margin, ph - 4, {align:'right'});
+      }
+
+      const safeTitle = (state.report.title || 'informe_vigilancia').replace(/[^a-z0-9_\-]/gi,'_').toLowerCase();
+      const dateStr = new Date().toISOString().slice(0,10);
+      doc.save(`${safeTitle}_${dateStr}.pdf`);
+    }
+
+    /* ── Events ── */
+    document.getElementById('btnAddEntry').addEventListener('click', addEntry);
+    document.getElementById('btnClearAll').addEventListener('click', clearAll);
+    document.getElementById('btnNewReport').addEventListener('click', newReport);
+    document.getElementById('btnSave').addEventListener('click', saveState);
+    document.getElementById('btnExportPdf').addEventListener('click', exportPdf);
+    document.getElementById('btnQuickNow').addEventListener('click', () => {
+      els.entryDateTime.value = nowLocalInputValue();
+      els.entryText.focus();
+      window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'});
+    });
+    els.fileInput.addEventListener('change', e => { addImagesFromFiles(e.target.files); e.target.value=''; });
+    els.cameraInput.addEventListener('change', e => { addImagesFromFiles(e.target.files); e.target.value=''; });
+
+    ['input','change'].forEach(evt => {
+      els.reportTitle.addEventListener(evt, saveState);
+      els.reportDate.addEventListener(evt, saveState);
+      els.reportSummary.addEventListener(evt, saveState);
+    });
+
+    els.pendingPhotos.addEventListener('click', e => {
+      const btn = e.target.closest('[data-remove-pending]');
+      if (btn) { state.pendingPhotos.splice(Number(btn.getAttribute('data-remove-pending')),1); renderPendingPhotos(); saveState(); return; }
+      const img = e.target.closest('img[data-full]');
+      if (img) { els.modalImg.src = img.dataset.full; els.imageModal.classList.add('active'); }
+    });
+
+    els.timeline.addEventListener('click', e => {
+      const del = e.target.closest('[data-delete-id]');
+      if (del) return deleteEntry(del.getAttribute('data-delete-id'));
+      const edit = e.target.closest('[data-edit-id]');
+      if (edit) return editEntry(edit.getAttribute('data-edit-id'));
+      const img = e.target.closest('img[data-full]');
+      if (img) { els.modalImg.src = img.dataset.full; els.imageModal.classList.add('active'); }
+    });
+
+    els.imageModal.addEventListener('click', () => { els.imageModal.classList.remove('active'); els.modalImg.src=''; });
+
+    function init() {
+      loadState();
+      if (!state.report.date) state.report.date = nowLocalInputValue();
+      syncStateToReportFields();
+      els.entryDateTime.value = nowLocalInputValue();
+      renderPendingPhotos();
+      renderTimeline();
+      saveState();
+    }
+
+    init();
+  </script>
+</body>
+</html>
