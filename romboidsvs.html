@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
-<title>Romboids — Enhanced</title>
+<title>Aviones Touch — Enhanced</title>
 <style>
   :root{
     --fg:#ffffff; --muted:#b7c0d1; --accent:#4cd6ff; --danger:#ff4c6a; --bg:#0a1020; --panel:#101932; --gold:#ffd060;
@@ -35,7 +35,7 @@
   .badge{border:1px solid #2e3c6d;padding:4px 9px;border-radius:999px;background:rgba(16,25,50,.72);color:#cfe7ff}
   #bottomHud{
     padding:10px 12px 12px;
-    display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap
+    display:none;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap
   }
   #missionBox,#upgradeMini{
     pointer-events:none;background:rgba(16,25,50,.78);border:1px solid #1d2a52;border-radius:12px;
@@ -46,8 +46,12 @@
   #centerPanel{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;padding:14px}
   .card{
     pointer-events:auto;background:rgba(16,25,50,.95);border:1px solid #1d2a52;
-    padding:18px;border-radius:16px;box-shadow:0 14px 36px rgba(0,0,0,.42);text-align:center;max-width:940px;width:min(94vw,940px)
+    padding:18px;border-radius:16px;box-shadow:0 14px 36px rgba(0,0,0,.42);text-align:center;max-width:940px;width:min(94vw,940px);
+    max-height:calc(100vh - 32px);overflow-y:auto;box-sizing:border-box;
+    scrollbar-width:thin;scrollbar-color:#2e3c6d rgba(255,255,255,.04)
   }
+  .card::-webkit-scrollbar{width:8px}
+  .card::-webkit-scrollbar-thumb{background:#2e3c6d;border-radius:999px}
   .btn{
     display:inline-block;margin-top:12px;padding:12px 18px;border-radius:12px;border:1px solid #2e3c6d;
     color:var(--fg); background:linear-gradient(180deg,#1a2750,#0f1733); text-decoration:none;font-weight:800; pointer-events:auto
@@ -94,6 +98,35 @@
     background:rgba(255,255,255,.12);
     transition:opacity .15s linear;
   }
+  #missionTop{
+    position:fixed;left:50%;top:10px;transform:translateX(-50%);
+    pointer-events:none;z-index:5;max-width:min(92vw,560px);
+    padding:9px 14px;border-radius:14px;background:rgba(10,16,32,.78);
+    border:1px solid rgba(76,214,255,.24);box-shadow:0 8px 22px rgba(0,0,0,.28);
+    font-weight:800;text-align:center;backdrop-filter:blur(6px)
+  }
+  #missionTop.hidden{display:none}
+  #gameStatsBottom{
+    position:fixed;left:10px;right:10px;bottom:10px;z-index:4;
+    pointer-events:none;display:none;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;
+    padding:8px 10px;border-radius:14px;background:rgba(10,16,32,.66);
+    border:1px solid rgba(76,214,255,.18);backdrop-filter:blur(6px)
+  }
+  #gameStatsBottom .mini{font-size:.9rem;font-weight:800;white-space:nowrap}
+  body.playing #topbar{display:none}
+  body.playing #gameStatsBottom{display:flex}
+  .skinPreview{font-size:1.7rem;margin-right:8px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px}
+  .skinDot{width:24px;height:24px;border-radius:50%;display:inline-block;margin-right:8px;box-shadow:0 0 14px rgba(255,255,255,.18)}
+  @media(max-width:680px){
+    .card{padding:14px;max-height:calc(100vh - 20px);width:94vw}
+    .shopGrid{grid-template-columns:1fr;gap:8px}
+    .shopCard{padding:10px}
+    .shopCard h4{font-size:1rem}
+    .shopCard p{font-size:.86rem}
+    .btn{padding:10px 14px}
+    .statsGrid{grid-template-columns:repeat(2,1fr)}
+  }
+
   #waveBanner{
     position:fixed; left:50%; top:16%; transform:translateX(-50%);
     pointer-events:none; opacity:0;
@@ -134,7 +167,7 @@
 
   <div id="centerPanel">
     <div id="overlay" class="card" style="display:none">
-      <h2 id="overlayTitle" style="margin:0 0 8px">Romboids</h2>
+      <h2 id="overlayTitle" style="margin:0 0 8px">Aviones Touch</h2>
       <div id="overlayText" style="opacity:.93; line-height:1.45"></div>
       <div id="summaryStats" class="statsGrid" style="display:none"></div>
       <div id="overlayActions">
@@ -161,6 +194,14 @@
       <div id="upgradeText">—</div>
     </div>
   </div>
+</div>
+
+<div id="missionTop" class="hidden"></div>
+<div id="gameStatsBottom">
+  <div class="mini" id="hudScoreMini">Puntos: 0</div>
+  <div class="mini" id="hudWaveMini">Oleada: 1</div>
+  <div class="mini" id="hudComboMini">Combo x1.0</div>
+  <div class="mini" id="hudLivesMini">Vidas: 3</div>
 </div>
 
 <div id="touchDot"></div>
@@ -195,6 +236,11 @@
     lives: [document.getElementById('life1'), document.getElementById('life2'), document.getElementById('life3')],
     missionText: document.getElementById('missionText'),
     upgradeText: document.getElementById('upgradeText'),
+    missionTop: document.getElementById('missionTop'),
+    hudScoreMini: document.getElementById('hudScoreMini'),
+    hudWaveMini: document.getElementById('hudWaveMini'),
+    hudComboMini: document.getElementById('hudComboMini'),
+    hudLivesMini: document.getElementById('hudLivesMini'),
     floatingTexts: document.getElementById('floatingTexts'),
     flash: document.getElementById('flash'),
     waveBanner: document.getElementById('waveBanner')
@@ -205,11 +251,23 @@
   let pointerActive = false, px = 0, py = 0;
 
   const baseUpgrades = {
-    speed: {label:'Motores', desc:'+5% velocidad por nivel', baseCost:30, max:8},
-    fireRate: {label:'Cadencia', desc:'+6% disparo por nivel', baseCost:35, max:8},
-    attack: {label:'Armas', desc:'+10% daño base por nivel', baseCost:45, max:8},
-    armor: {label:'Blindaje', desc:'Más tiempo invulnerable', baseCost:40, max:6},
-    crit: {label:'Crítico', desc:'Probabilidad de golpe crítico', baseCost:55, max:6}
+    speed: {label:'Motores', desc:'+5% velocidad por nivel', baseCost:55, max:8},
+    fireRate: {label:'Cadencia', desc:'+6% disparo por nivel', baseCost:65, max:8},
+    attack: {label:'Armas', desc:'+10% daño base por nivel', baseCost:85, max:8},
+    armor: {label:'Blindaje', desc:'Más tiempo invulnerable', baseCost:75, max:6},
+    crit: {label:'Crítico', desc:'Probabilidad de golpe crítico', baseCost:105, max:6}
+  };
+
+
+  const shipSkins = {
+    classic: {label:'Clásica', price:0, type:'color', color:'#e9f6ff', accent:'#4cd6ff'},
+    blue: {label:'Azul policial', price:90, type:'color', color:'#7cc7ff', accent:'#00d4ff'},
+    red: {label:'Roja táctica', price:130, type:'color', color:'#ff7b94', accent:'#ff4455'},
+    gold: {label:'Dorada', price:260, type:'color', color:'#ffd060', accent:'#fff0a0'},
+    green: {label:'Verde neón', price:210, type:'color', color:'#7dff9b', accent:'#00ff88'},
+    police: {label:'Policía', price:520, type:'emoji', emoji:'👮'},
+    raccoon: {label:'Mapache', price:850, type:'emoji', emoji:'🦝'},
+    monkey: {label:'Mono', price:720, type:'emoji', emoji:'🐵'}
   };
 
   const missionsPool = [
@@ -238,17 +296,21 @@
         bestScore:0,
         coins:0,
         upgrades:{speed:0, fireRate:0, attack:0, armor:0, crit:0},
-        achievements:{}
+        achievements:{},
+        ownedSkins:['classic'],
+        selectedSkin:'classic'
       };
       const data = JSON.parse(raw);
       return {
         bestScore: data.bestScore || 0,
         coins: data.coins || 0,
         upgrades: Object.assign({speed:0, fireRate:0, attack:0, armor:0, crit:0}, data.upgrades || {}),
-        achievements: Object.assign({}, data.achievements || {})
+        achievements: Object.assign({}, data.achievements || {}),
+        ownedSkins: data.ownedSkins || ['classic'],
+        selectedSkin: data.selectedSkin || 'classic'
       };
     }catch(e){
-      return { bestScore:0, coins:0, upgrades:{speed:0, fireRate:0, attack:0, armor:0, crit:0}, achievements:{} };
+      return { bestScore:0, coins:0, upgrades:{speed:0, fireRate:0, attack:0, armor:0, crit:0}, achievements:{}, ownedSkins:['classic'], selectedSkin:'classic' };
     }
   }
 
@@ -263,7 +325,7 @@
   function getUpgradeCost(key){
     const lvl = save.upgrades[key] || 0;
     const cfg = baseUpgrades[key];
-    return Math.floor(cfg.baseCost * Math.pow(1.45, lvl));
+    return Math.floor(cfg.baseCost * Math.pow(1.62, lvl));
   }
 
   function buyUpgrade(key){
@@ -280,7 +342,7 @@
 
   function refreshShop(){
     ui.shopCoins.textContent = 'Créditos: ' + save.coins;
-    ui.shopGrid.innerHTML = Object.entries(baseUpgrades).map(([key, cfg])=>{
+    const upgradeHtml = Object.entries(baseUpgrades).map(([key, cfg])=>{
       const lvl = save.upgrades[key] || 0;
       const maxed = lvl >= cfg.max;
       const cost = maxed ? 'MAX' : getUpgradeCost(key);
@@ -294,12 +356,61 @@
           </div>
         </div>`;
     }).join('');
+
+    const skinHtml = Object.entries(shipSkins).map(([key, skin])=>{
+      const owned = save.ownedSkins.includes(key);
+      const selected = save.selectedSkin === key;
+      const preview = skin.type === 'emoji'
+        ? `<span class="skinPreview">${skin.emoji}</span>`
+        : `<span class="skinDot" style="background:linear-gradient(180deg,${skin.color},${skin.accent})"></span>`;
+      return `
+        <div class="shopCard">
+          <h4>${preview}${skin.label}</h4>
+          <p>${skin.type === 'emoji' ? 'Icono especial de nave.' : 'Color alternativo para la nave.'}</p>
+          <div class="row">
+            <div><b>${owned ? (selected ? 'Activa' : 'Comprada') : skin.price + ' créditos'}</b></div>
+            <a href="#" class="btn small ${selected ? 'secondary' : ''}" data-skin="${key}">
+              ${selected ? 'Activa' : owned ? 'Usar' : 'Comprar'}
+            </a>
+          </div>
+        </div>`;
+    }).join('');
+
+    ui.shopGrid.innerHTML = upgradeHtml + `
+      <div style="grid-column:1/-1;margin-top:6px">
+        <h3 style="margin:4px 0 0">Tienda visual / Nave</h3>
+        <div class="smallMuted">Compra aspectos y selecciona el icono de la nave.</div>
+      </div>` + skinHtml;
+
     [...ui.shopGrid.querySelectorAll('[data-buy]')].forEach(el=>{
       el.addEventListener('click', ev=>{
         ev.preventDefault();
         buyUpgrade(el.dataset.buy);
       });
     });
+
+    [...ui.shopGrid.querySelectorAll('[data-skin]')].forEach(el=>{
+      el.addEventListener('click', ev=>{
+        ev.preventDefault();
+        buyOrSelectSkin(el.dataset.skin);
+      });
+    });
+  }
+
+  function buyOrSelectSkin(key){
+    const skin = shipSkins[key];
+    if (!skin) return;
+    if (save.ownedSkins.includes(key)){
+      save.selectedSkin = key;
+      persistSave();
+      return;
+    }
+    if (save.coins < skin.price) return;
+    save.coins -= skin.price;
+    save.ownedSkins.push(key);
+    save.selectedSkin = key;
+    persistSave();
+    flash('#89f0ff', 0.12);
   }
 
   function refreshPersistentHud(){
@@ -327,6 +438,13 @@
   const rand = (a,b)=> a + Math.random()*(b-a);
   const clamp = (v,a,b)=> Math.max(a, Math.min(b,v));
   const dist2 = (ax,ay,bx,by)=> { const dx=ax-bx, dy=ay-by; return dx*dx + dy*dy; };
+
+  function enemyHealthMultiplier(){
+    // Cada bloque de 5 oleadas añade vida extra de manera gradual.
+    // Oleadas 1-4: x1.00 | 5-9: x1.18 | 10-14: x1.39 | 15-19: x1.64...
+    const blocks = Math.floor(Math.max(0, game.wave - 1) / 5);
+    return Math.pow(1.18, blocks);
+  }
 
   function currentMissionTemplate(excludeId){
     const options = missionsPool.filter(m => m.id !== excludeId);
@@ -405,32 +523,33 @@
     const x = rand(20, window.innerWidth - 20);
     const y = -30;
     const diff = game.wave * 0.12 + game.difficulty * 0.08;
+    const hpMult = enemyHealthMultiplier();
 
     if (type === 'swarm'){
       game.enemies.push({
-        type, x, y, r:10, hp:1.1 + diff*0.35, vx:rand(-80,80), vy:160 + diff*20, t:0
+        type, x, y, r:10, hp:(1.1 + diff*0.35) * hpMult, vx:rand(-80,80), vy:160 + diff*20, t:0
       });
     } else if (type === 'tank'){
       game.enemies.push({
-        type, x, y, r:24, hp:8 + diff*1.8, vx:rand(-25,25), vy:58 + diff*10, t:0
+        type, x, y, r:24, hp:(8 + diff*1.8) * hpMult, vx:rand(-25,25), vy:58 + diff*10, t:0
       });
     } else if (type === 'sniper'){
       game.enemies.push({
-        type, x, y, r:16, hp:3 + diff*0.9, vx:rand(-50,50), vy:75 + diff*12, t:0, fire:1.2
+        type, x, y, r:16, hp:(3 + diff*0.9) * hpMult, vx:rand(-50,50), vy:75 + diff*12, t:0, fire:1.2
       });
     } else if (type === 'kamikaze'){
       game.enemies.push({
-        type, x, y, r:14, hp:2 + diff*0.6, vx:0, vy:110 + diff*15, t:0
+        type, x, y, r:14, hp:(2 + diff*0.6) * hpMult, vx:0, vy:110 + diff*15, t:0
       });
     } else {
       game.enemies.push({
-        type, x, y, r:18, hp:2.2 + diff*0.8, vx:Math.random()<0.5 ? rand(-70,70) : 0, vy:95 + diff*16, t:0
+        type, x, y, r:18, hp:(2.2 + diff*0.8) * hpMult, vx:Math.random()<0.5 ? rand(-70,70) : 0, vy:95 + diff*16, t:0
       });
     }
   }
 
   function spawnBoss(){
-    const hp = 240 + game.wave * 80;
+    const hp = Math.floor((260 + game.wave * 95) * enemyHealthMultiplier());
     game.boss = {
       x:window.innerWidth/2, y:90, r:44, hp, hpMax:hp,
       vx:150, vy:0, t:0, pattern:0, shootTimer:0.4
@@ -534,6 +653,7 @@
       save.coins += m.reward;
       persistSave();
       announce('MISIÓN COMPLETADA +' + m.reward);
+      if (ui.missionTop) ui.missionTop.classList.add('hidden');
       setTimeout(()=>{
         game.mission = createMission(m.id);
         updateMissionHud();
@@ -549,6 +669,10 @@
       ? `${Math.min(m.progress, m.goal).toFixed(m.type==='combo' ? 1 : 0)}/${m.goal}`
       : `${Math.min(m.progress, m.goal)}/${m.goal}`;
     ui.missionText.innerHTML = `${m.text} <span class="smallMuted">(${progress}) · +${m.reward} créditos</span>`;
+    if (ui.missionTop){
+      ui.missionTop.classList.toggle('hidden', !!m.done || !running);
+      ui.missionTop.innerHTML = `🎯 ${m.text} <span class="smallMuted">(${progress})</span>`;
+    }
   }
 
   function addScore(base, x, y){
@@ -871,6 +995,10 @@
     ui.waveBox.textContent = 'Oleada: ' + game.wave;
     ui.comboBox.textContent = 'Combo x' + game.combo.toFixed(1);
     ui.coinsBox.textContent = 'Créditos: ' + (save.coins + game.coinsRun);
+    ui.hudScoreMini.textContent = 'Puntos: ' + game.score;
+    ui.hudWaveMini.textContent = 'Oleada: ' + game.wave;
+    ui.hudComboMini.textContent = 'Combo x' + game.combo.toFixed(1);
+    ui.hudLivesMini.textContent = 'Vidas: ' + game.lives;
     for (let i=0;i<3;i++) ui.lives[i].classList.toggle('off', i >= game.lives);
     renderBadges();
     updateMissionHud();
@@ -965,25 +1093,36 @@
   function drawPlayer(p){
     const blink = (p.invuln > 0 && Math.floor(p.invuln*20)%2===0);
     if (blink) return;
+
+    const skin = shipSkins[save.selectedSkin] || shipSkins.classic;
+
     ctx.save();
     ctx.translate(p.x, p.y);
-    const grd = ctx.createRadialGradient(0,0,0,0,0,24);
+
+    const grd = ctx.createRadialGradient(0,0,0,0,0,26);
     grd.addColorStop(0,'rgba(76,214,255,.35)');
     grd.addColorStop(1,'rgba(76,214,255,0)');
     ctx.fillStyle = grd;
-    ctx.beginPath(); ctx.arc(0,0,24,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0,0,26,0,Math.PI*2); ctx.fill();
 
-    ctx.beginPath();
-    ctx.moveTo(0,-20); ctx.lineTo(12,14); ctx.lineTo(0,8); ctx.lineTo(-12,14); ctx.closePath();
-    ctx.fillStyle = '#e9f6ff'; ctx.fill();
+    if (skin.type === 'emoji'){
+      ctx.font = '32px system-ui, Apple Color Emoji, Segoe UI Emoji';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(skin.emoji, 0, 0);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(0,-20); ctx.lineTo(12,14); ctx.lineTo(0,8); ctx.lineTo(-12,14); ctx.closePath();
+      ctx.fillStyle = skin.color; ctx.fill();
 
-    ctx.beginPath(); ctx.arc(0,-8,4.5,0,Math.PI*2); ctx.fillStyle='#4cd6ff'; ctx.fill();
+      ctx.beginPath(); ctx.arc(0,-8,4.5,0,Math.PI*2); ctx.fillStyle=skin.accent; ctx.fill();
 
-    ctx.beginPath(); ctx.moveTo(-3,22); ctx.lineTo(3,22); ctx.lineTo(0,36); ctx.closePath();
-    ctx.fillStyle=(p.shield>0)?'#aaf3ff':'#6ec9ff'; ctx.globalAlpha=.7; ctx.fill(); ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.moveTo(-3,22); ctx.lineTo(3,22); ctx.lineTo(0,36); ctx.closePath();
+      ctx.fillStyle=(p.shield>0)?'#aaf3ff':skin.accent; ctx.globalAlpha=.7; ctx.fill(); ctx.globalAlpha=1;
+    }
 
     if (p.shield>0){
-      ctx.beginPath(); ctx.arc(0,0,22,0,Math.PI*2);
+      ctx.beginPath(); ctx.arc(0,0,23,0,Math.PI*2);
       ctx.strokeStyle='rgba(170,243,255,.8)'; ctx.lineWidth=2; ctx.stroke();
     }
     ctx.restore();
@@ -1095,6 +1234,8 @@
     showShop(false);
     ui.overlay.style.display = 'none';
     ui.summaryStats.style.display = 'none';
+    document.body.classList.add('playing');
+    if (ui.missionTop) ui.missionTop.classList.remove('hidden');
     last = 0;
     timeScale = 1;
     running = true;
@@ -1116,6 +1257,8 @@
 
   function endGame(){
     running = false;
+    document.body.classList.remove('playing');
+    if (ui.missionTop) ui.missionTop.classList.add('hidden');
     save.bestScore = Math.max(save.bestScore, game.score);
     const reward = Math.max(12, Math.floor(game.score/18) + game.wave*3 + game.stats.bosses*18);
     save.coins += reward;
@@ -1149,7 +1292,7 @@
     refreshPersistentHud();
     refreshShop();
     ui.overlay.style.display = 'block';
-    ui.overlayTitle.textContent = 'Romboids — Enhanced';
+    ui.overlayTitle.textContent = 'Aviones Touch — Enhanced';
     ui.overlayText.innerHTML = `
       Arrastra para mover el avión. Esta versión añade:
       <br><b>oleadas</b>, <b>combo</b>, <b>misiones</b>, <b>logros</b>, <b>enemigos nuevos</b>,
@@ -1161,6 +1304,7 @@
       <br>• <b>Kamikaze</b>: te persigue
     `;
     ui.btnStart.textContent = 'Jugar';
+    if (ui.missionTop) ui.missionTop.classList.add('hidden');
     updateMissionHud();
   }
 
