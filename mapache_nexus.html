@@ -383,6 +383,10 @@ html,body{height:100%;overflow:hidden;touch-action:none;background:#17181c}
 .mobileActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .mobileActions button{min-height:42px;border:1px solid var(--line2);background:#26272d;color:var(--text);font-weight:700;font-size:12px;padding:7px 5px;cursor:pointer}
 .mobileActions button:active{transform:scale(.98);background:#30323a}
+.mobileActions .splitAction{display:grid;grid-template-columns:1fr 1fr;gap:5px;min-width:0}
+.mobileActions .splitAction button{width:100%;min-width:0;padding-left:0;padding-right:0;font-size:16px}
+.mobileActions .splitAction button:first-child{font-weight:800}
+.mobileActions .splitAction button:last-child{color:#fff;border-color:#575a77;background:linear-gradient(135deg,#30323a,#292b34)}
 .mobileActions .primaryMobile{background:linear-gradient(135deg,#32334a,#2b2d39);color:#fff;border-color:#575a77}
 .mobileGraphShell{position:relative;flex:1;min-height:0;overflow:hidden}
 .mobileGraphShell .graphArea{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 30%,rgba(142,140,255,.08),transparent 34%),#1b1c20}
@@ -404,12 +408,17 @@ html,body{height:100%;overflow:hidden;touch-action:none;background:#17181c}
 .converterGrid,.blockchainGrid,.apiKeyGrid{grid-template-columns:1fr!important;gap:8px}
 .converterGrid textarea{height:98px;min-height:86px}
 .converterResult textarea,.blockchainResult textarea{height:170px}
+#pasteTraceBody{height:240px;min-height:180px;border:1px solid var(--line);background:#1e1f23;color:var(--text);font-family:Consolas,Menlo,monospace;font-size:12px;line-height:1.45;resize:vertical}
+.pasteTraceMeta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.pasteTraceMeta label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted)}
+.pasteTraceMeta input{height:34px;background:#1e1f23;border:1px solid var(--line);color:var(--text);padding:0 9px}
 .blockchainTableWrap{max-height:180px}
 .blockchainAnalysis .bcAnalysisGrid{grid-template-columns:1fr!important}
 .dialog .actions{gap:7px;flex-wrap:wrap}
 .primary,.secondary{min-height:38px}
 .exportDoc{padding:10px}.report{padding:24px 18px;max-width:none}.printbar{left:8px;right:8px;top:8px;justify-content:flex-end}.printbar button{font-size:12px;padding:8px 9px}
 @media(min-width:760px){.mobileActions{grid-template-columns:repeat(6,1fr)}.dialog{width:min(760px,92vw);max-width:760px;border:1px solid var(--line2)}.modal.show{align-items:center}.mobileGraphShell .graphControls{grid-template-columns:repeat(4,minmax(0,1fr));max-width:720px;left:auto}.mobileGraphShell .legend{right:auto;max-width:720px}.mobileGraphShell .nodeInfo{left:auto;width:330px;right:12px}}
+@media(max-width:520px){.pasteTraceMeta{grid-template-columns:1fr}}
 @media(max-width:380px){.mobileActions{grid-template-columns:repeat(2,1fr)}.mobileBrand h1{font-size:14px}.mobileGraphShell .graphControls{grid-template-columns:1fr 1fr}.mobileGraphShell .legend{display:none}}
 @media print{.mobileHeader,.mobileStatus{display:none!important}.mobileGraphShell{display:none!important}.exportDoc{display:block!important}}
 
@@ -429,7 +438,10 @@ html,body{height:100%;overflow:hidden;touch-action:none;background:#17181c}
       <button id="exportDocBtn">📄 PDF</button>
       <button id="resetGraphViewBtn">🎯 Centrar</button>
       <button id="clearMobileGraphBtn">🧹 Vaciar</button>
-      <button id="openHelpModal">?</button>
+      <div class="splitAction" aria-label="Ayuda y pegado manual">
+        <button id="openHelpModal" title="Ayuda">?</button>
+        <button id="openPasteTraceModal" title="Pegar trazabilidad">📋</button>
+      </div>
     </div>
   </header>
   <main class="mobileGraphShell">
@@ -492,6 +504,43 @@ html,body{height:100%;overflow:hidden;touch-action:none;background:#17181c}
     </div>
     <div class="actions" style="margin-top:12px">
       <button class="secondary" id="closeHelpModal">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="pasteTraceModal">
+  <div class="dialog">
+    <h2>Pegar trazabilidad para el grafo</h2>
+    <p class="converterHint">
+      Pega aquí una estructura ya preparada con el formato de Mapache Nexus. Se añadirá como una entrada interna oculta y el grafo se actualizará automáticamente.
+    </p>
+    <div class="pasteTraceMeta">
+      <label>Título opcional
+        <input id="pasteTraceTitle" placeholder="Trazabilidad pegada">
+      </label>
+      <label>Fecha opcional
+        <input id="pasteTraceDate" type="date">
+      </label>
+    </div>
+    <textarea id="pasteTraceBody" spellcheck="false" placeholder="Ejemplo:
+[ES1200492352082414205416]
+    Titular=*Persona investigada*
+    01/02/2025;5000 EUR:[ES9821000418450200051332]
+        Titular=*Empresa destino*
+
+[0x9d4fb2D744B04cde7957D54eFb6b6847308b3d0a]
+    05/05/2025 10:30;2000 USDT:[TLx4JeABGztQqxJGsJytr73LD3ZEqvJ3jE]
+        Hash=(hash_transaccion)
+        Red=&quot;TRON&quot;"></textarea>
+    <div class="actions" style="justify-content:space-between;margin-top:10px">
+      <button class="secondary" id="clearPasteTrace">Limpiar</button>
+      <div>
+        <button class="secondary" id="readClipboardTrace">Pegar portapapeles</button>
+        <button class="primary" id="insertPastedTrace">Añadir al grafo</button>
+      </div>
+    </div>
+    <div class="actions" style="margin-top:10px">
+      <button class="secondary" id="closePasteTraceModal">Cerrar</button>
     </div>
   </div>
 </div>
@@ -3202,6 +3251,60 @@ const clearMobileGraphBtn=document.getElementById("clearMobileGraphBtn");
 if(clearMobileGraphBtn) clearMobileGraphBtn.onclick=clearMobileGraph;
 const resetMobileGraphBtn=document.getElementById("resetGraphViewBtn");
 if(resetMobileGraphBtn) resetMobileGraphBtn.onclick=resetMobileGraphView;
+
+function openPasteTraceModal(){
+  const date=document.getElementById("pasteTraceDate");
+  if(date && !date.value) date.value=today();
+  const modal=document.getElementById("pasteTraceModal");
+  if(modal) modal.classList.add("show");
+  setTimeout(()=>document.getElementById("pasteTraceBody")?.focus(),80);
+}
+function closePasteTraceModal(){
+  const modal=document.getElementById("pasteTraceModal");
+  if(modal) modal.classList.remove("show");
+}
+function clearPasteTrace(){
+  const body=document.getElementById("pasteTraceBody");
+  const title=document.getElementById("pasteTraceTitle");
+  if(body) body.value="";
+  if(title) title.value="";
+}
+async function readClipboardTrace(){
+  const body=document.getElementById("pasteTraceBody");
+  if(!body) return;
+  try{
+    if(!navigator.clipboard?.readText) throw new Error("Portapapeles no disponible");
+    const text=await navigator.clipboard.readText();
+    body.value=text;
+    mobileToast("Texto pegado desde el portapapeles.");
+  }catch(err){
+    body.focus();
+    mobileToast("Pega manualmente en el cuadro de texto.");
+  }
+}
+function insertPastedTrace(){
+  const body=(document.getElementById("pasteTraceBody")?.value||"").trim();
+  if(!body){ alert("Pega primero una estructura de trazabilidad."); return; }
+  const inv=ensureMobileInvest();
+  const date=document.getElementById("pasteTraceDate")?.value || today();
+  const title=(document.getElementById("pasteTraceTitle")?.value||"").trim() || "Trazabilidad pegada";
+  const e={id:uid(),date,title,body};
+  inv.entries.unshift(e);
+  selectedEntry=e.id;
+  renderAll();
+  closePasteTraceModal();
+  mobileToast("Trazabilidad pegada añadida al grafo.");
+}
+const openPasteTraceBtn=document.getElementById("openPasteTraceModal");
+if(openPasteTraceBtn) openPasteTraceBtn.onclick=openPasteTraceModal;
+const closePasteTraceBtn=document.getElementById("closePasteTraceModal");
+if(closePasteTraceBtn) closePasteTraceBtn.onclick=closePasteTraceModal;
+const clearPasteTraceBtn=document.getElementById("clearPasteTrace");
+if(clearPasteTraceBtn) clearPasteTraceBtn.onclick=clearPasteTrace;
+const readClipboardTraceBtn=document.getElementById("readClipboardTrace");
+if(readClipboardTraceBtn) readClipboardTraceBtn.onclick=readClipboardTrace;
+const insertPastedTraceBtn=document.getElementById("insertPastedTrace");
+if(insertPastedTraceBtn) insertPastedTraceBtn.onclick=insertPastedTrace;
 
 // Eventos táctiles para móvil: arrastrar, mover lienzo y zoom con dos dedos.
 let touchState={mode:null,lastX:0,lastY:0,startDist:0,startScale:1,startOffsetX:0,startOffsetY:0,midX:0,midY:0,startNode:null,moved:false};
