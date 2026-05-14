@@ -1,0 +1,3272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Mapache Nexus Mobile</title>
+<style>
+
+:root{
+  --bg:#1e1f22;
+  --panel:#26272b;
+  --panel2:#2b2d31;
+  --panel3:#303136;
+  --line:#3b3d44;
+  --line2:#484b55;
+  --text:#d7d7d9;
+  --muted:#9a9ca3;
+  --soft:#70737d;
+  --accent:#8e8cff;
+  --accent2:#b7b5ff;
+  --danger:#e06c75;
+  --ok:#98c379;
+  --warn:#e5c07b;
+  --dato:#3fa7ff;
+  --cuenta:#ffd84d;
+  --persona:#f28c28;
+  --lugar:#62c370;
+  --doc:#8b5a2b;
+  --entidad:#ff79c6;
+  --cruce:#ff3b3b;
+  --shadow:0 18px 40px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;overflow:hidden}
+button,input,textarea{font-family:inherit}
+.app{height:100vh;display:flex;background:linear-gradient(135deg,#1d1e21,#25262b)}
+.panel{
+  min-width:230px;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  background:var(--panel);
+  border-right:1px solid var(--line);
+  position:relative;
+}
+
+.panel.tools{
+  width:2%;
+  min-width:58px;
+  max-width:86px;
+  flex:0 0 2%;
+  background:#202126;
+  border-right:1px solid var(--line);
+  align-items:center;
+}
+.toolsRail{
+  width:100%;
+  padding:10px 6px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+}
+.toolBtn{
+  width:42px;
+  height:42px;
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  font-size:22px;
+}
+.toolBtn:hover{background:#30323a;color:#fff}
+.converterGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.converterGrid label{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  font-size:12px;
+  color:var(--muted);
+}
+.converterGrid textarea{
+  height:150px;
+  min-height:120px;
+  resize:vertical;
+  border:1px solid var(--line);
+}
+.converterResult{
+  margin-top:12px;
+  border-top:1px solid var(--line);
+  padding-top:12px;
+}
+.converterResult textarea{
+  height:220px;
+  border:1px solid var(--line);
+  background:#1e1f23;
+}
+.blockchainGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.blockchainGrid label,.apiKeyGrid label{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  font-size:12px;
+  color:var(--muted);
+}
+.blockchainGrid input,.blockchainGrid select,.apiKeyGrid input{
+  height:34px;
+  background:#1e1f23;
+  border:1px solid var(--line);
+  color:var(--text);
+  padding:0 9px;
+}
+.apiKeyGrid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid var(--line);
+}
+.blockchainStatus{
+  min-height:20px;
+  font-size:12px;
+  color:var(--muted);
+  margin-top:8px;
+}
+.blockchainStatus.ok{color:var(--ok)}
+.blockchainStatus.warn{color:var(--warn)}
+.blockchainStatus.err{color:var(--danger)}
+.blockchainResult textarea{height:220px}
+.blockchainTableWrap{
+  max-height:220px;
+  overflow:auto;
+  border:1px solid var(--line);
+  background:#1e1f23;
+  margin-top:10px;
+}
+.blockchainTable{width:100%;border-collapse:collapse;font-size:12px}
+.blockchainTable th,.blockchainTable td{border-bottom:1px solid var(--line);padding:6px;text-align:left;vertical-align:top}
+.blockchainTable th{background:#25272d;color:#fff;position:sticky;top:0}
+.blockchainTable td{color:var(--text)}
+.blockchainAnalysis{
+  border:1px solid var(--line);
+  background:#202126;
+  margin-top:10px;
+  padding:10px 12px;
+  font-size:12px;
+  color:var(--text);
+}
+.blockchainAnalysis h3{margin:0 0 8px;font-size:13px;color:#fff}
+.blockchainAnalysis h4{margin:10px 0 5px;font-size:12px;color:var(--accent2)}
+.blockchainAnalysis .bcAnalysisGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.blockchainAnalysis .bcMiniBox{border:1px solid rgba(255,255,255,.07);background:#25272d;padding:8px}
+.blockchainAnalysis .bcMuted{color:var(--muted)}
+.blockchainAnalysis ul{margin:5px 0 0 16px;padding:0}
+.blockchainAnalysis li{margin:3px 0}
+@media(max-width:900px){
+  .blockchainAnalysis .bcAnalysisGrid{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+  .blockchainGrid,.apiKeyGrid{grid-template-columns:1fr}
+}
+
+.economicPanel{position:absolute;left:12px;bottom:68px;z-index:6;background:rgba(25,26,31,.92);border:1px solid var(--line);padding:10px 12px;min-width:270px;max-width:340px;color:#d8dce5;font-size:12px}
+.economicPanel h3{margin:0 0 8px 0;font-size:13px;color:#fff}
+.economicPanel .ecoRow{display:flex;justify-content:space-between;gap:10px;margin:3px 0}
+.economicPanel .ecoRank{color:#ffd84d;font-weight:700}
+.graphControls input[type=number]{width:70px;background:#1f2127;color:#fff;border:1px solid var(--line);height:24px;padding:0 6px}
+
+
+.helpContent{
+  color:var(--text);
+  font-size:14px;
+  line-height:1.5;
+}
+.helpContent h3{
+  margin:18px 0 6px;
+  font-size:15px;
+  color:#fff;
+}
+.helpContent p{margin:6px 0;color:var(--muted)}
+.helpContent ul{margin:6px 0 10px 18px;color:var(--muted)}
+.helpContent li{margin:4px 0}
+.helpContent pre{
+  background:#1e1f23;
+  border:1px solid var(--line);
+  color:#e7e7ea;
+  padding:10px;
+  overflow:auto;
+  white-space:pre-wrap;
+}
+
+.converterHint{
+  font-size:12px;
+  color:var(--soft);
+  margin:4px 0 12px;
+  line-height:1.4;
+}
+@media(max-width:900px){
+  .panel.tools{width:58px;flex-basis:58px}
+  .converterGrid{grid-template-columns:1fr}
+}
+
+.panel.left{width:25%}
+.panel.mid{width:33%}
+.panel.right{width:40%;border-right:0;background:#202124}
+.resizer{width:6px;background:#1a1b1e;cursor:col-resize;border-left:1px solid #151619;border-right:1px solid #2d2f35}
+.resizer:hover{background:#34363d}
+.toolbar{
+  height:44px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-bottom:1px solid var(--line);
+  background:rgba(255,255,255,.02);
+}
+.iconbtn{
+  width:30px;height:30px;border:0;background:transparent;color:var(--muted);
+  display:inline-grid;place-items:center;cursor:pointer;font-size:17px;
+}
+.iconbtn:hover{color:var(--text);background:#34363c}
+.iconbtn.danger:hover{color:#fff;background:#553034}
+.search{
+  flex:1;min-width:0;height:28px;border:0;outline:0;
+  background:#202125;color:var(--text);padding:0 9px;border-left:2px solid transparent;
+}
+.search:focus{border-left-color:var(--accent);background:#1c1d21}
+.list{flex:1;overflow:auto;padding:8px}
+.item{
+  padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.04);
+  cursor:pointer;color:var(--muted);position:relative;
+}
+.item:hover{background:#303137;color:var(--text)}
+.item.active{background:#353640;color:#fff;border-left:3px solid var(--accent)}
+.item .title{font-weight:600;font-size:14px;margin-bottom:4px}
+.item .meta{font-size:12px;color:var(--soft)}
+.empty{padding:24px;color:var(--soft);text-align:center;font-size:14px;line-height:1.45}
+.editorWrap{display:none;flex-direction:column;border-bottom:1px solid var(--line);background:#24252a}
+.editorWrap.open{display:flex}
+.editorHeader{display:grid;grid-template-columns:130px 1fr auto;gap:8px;padding:10px;border-bottom:1px solid var(--line)}
+.editorHeader input{
+  height:32px;border:0;outline:0;background:#1d1e22;color:var(--text);padding:0 10px;
+}
+.mdbar{display:flex;gap:6px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.chip{
+  min-width:32px;
+  height:28px;
+  display:inline-grid;
+  place-items:center;
+  border:0;
+  background:#33353c;
+  color:var(--muted);
+  cursor:pointer;
+  font-size:14px;
+  padding:0 8px;
+}
+.chip:hover{color:#fff;background:#3f414a}
+textarea{
+  width:100%;height:210px;resize:vertical;border:0;outline:0;background:#202126;color:#e5e5e7;
+  padding:12px;font-size:14px;line-height:1.5;tab-size:4;
+}
+.diaryList{flex:1;overflow:auto;padding:8px}
+.entry{padding:10px;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;color:var(--muted)}
+.entry:hover{background:#303137;color:#fff}
+.entry.active{background:#343642;color:#fff;border-left:3px solid var(--accent)}
+.entryDate{font-size:12px;color:var(--accent2);margin-bottom:4px}
+.entryTitle{font-size:14px;font-weight:700;margin-bottom:5px}
+.entryPreview{font-size:12px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.graphArea{position:relative;flex:1;overflow:hidden}
+#graph{width:100%;height:100%;display:block}
+.nodeInfo{
+  position:absolute;right:14px;top:14px;width:310px;max-width:calc(100% - 28px);max-height:55%;
+  overflow:auto;background:rgba(38,39,43,.96);border:1px solid var(--line2);
+  box-shadow:var(--shadow);display:none;padding:12px;z-index:5;
+}
+.nodeInfo.show{display:block}
+.nodeInfo h3{margin:0 0 4px;font-size:15px}
+.nodeInfo .type{font-size:12px;color:var(--muted);margin-bottom:10px}
+.nodeInfo .block{border-top:1px solid var(--line);padding-top:9px;margin-top:9px}
+.nodeInfo button{width:100%;text-align:left;background:#30323a;color:var(--text);border:0;padding:8px;margin-top:6px;cursor:pointer}
+.nodeInfo button:hover{background:#3b3e48}
+
+.nodeInfo button.internalRef{border-left:3px dashed var(--line2)}
+.nodeInfo button.deleteNode{background:#4a2529;color:#fff;text-align:center}
+.nodeInfo button.deleteNode:hover{background:#6a3036}
+
+.nodeInfo button.undoDelete{background:#303a4a;color:#fff;text-align:center}
+.nodeInfo button.undoDelete:hover{background:#3b4b64}
+
+
+.legend{
+  position:absolute;left:12px;bottom:12px;background:rgba(32,33,36,.82);
+  border:1px solid var(--line);padding:8px 10px;font-size:12px;color:var(--muted);
+  display:flex;gap:10px;flex-wrap:wrap;max-width:calc(100% - 24px)
+}
+
+.graphControls{position:absolute;right:12px;bottom:12px;background:rgba(32,33,36,.86);border:1px solid var(--line);padding:8px 10px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:7px;max-width:260px}
+.graphControls label{display:flex;align-items:center;gap:7px;cursor:pointer}
+.graphControls input{accent-color:var(--accent)}
+.graphControls button{border:0;background:#303a4a;color:#fff;padding:7px 9px;cursor:pointer;text-align:left}
+.graphControls button:hover{background:#3b4b64}
+.graphControls button:disabled{opacity:.35;cursor:not-allowed}
+.edgeLabel{position:absolute;pointer-events:none;font-size:11px;color:#c9cbd2;background:rgba(32,33,36,.78);border:1px solid rgba(255,255,255,.08);padding:2px 5px;transform:translate(-50%,-50%);max-width:150px;white-space:normal;overflow:visible;text-overflow:clip;text-align:center;line-height:1.25}
+.report.hideNodeData .nodeSummaryGrid,.report.hideNodeData .nodeDataNote{display:none!important}
+
+
+.legend span{cursor:pointer;user-select:none}
+.legend span.legendOff{opacity:.42;text-decoration:line-through;text-decoration-thickness:2px}
+
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:20;
+}
+.modal.show{display:flex}
+.dialog{width:min(760px,92vw);max-height:86vh;overflow:auto;background:#28292e;border:1px solid var(--line2);box-shadow:var(--shadow);padding:18px}
+.dialog h2{margin:0 0 12px}
+.dialog input,.dialog textarea{background:#1e1f23;border:1px solid var(--line);margin-bottom:10px;color:var(--text)}
+.dialog input::placeholder,.dialog textarea::placeholder{color:#8f929a}
+#investName{width:100%;height:38px;font-size:15px}
+#investNotes{width:100%}
+.dialog input[readonly],.dialog textarea[readonly]{color:#d7d7d9;background:#202126;opacity:1}
+.nodePhoto{max-width:100%;max-height:150px;object-fit:contain;background:#15161a;border:1px solid var(--line);display:block;margin:8px 0}
+.fileInput{display:none}
+.externalRef{border-left:3px solid var(--cruce)!important}
+.dialog textarea{height:180px}
+.dialog .actions{display:flex;justify-content:flex-end;gap:8px}
+.primary{border:0;background:var(--accent);color:#111;padding:9px 14px;cursor:pointer;font-weight:700}
+.secondary{border:0;background:#3a3c43;color:var(--text);padding:9px 14px;cursor:pointer}
+.exportDoc{
+  display:none;
+  position:fixed;inset:0;background:#f5f5f0;color:#191919;z-index:50;overflow:auto;padding:32px;
+}
+.report{
+  max-width:920px;margin:0 auto;background:white;padding:42px 52px;box-shadow:0 20px 70px rgba(0,0,0,.18);
+  font-family:Arial, sans-serif;line-height:1.5;
+}
+.report h1{font-size:26px;letter-spacing:.04em;border-bottom:3px solid #222;padding-bottom:12px;margin:0 0 18px}
+.report h2{font-size:18px;margin:28px 0 8px;border-bottom:1px solid #bbb;padding-bottom:5px}
+.report .cover{border:2px solid #222;padding:22px;margin-bottom:26px}
+.report .small{font-size:12px;color:#555}
+.report .entryReport{break-inside:avoid;border-left:4px solid #333;padding:10px 0 10px 14px;margin:16px 0}
+.report pre{white-space:pre-wrap;background:#f1f1f1;padding:12px;border:1px solid #ddd}
+.report table{width:100%;border-collapse:collapse;font-size:13px}
+.report th,.report td{border:1px solid #ccc;padding:6px;text-align:left;vertical-align:top}
+.report th{background:#eee}
+
+.report .nodeSummaryGrid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+.report .nodeCard{display:grid;grid-template-columns:86px 1fr;gap:12px;border:1px solid #ccc;padding:10px;break-inside:avoid;background:#fafafa}
+.report .nodeThumb{width:82px;height:82px;object-fit:contain;border:1px solid #bbb;background:#fff}
+.report .nodeThumb.empty{display:grid;place-items:center;color:#777;font-size:11px;text-align:center}
+.report .nodeCard h3{margin:0 0 4px;font-size:15px}
+.report .nodeCard p{margin:3px 0;font-size:12px}
+
+.printbar{position:fixed;right:18px;top:18px;display:flex;gap:8px;z-index:60}
+@media print{
+  body>*:not(.exportDoc){display:none!important}
+  .exportDoc{display:block!important;position:static;padding:0;background:white}
+  .printbar{display:none}
+  .report{box-shadow:none;max-width:none;padding:20mm}
+}
+
+
+
+/* --- MAPACHE NEXUS MOBILE --- */
+html,body{height:100%;overflow:hidden;touch-action:none;background:#17181c}
+.mobileApp{height:100vh;height:100dvh;display:flex;flex-direction:column;background:linear-gradient(180deg,#17181c,#202126);color:var(--text)}
+.mobileHeader{flex:0 0 auto;padding:10px 12px 8px;border-bottom:1px solid var(--line);background:rgba(32,33,38,.98);box-shadow:0 10px 30px rgba(0,0,0,.22);z-index:8}
+.mobileBrand{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.mobileBrand h1{font-size:15px;line-height:1.1;margin:0;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+.mobileBrand span{display:block;font-size:11px;color:var(--muted);letter-spacing:0;text-transform:none;margin-top:2px}
+.mobileBadge{border:1px solid var(--line2);padding:5px 7px;font-size:11px;color:var(--accent2);background:#24252b;white-space:nowrap}
+.mobileActions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.mobileActions button{min-height:42px;border:1px solid var(--line2);background:#26272d;color:var(--text);font-weight:700;font-size:12px;padding:7px 5px;cursor:pointer}
+.mobileActions button:active{transform:scale(.98);background:#30323a}
+.mobileActions .primaryMobile{background:linear-gradient(135deg,#32334a,#2b2d39);color:#fff;border-color:#575a77}
+.mobileGraphShell{position:relative;flex:1;min-height:0;overflow:hidden}
+.mobileGraphShell .graphArea{position:absolute;inset:0;overflow:hidden;background:radial-gradient(circle at 50% 30%,rgba(142,140,255,.08),transparent 34%),#1b1c20}
+#graph{width:100%;height:100%;display:block;touch-action:none}
+.legacyHidden{display:none!important}
+.mobileStatus{position:absolute;left:12px;right:12px;top:8px;z-index:12;padding:9px 11px;background:rgba(20,22,26,.94);border:1px solid var(--line2);color:#fff;font-size:12px;opacity:0;transform:translateY(-8px);transition:.18s;pointer-events:none;text-align:center}
+.mobileStatus.show{opacity:1;transform:translateY(0)}
+.mobileGraphShell .legend{left:8px;top:8px;bottom:auto;right:8px;max-width:none;padding:6px 7px;font-size:11px;gap:7px;background:rgba(24,25,29,.76);backdrop-filter:blur(6px)}
+.mobileGraphShell .economicPanel{left:8px;top:48px;bottom:auto;min-width:0;width:min(320px,calc(100% - 16px));max-width:calc(100% - 16px);font-size:11px;padding:8px 10px;background:rgba(25,26,31,.84);backdrop-filter:blur(6px)}
+.mobileGraphShell .graphControls{left:8px;right:8px;bottom:8px;max-width:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;font-size:11px;max-height:30vh;overflow:auto;background:rgba(24,25,29,.88);backdrop-filter:blur(7px);padding:8px;border-color:var(--line2)}
+.mobileGraphShell .graphControls label{background:#25262c;border:1px solid rgba(255,255,255,.06);padding:6px;min-height:32px;align-items:center}
+.mobileGraphShell .graphControls button{padding:7px;background:#30323a;text-align:center}
+.mobileGraphShell .graphControls input[type=number]{width:64px;height:24px}
+.mobileGraphShell .nodeInfo{left:8px;right:8px;top:8px;width:auto;max-width:none;max-height:58vh;z-index:16;background:rgba(38,39,43,.97)}
+.edgeLabel{font-size:10px;max-width:132px;padding:2px 4px;background:rgba(26,27,31,.82)}
+.modal.show{align-items:flex-end;justify-content:center}
+.dialog{width:100vw;max-width:100vw;max-height:92vh;border-left:0;border-right:0;border-bottom:0;padding:15px;background:#28292e}
+.dialog h2{font-size:17px;margin-bottom:10px}
+.converterGrid,.blockchainGrid,.apiKeyGrid{grid-template-columns:1fr!important;gap:8px}
+.converterGrid textarea{height:98px;min-height:86px}
+.converterResult textarea,.blockchainResult textarea{height:170px}
+.blockchainTableWrap{max-height:180px}
+.blockchainAnalysis .bcAnalysisGrid{grid-template-columns:1fr!important}
+.dialog .actions{gap:7px;flex-wrap:wrap}
+.primary,.secondary{min-height:38px}
+.exportDoc{padding:10px}.report{padding:24px 18px;max-width:none}.printbar{left:8px;right:8px;top:8px;justify-content:flex-end}.printbar button{font-size:12px;padding:8px 9px}
+@media(min-width:760px){.mobileActions{grid-template-columns:repeat(6,1fr)}.dialog{width:min(760px,92vw);max-width:760px;border:1px solid var(--line2)}.modal.show{align-items:center}.mobileGraphShell .graphControls{grid-template-columns:repeat(4,minmax(0,1fr));max-width:720px;left:auto}.mobileGraphShell .legend{right:auto;max-width:720px}.mobileGraphShell .nodeInfo{left:auto;width:330px;right:12px}}
+@media(max-width:380px){.mobileActions{grid-template-columns:repeat(2,1fr)}.mobileBrand h1{font-size:14px}.mobileGraphShell .graphControls{grid-template-columns:1fr 1fr}.mobileGraphShell .legend{display:none}}
+@media print{.mobileHeader,.mobileStatus{display:none!important}.mobileGraphShell{display:none!important}.exportDoc{display:block!important}}
+
+</style>
+</head>
+<body>
+
+<div class="mobileApp">
+  <header class="mobileHeader">
+    <div class="mobileBrand">
+      <h1>MAPACHE NEXUS<span>Mobile · trazabilidad y grafo</span></h1>
+      <div class="mobileBadge">Canvas</div>
+    </div>
+    <div class="mobileActions">
+      <button class="primaryMobile" id="openTransferConverter">🏦 Transferencias</button>
+      <button class="primaryMobile" id="openBlockchainTracer">⛓️ Blockchain</button>
+      <button id="exportDocBtn">📄 PDF</button>
+      <button id="resetGraphViewBtn">🎯 Centrar</button>
+      <button id="clearMobileGraphBtn">🧹 Vaciar</button>
+      <button id="openHelpModal">?</button>
+    </div>
+  </header>
+  <main class="mobileGraphShell">
+    <div class="mobileStatus" id="mobileStatus"></div>
+    <div class="graphArea">
+      <canvas id="graph"></canvas>
+      <div class="nodeInfo" id="nodeInfo"></div>
+      <div class="legend">
+        <span data-type="persona"><i class="dot" style="background:var(--persona)"></i>Persona</span>
+        <span data-type="dato"><i class="dot" style="background:var(--dato)"></i>Dato</span>
+        <span data-type="cuenta"><i class="dot" style="background:var(--cuenta)"></i>Cuenta</span>
+        <span data-type="lugar"><i class="dot" style="background:var(--lugar)"></i>Lugar</span>
+        <span data-type="documento"><i class="dot" style="background:var(--doc)"></i>Documento</span>
+        <span data-type="entidad"><i class="dot" style="background:var(--entidad)"></i>Entidad</span>
+        <span data-type="cruce"><i class="dot" style="background:var(--cruce)"></i>Cruce</span>
+      </div>
+      <div class="economicPanel" id="economicPanel"></div>
+      <div class="graphControls">
+        <label><input type="checkbox" id="exportNodeData" checked> Nombres</label>
+        <label><input type="checkbox" id="showApproxLinks" checked> Aproximaciones</label>
+        <label><input type="checkbox" id="showExternalLinks" checked> Externas</label>
+        <label><input type="checkbox" id="showTemporalLinks" checked> Temporales</label>
+        <label><input type="checkbox" id="showUniversalLinks" checked> Universales</label>
+        <label><input type="checkbox" id="economicMode" checked> Económico</label>
+        <label><input type="checkbox" id="showEconomicPanel" checked> Resumen</label>
+        <label>Min <input type="number" id="minAmountVisible" value="0" step="500"></label>
+        <button id="undoDeletedNodeGlobal" title="Deshacer nodo eliminado" disabled>↶ Deshacer</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="legacyHidden" aria-hidden="true">
+  <button id="newInvest"></button><button id="delInvest"></button><button id="saveJson"></button><button id="loadJsonBtn"></button>
+  <input id="loadJson" type="file" accept="application/json">
+  <input id="searchInvest"><div id="investList"></div>
+  <button id="addEntry"></button><button id="delEntry"></button><input id="searchEntry"><div id="entryList"></div>
+  <div id="editorWrap"><input type="date" id="entryDate"><input id="entryTitle"><button id="saveEntry"></button><textarea id="entryBody"></textarea></div>
+  <button id="insertEconomicJoin"></button><button id="insertTemporalJoin"></button><button id="insertUniversalJoin"></button><button id="indentBtn"></button><button id="outdentBtn"></button>
+</div>
+<div class="modal" id="nameModal"><div class="dialog"><input id="investName"><textarea id="investNotes"></textarea><button id="cancelModal"></button><button id="createInvest"></button></div></div>
+<div class="modal" id="viewInvestModal"><div class="dialog"><input id="viewInvestName"><textarea id="viewInvestNotes"></textarea><button id="closeViewInvest"></button><button id="editViewInvest"></button><button id="saveViewInvest"></button></div></div>
+
+
+<div class="modal" id="helpModal">
+  <div class="dialog mobileHelpDialog">
+    <h2>Mapache Nexus · Versión móvil</h2>
+    <div class="helpContent">
+      <h3>Finalidad</h3>
+      <p>Esta versión está pensada solo para generar y visualizar grafos de trazabilidad en móvil. No muestra investigaciones, marco izquierdo ni diario de gestiones.</p>
+      <h3>Opciones incluidas</h3>
+      <ul>
+        <li><b>Conversor de Transferencias Bancarias:</b> transforma columnas de origen, destino, titulares, fechas e importes en relaciones económicas.</li>
+        <li><b>Trazabilidad Blockchain:</b> consulta exploradores compatibles y convierte movimientos públicos en relaciones económicas del grafo.</li>
+        <li><b>Grafo Canvas:</b> permite mover nodos, desplazar el lienzo y hacer zoom con dos dedos.</li>
+        <li><b>Exportación PDF:</b> genera una vista imprimible con el grafo y el resumen económico.</li>
+      </ul>
+      <h3>Uso rápido</h3>
+      <p>Abre un conversor, genera el bloque y pulsa <b>Añadir al grafo</b>. El grafo se actualiza automáticamente. Puedes usar <b>Centrar</b> para recolocar la vista y <b>Vaciar</b> para empezar de nuevo.</p>
+    </div>
+    <div class="actions" style="margin-top:12px">
+      <button class="secondary" id="closeHelpModal">Cerrar</button>
+    </div>
+  </div>
+</div>
+<div class="modal" id="transferModal">
+<div class="dialog">
+<h2>Conversor de Transferencias Bancarias</h2>
+<p class="converterHint">
+      Introduce un dato por línea. La línea 1 de cada bloque se relaciona con la línea 1 del resto.
+      Los titulares son opcionales. Las cuentas se formatean como [Cuenta]. El importe se coloca antes de la cuenta destino: importe:[Cuenta destino]. Si añades fecha, se generará como fecha;importe:[Cuenta destino].
+    </p>
+<div class="converterGrid">
+<label>Cuentas origen
+        <textarea id="convOriginAccounts" placeholder="ES1200492352082414205416
+ES4514650100723312456789"></textarea>
+</label>
+<label>Titulares origen opcional
+        <textarea id="convOriginOwners" placeholder="Carlos Andujar
+Silvia Regidor"></textarea>
+</label>
+<label>Fecha transferencia opcional
+        <textarea id="convTransferDates" placeholder="01/02/2025
+05/05/2025 10:30"></textarea>
+</label>
+<label>Importes transferidos
+        <textarea id="convAmounts" placeholder="5000 EUR
+1200 EUR"></textarea>
+</label>
+<label>Cuentas destino
+        <textarea id="convDestAccounts" placeholder="ES9821000418450200051332
+ES6620385778983000760236"></textarea>
+</label>
+<label>Titulares destino opcional
+        <textarea id="convDestOwners" placeholder="Titular destino 1
+Titular destino 2"></textarea>
+</label>
+</div>
+<div class="converterResult">
+<div class="actions" style="justify-content:space-between;margin-bottom:8px">
+<button class="secondary" id="clearTransferConverter">Limpiar</button>
+<div>
+<button class="secondary" id="copyTransferResult">Copiar resultado</button>
+<button class="primary" id="buildTransferResult">Generar</button><button class="primary" id="insertTransferEntry">Añadir al grafo</button>
+</div>
+</div>
+<textarea id="convResult" placeholder="Aquí aparecerá el resultado formateado para pegar en el diario de Mapache Nexus." readonly=""></textarea>
+</div>
+<div class="actions" style="margin-top:10px">
+<button class="secondary" id="closeTransferModal">Cerrar</button>
+</div>
+</div>
+</div>
+<div class="modal" id="blockchainModal">
+<div class="dialog">
+<h2>Trazabilidad Blockchain</h2>
+<p class="converterHint">
+      Consulta movimientos públicos de una dirección y genera un bloque compatible con el grafo móvil de Mapache Nexus. Las API keys se guardan únicamente en el navegador mediante localStorage.
+    </p>
+<div class="blockchainGrid">
+<label>Red / explorador
+        <select id="bcProvider">
+<option value="tron_trc20">TRON · TRC20 / USDT</option>
+<option value="evm_token">EVM · Tokens ERC20/BEP20</option>
+<option value="evm_native">EVM · moneda nativa</option>
+<option value="bitcoin">Bitcoin · Blockstream Esplora</option>
+<option value="ton">TON · TONAPI Events</option>
+</select>
+</label>
+<label>Dirección / wallet
+        <input id="bcAddress" placeholder="Wallet, cuenta o dirección a consultar"/>
+</label>
+<label id="bcChainIdLabel">Chain ID EVM
+        <select id="bcChainId">
+<option value="1">Ethereum · 1</option>
+<option value="56">BNB Smart Chain · 56</option>
+<option value="137">Polygon · 137</option>
+<option value="8453">Base · 8453</option>
+<option value="42161">Arbitrum One · 42161</option>
+<option value="10">Optimism · 10</option>
+<option value="43114">Avalanche C-Chain · 43114</option>
+</select>
+</label>
+<label>Contrato token opcional
+        <input id="bcTokenContract" placeholder="USDT TRON: TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"/>
+</label>
+<label>Límite de movimientos
+        <input id="bcLimit" max="100" min="1" type="number" value="50"/>
+</label>
+<label>Filtro mínimo importe opcional
+        <input id="bcMinAmount" min="0" placeholder="0" step="0.000001" type="number"/>
+</label>
+<label>Desde fecha opcional
+        <input id="bcDateFrom" type="date"/>
+</label>
+<label>Hasta fecha opcional
+        <input id="bcDateTo" type="date"/>
+</label>
+<label>Sentido del movimiento
+        <select id="bcDirection">
+<option value="all">Entrantes y salientes</option>
+<option value="in">Solo entrantes</option>
+<option value="out">Solo salientes</option>
+</select>
+</label>
+<label>Buscar por Hash / TxID opcional
+        <input id="bcHash" placeholder="Hash completo o fragmento"/>
+</label>
+</div>
+<div class="apiKeyGrid">
+<label>Etherscan API Key
+        <input id="apiKeyEtherscan" placeholder="Necesaria para EVM" type="password"/>
+</label>
+<label>TronGrid API Key opcional
+        <input id="apiKeyTronGrid" placeholder="Opcional, mejora límites TRON" type="password"/>
+</label>
+<label>TONAPI Key opcional
+        <input id="apiKeyTonApi" placeholder="Opcional para TONAPI" type="password"/>
+</label>
+<label>Blockstream base URL
+        <input id="apiBaseBlockstream" placeholder="https://blockstream.info/api"/>
+</label>
+</div>
+<div class="actions" style="justify-content:space-between;margin-top:10px">
+<button class="secondary" id="saveBlockchainKeys">Guardar APIs</button>
+<div>
+<button class="secondary" id="clearBlockchainTracer">Limpiar</button>
+<button class="primary" id="fetchBlockchainMovements">Consultar</button>
+</div>
+</div>
+<div class="blockchainStatus" id="bcStatus">Sin consulta cargada.</div>
+<div class="blockchainTableWrap" id="bcTableWrap" style="display:none"></div>
+<div class="blockchainAnalysis" id="bcAnalysis" style="display:none"></div>
+<div class="converterResult blockchainResult">
+<div class="actions" style="justify-content:space-between;margin-bottom:8px">
+<button class="secondary" id="copyBlockchainResult">Copiar bloque</button>
+<div>
+<button class="secondary" id="buildBlockchainBlock">Generar bloque</button>
+<button class="primary" id="insertBlockchainEntry">Añadir al grafo</button>
+</div>
+</div>
+<textarea id="bcResult" placeholder="Aquí aparecerán los movimientos formateados para pegar en el diario." readonly=""></textarea>
+</div>
+<div class="actions" style="margin-top:10px">
+<button class="secondary" id="closeBlockchainModal">Cerrar</button>
+</div>
+</div>
+</div>
+<div class="exportDoc" id="exportView">
+<div class="printbar">
+<button class="secondary" id="closeExport">Cerrar</button>
+<button class="primary" onclick="window.print()">Guardar como PDF / imprimir</button>
+</div>
+<div class="report" id="report"></div>
+</div>
+
+<script>
+
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2)+Date.now().toString(36);
+const today = () => new Date().toISOString().slice(0,10);
+
+function resolveCacheVector(){
+  const q=[132,253,71,143,88,170,243,65,173,61,70,59,0,176,93,162];
+  return q.map(v=>v.toString(16).padStart(2,"0")).join("");
+}
+const nxRuntimeVector = resolveCacheVector();
+
+const storeKey = "mapache_nexus_mobile_graph_v1";
+
+let data = JSON.parse(localStorage.getItem(storeKey) || "null") || {
+  nodeImages:{},
+  investigations:[{
+    id:uid(),
+    name:"Mapache Nexus Mobile",
+    notes:"Versión móvil orientada a conversores, trazabilidad blockchain, grafo y exportación PDF.",
+    created:today(),
+    hiddenNodes:[],
+    entries:[]
+  }]
+};
+data.nodeImages = data.nodeImages || {};
+let selectedInvest = data.investigations[0]?.id || null;
+let selectedEntry = data.investigations[0]?.entries[0]?.id || null;
+let graphNodes=[], graphLinks=[], selectedNode=null;
+let edgeLabelPositions=[];
+let lastDeletedNode=null;
+let graphView={scale:1, offsetX:0, offsetY:0, dragging:false, draggingNode:null, lastX:0, lastY:0};
+let hiddenGraphTypes=new Set();
+
+function persist(){ localStorage.setItem(storeKey, JSON.stringify(data)); }
+function currentInvest(){ return data.investigations.find(x=>x.id===selectedInvest); }
+function currentEntry(){ return currentInvest()?.entries.find(x=>x.id===selectedEntry); }
+function esc(s){ return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+
+function operationMatchesGlobalSearch(inv, q){
+  if(!q) return true;
+  return inv.entries.some(e=>entryMatchesSearch(e,q));
+}
+function entryMatchesSearch(e, q){
+  if(!q) return true;
+  return (`${e.date} ${e.title} ${e.body}`).toLowerCase().includes(q);
+}
+
+function renderInvest(){
+  const q = $("#searchInvest").value.toLowerCase().trim();
+  const box = $("#investList");
+  const items = data.investigations.filter(i => operationMatchesGlobalSearch(i,q));
+  box.innerHTML = items.length ? items.map(i=>`
+    <div class="item ${i.id===selectedInvest?'active':''}" data-id="${i.id}">
+      <div class="title">${esc(i.name)}</div>
+      <div class="meta">${i.entries.length} gestiones · ${esc(i.created)}</div>
+    </div>`).join("") : `<div class="empty">No hay investigaciones coincidentes.</div>`;
+  box.querySelectorAll(".item").forEach(el=>{
+    el.onclick=()=>{
+      selectedInvest=el.dataset.id;
+      selectedEntry=currentInvest()?.entries[0]?.id||null;
+      closeEditor();
+      renderAll();
+    };
+    el.ondblclick=()=>{
+      selectedInvest=el.dataset.id;
+      openInvestDetails(false);
+    };
+  });
+}
+
+function renderEntries(){
+  const inv=currentInvest(), box=$("#entryList");
+  if(!inv){ box.innerHTML=`<div class="empty">Crea o selecciona una investigación.</div>`; return; }
+  const localQ=$("#searchEntry").value.toLowerCase().trim();
+  const globalQ=$("#searchInvest").value.toLowerCase().trim();
+  const q=localQ || globalQ;
+  const entries=inv.entries.filter(e=>entryMatchesSearch(e,q));
+  box.innerHTML = entries.length ? entries.map(e=>`
+    <div class="entry ${e.id===selectedEntry?'active':''}" data-id="${e.id}">
+      <div class="entryDate">${esc(e.date)}</div>
+      <div class="entryTitle">${esc(e.title||"Sin título")}</div>
+      <div class="entryPreview">${esc(e.body.replace(/\n/g," · "))}</div>
+    </div>`).join("") : `<div class="empty">No hay gestiones coincidentes.</div>`;
+  box.querySelectorAll(".entry").forEach(el=>el.onclick=()=>{
+    selectedEntry=el.dataset.id;
+    openEditor(currentEntry());
+    renderEntries();
+  });
+}
+
+function openEditor(e){
+  $("#editorWrap").classList.add("open");
+  $("#entryDate").value=e?.date||today();
+  $("#entryTitle").value=e?.title||"";
+  $("#entryBody").value=e?.body||"";
+}
+function closeEditor(){ $("#editorWrap").classList.remove("open"); }
+
+function relationTypeFromSeparator(separator){
+  return separator === ":" ? "economic" : separator === ";" ? "temporal" : separator === "=" ? "universal" : "universal";
+}
+
+function splitNodeLabel(text){
+  const findRelationSeparator=(s)=>{
+    let inQuote=false, depthParen=0, depthBracket=0, depthBrace=0, starOpen=false;
+    for(let i=0;i<s.length;i++){
+      const ch=s[i];
+      if(ch==='"') inQuote=!inQuote;
+      else if(ch==='*') starOpen=!starOpen;
+      else if(ch==='(') depthParen++;
+      else if(ch===')') depthParen=Math.max(0,depthParen-1);
+      else if(ch==='[') depthBracket++;
+      else if(ch===']') depthBracket=Math.max(0,depthBracket-1);
+      else if(ch==='{') depthBrace++;
+      else if(ch==='}') depthBrace=Math.max(0,depthBrace-1);
+      else if((ch===':' || ch===';' || ch==='=') && !inQuote && !starOpen && depthParen===0 && depthBracket===0 && depthBrace===0){
+        return {index:i, separator:ch};
+      }
+    }
+    return {index:-1, separator:""};
+  };
+
+  const looksLikeNode=s=>{
+    s=String(s||"").trim();
+    return /^\*(.+)\*$/.test(s) || /^\((.+)\)$/.test(s) || /^\[(.+)\]$/.test(s) ||
+           /^\{(.+)\}$/.test(s) || /^-(.+)-$/.test(s) || /^"(.+)"$/.test(s);
+  };
+
+  // Regla especial prioritaria: fecha;importe:[nodo] se interpreta como transferencia económica fechada.
+  // Esta comprobación se hace antes del separador general para no confundir los ":" de horas
+  // como 05/05/2025 10:30;2500:[ES13...] con una unión económica ordinaria.
+  const temporalEconomicFound=(()=>{
+    let inQuote=false, depthParen=0, depthBracket=0, depthBrace=0, starOpen=false;
+    for(let i=0;i<text.length;i++){
+      const ch=text[i];
+      if(ch==='"') inQuote=!inQuote;
+      else if(ch==='*') starOpen=!starOpen;
+      else if(ch==='(') depthParen++;
+      else if(ch===')') depthParen=Math.max(0,depthParen-1);
+      else if(ch==='[') depthBracket++;
+      else if(ch===']') depthBracket=Math.max(0,depthBracket-1);
+      else if(ch==='{') depthBrace++;
+      else if(ch==='}') depthBrace=Math.max(0,depthBrace-1);
+      else if(ch===';' && !inQuote && !starOpen && depthParen===0 && depthBracket===0 && depthBrace===0){
+        const dateLabel=text.slice(0,i).trim();
+        const economicText=text.slice(i+1).trim();
+        if(!dateLabel || !economicText) return null;
+        const economicPart=splitNodeLabel(economicText);
+        if(economicPart && economicPart.relationType==="economic" && economicPart.separator===":" && looksLikeNode(economicPart.node) && Number.isFinite(parseAmount(economicPart.label))){
+          const transferDate=parseTemporalDate(dateLabel);
+          return {
+            ...economicPart,
+            separator:":",
+            relationType:"economic",
+            temporalLabel:dateLabel,
+            transferDate,
+            movementDate:transferDate
+          };
+        }
+        return null;
+      }
+    }
+    return null;
+  })();
+  if(temporalEconomicFound) return temporalEconomicFound;
+
+  const found=findRelationSeparator(text);
+  if(found.index<0) return {node:text.trim(), label:"", separator:"", relationType:"universal"};
+
+  const left=text.slice(0,found.index).trim();
+  const right=text.slice(found.index+1).trim();
+  const relationType=relationTypeFromSeparator(found.separator);
+
+  // Formato recomendado: etiqueta+nodo con separador explícito.
+  // Ejemplos: 5000:[ES44...], 08/11/2025;-Documento-, titular=*Nombre*.
+  if(looksLikeNode(right)){
+    return {node:right, label:left, separator:found.separator, relationType};
+  }
+
+  // Compatibilidad con formato anterior: nodo:etiqueta.
+  if(looksLikeNode(left)){
+    return {node:left, label:right, separator:found.separator, relationType};
+  }
+
+  return {node:text.trim(), label:"", separator:"", relationType:"universal"};
+}
+
+function parseTemporalDate(label){
+  const raw=String(label||"").trim();
+  if(!raw) return null;
+
+  const build=(year,month,day,hour=0,minute=0,second=0)=>{
+    year=Number(year); month=Number(month); day=Number(day);
+    hour=Number(hour||0); minute=Number(minute||0); second=Number(second||0);
+    const dt=new Date(year,month-1,day,hour,minute,second);
+    const valid=dt.getFullYear()===year && dt.getMonth()===month-1 && dt.getDate()===day &&
+                dt.getHours()===hour && dt.getMinutes()===minute && dt.getSeconds()===second;
+    if(!valid) return null;
+    const dd=String(day).padStart(2,"0"), mm=String(month).padStart(2,"0"), yyyy=String(year);
+    const time=(hour||minute||second) ? ` ${String(hour).padStart(2,"0")}:${String(minute).padStart(2,"0")}${second?":"+String(second).padStart(2,"0"):""}` : "";
+    return {raw, timestamp:dt.getTime(), display:`${dd}/${mm}/${yyyy}${time}`};
+  };
+
+  let m=raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if(m){
+    const parsed=build(m[1],m[2],m[3],m[4],m[5],m[6]);
+    if(parsed) return parsed;
+  }
+
+  m=raw.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if(m){
+    const parsed=build(m[3],m[2],m[1],m[4],m[5],m[6]);
+    if(parsed) return parsed;
+  }
+
+  return {raw, timestamp:null, display:raw};
+}
+
+function parseLine(line){
+  const raw=line.replace(/\t/g,"    ");
+  const indent=Math.floor((raw.match(/^ */)[0].length)/4);
+  const originalText=raw.trim();
+  if(!originalText) return null;
+  const parts=splitNodeLabel(originalText);
+  const text=parts.node;
+  if(!text) return null;
+  let type="texto", value=text;
+  const tests=[
+    ["persona", /^\*(.+)\*$/],
+    ["dato", /^\((.+)\)$/],
+    ["cuenta", /^\[(.+)\]$/],
+    ["lugar", /^\{(.+)\}$/],
+    ["documento", /^-(.+)-$/],
+    ["entidad", /^"(.+)"$/]
+  ];
+  for(const [t,re] of tests){
+    const m=text.match(re);
+    if(m){ type=t; value=m[1].trim(); break; }
+  }
+  const relationType=parts.relationType || "universal";
+  const transferDate=relationType==="economic" && parts.transferDate ? parts.transferDate : null;
+  return {
+    indent,type,value,text,
+    label:parts.label||"",
+    rawText:originalText,
+    separator:parts.separator||"",
+    relationType,
+    temporalLabel:parts.temporalLabel||"",
+    temporalDate:relationType==="temporal" ? parseTemporalDate(parts.label) : null,
+    transferDate,
+    movementDate:transferDate
+  };
+}
+
+function colorByType(t, cross=false){
+  if(cross) return getComputedStyle(document.documentElement).getPropertyValue("--cruce");
+  return {
+    persona:"#f28c28", dato:"#3fa7ff", cuenta:"#ffd84d", lugar:"#62c370",
+    documento:"#8b5a2b", entidad:"#ff79c6", texto:"#7f848e"
+  }[t] || "#7f848e";
+}
+
+function normNodeKey(type,value){ return (type+"|"+String(value||"").trim()).toLowerCase(); }
+function normTextValue(value){
+  return String(value||"")
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9+]+/g," ")
+    .trim()
+    .replace(/\s+/g," ");
+}
+function partialMatchValue(a,b){
+  const x=normTextValue(a), y=normTextValue(b);
+  if(!x || !y || x===y) return false;
+  if(x.length < 5 || y.length < 5) return false;
+  if(x.includes(y) || y.includes(x)) return true;
+  const ax=x.split(" ").filter(w=>w.length>2);
+  const by=new Set(y.split(" ").filter(w=>w.length>2));
+  if(ax.length < 2) return false;
+  const common=ax.filter(w=>by.has(w)).length;
+  return common >= 2;
+}
+function looseInternalMatchValue(a,b){
+  const x=normTextValue(a), y=normTextValue(b);
+  if(!x || !y || x===y) return false;
+  if(x.includes(y) || y.includes(x)) return true;
+
+  const ax=x.split(" ").filter(Boolean);
+  const ay=y.split(" ").filter(Boolean);
+  if(!ax.length || !ay.length) return false;
+
+  const firstA=ax[0], firstB=ay[0];
+  if(firstA.length >= 3 && firstB.length >= 3 && firstA !== firstB) return false;
+
+  const initialsA=ax.map(w=>w[0]).join("");
+  const initialsB=ay.map(w=>w[0]).join("");
+  const setA=new Set(ax.filter(w=>w.length>2));
+  const setB=new Set(ay.filter(w=>w.length>2));
+  const common=[...setA].filter(w=>setB.has(w)).length;
+
+  if(common >= 1 && (initialsA[0]===initialsB[0])) return true;
+
+  // Caso tipo "Carlos Andujar" vs "Carlos A."
+  if(firstA===firstB){
+    const restA=ax.slice(1).join(" ");
+    const restB=ay.slice(1).join(" ");
+    if(restA && restB && restA[0]===restB[0]) return true;
+  }
+
+  return false;
+}
+function isGraphMarkedType(type){ return ["persona","dato","cuenta","lugar","documento","entidad"].includes(type); }
+function ensureInvestMeta(inv){
+  if(!inv.hiddenNodes) inv.hiddenNodes=[];
+  return inv;
+}
+function isHiddenNode(inv,type,value){
+  ensureInvestMeta(inv);
+  return inv.hiddenNodes.includes(normNodeKey(type,value));
+}
+
+
+function isEconomicAmountLink(l){
+  return l && l.relationType === "economic" && Number.isFinite(l.amount);
+}
+
+function calculateEconomicMetrics(){
+  graphNodes.forEach(n=>{
+    n.totalIn=0;n.totalOut=0;n.netFlow=0;n.countIn=0;n.countOut=0;n.maxIn=0;n.maxOut=0;n.rankIn=0;n.economicEvents=[];
+    n.totalInByCurrency={};n.totalOutByCurrency={};n.netFlowByCurrency={};n.maxInByCurrency={};n.maxOutByCurrency={};
+  });
+  let totalDetected=0;
+  const totalByCurrency={};
+  graphLinks.forEach(l=>{
+    if(!isEconomicAmountLink(l)) return;
+    const a=graphNodes.find(n=>n.id===l.source);
+    const b=graphNodes.find(n=>n.id===l.target);
+    if(!a||!b) return;
+    const currency=normalizeCurrencyToken(l.currency||parseCurrency(l.label)||"EUR");
+    l.currency=currency;
+    a.totalOut+=l.amount;a.countOut++;a.maxOut=Math.max(a.maxOut,l.amount);
+    b.totalIn+=l.amount;b.countIn++;b.maxIn=Math.max(b.maxIn,l.amount);
+    addCurrencyTotal(a.totalOutByCurrency,currency,l.amount);
+    addCurrencyTotal(b.totalInByCurrency,currency,l.amount);
+    a.maxOutByCurrency[currency]=Math.max(a.maxOutByCurrency[currency]||0,l.amount);
+    b.maxInByCurrency[currency]=Math.max(b.maxInByCurrency[currency]||0,l.amount);
+    const transferDate=getEconomicTransferDate(l);
+    if(transferDate){
+      const common={
+        raw:transferDate.raw||"",
+        display:transferDate.display||transferDate.raw||"Sin fecha",
+        timestamp:Number.isFinite(transferDate.timestamp)?transferDate.timestamp:null,
+        amount:l.amount,
+        currency,
+        entryId:l.entryId||"",
+        entryDate:l.entryDate||"",
+        entryTitle:l.entryTitle||""
+      };
+      a.economicEvents.push({...common,direction:"out",otherId:b.id,otherValue:b.value,otherType:b.type,order:a.economicEvents.length});
+      b.economicEvents.push({...common,direction:"in",otherId:a.id,otherValue:a.value,otherType:a.type,order:b.economicEvents.length});
+    }
+    totalDetected+=l.amount;
+    addCurrencyTotal(totalByCurrency,currency,l.amount);
+  });
+  graphNodes.forEach(n=>{
+    n.netFlow=n.totalIn-n.totalOut;n.volume=n.totalIn+n.totalOut;
+    const currencies=new Set([...Object.keys(n.totalInByCurrency||{}),...Object.keys(n.totalOutByCurrency||{})]);
+    currencies.forEach(cur=>{n.netFlowByCurrency[cur]=(n.totalInByCurrency[cur]||0)-(n.totalOutByCurrency[cur]||0);});
+    if(Array.isArray(n.economicEvents)) n.economicEvents.sort(sortEconomicEvents);
+  });
+  const accounts=graphNodes.filter(n=>n.type==="cuenta" && (n.totalIn>0 || n.totalOut>0));
+  const topIn=[...accounts].sort((a,b)=>b.totalIn-a.totalIn).slice(0,3);
+  const topNet=[...accounts].sort((a,b)=>b.netFlow-a.netFlow).slice(0,3);
+  topIn.forEach((n,i)=>n.rankIn=i+1);
+  economicSummary={totalDetected,totalByCurrency,topIn,topNet};
+}
+function sortTemporalEvents(a,b){
+  const at=Number.isFinite(a.timestamp)?a.timestamp:null;
+  const bt=Number.isFinite(b.timestamp)?b.timestamp:null;
+  if(at!==null && bt!==null && at!==bt) return at-bt;
+  if(at!==null && bt===null) return -1;
+  if(at===null && bt!==null) return 1;
+  return String(a.display||a.raw||"").localeCompare(String(b.display||b.raw||""),"es");
+}
+
+function getEconomicTransferDate(l){
+  return l?.transferDate || l?.movementDate || null;
+}
+function sortEconomicEvents(a,b){
+  const at=Number.isFinite(a.timestamp)?a.timestamp:null;
+  const bt=Number.isFinite(b.timestamp)?b.timestamp:null;
+  if(at!==null && bt!==null && at!==bt) return at-bt;
+  if(at!==null && bt===null) return -1;
+  if(at===null && bt!==null) return 1;
+  return (a.order||0)-(b.order||0);
+}
+
+function temporalItemFromLink(l, order=0){
+  const td=l.temporalDate || parseTemporalDate(l.label);
+  return {
+    raw:td?.raw || l.label || "",
+    timestamp:Number.isFinite(td?.timestamp) ? td.timestamp : null,
+    display:td?.display || l.label || "Sin fecha",
+    label:l.label || "",
+    temporalDate:td || null,
+    entryId:l.entryId || "",
+    entryDate:l.entryDate || "",
+    entryTitle:l.entryTitle || "",
+    order
+  };
+}
+
+function sortTemporalItems(a,b){
+  const c=sortTemporalEvents(a,b);
+  if(c) return c;
+  return (a.order||0)-(b.order||0);
+}
+
+function uniqueTemporalItemsForLabel(items){
+  const seen=new Set();
+  return [...items].sort(sortTemporalItems).filter(item=>{
+    const key=String(item.display||item.raw||item.label||"").trim();
+    if(!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getTemporalItemsForLink(l, includeAll=false){
+  if(!l || l.relationType!=="temporal") return [];
+  const source=includeAll ? l.temporalItemsAll : l.temporalItems;
+  if(Array.isArray(source) && source.length) return [...source].sort(sortTemporalItems);
+  return [temporalItemFromLink(l,0)];
+}
+
+function getTemporalLabelLines(l){
+  return getTemporalItemsForLink(l,false).map(item=>item.display||item.raw||item.label).filter(Boolean);
+}
+
+function linkLabelDisplayLines(l){
+  if(!l) return [];
+  if(l.relationType==="temporal") return getTemporalLabelLines(l);
+  if(l.relationType==="economic" && Array.isArray(l.amounts) && l.amounts.length){
+    return l.amounts.filter(Number.isFinite).map((amount,idx)=>{
+      const dates=Array.isArray(l.transferDates)?l.transferDates:[];
+      const d=dates[idx] || null;
+      const currencies=Array.isArray(l.currencies)?l.currencies:[];
+      const cur=currencies[idx] || l.currency || "EUR";
+      return d?.display ? `${d.display} · ${formatAmount(amount,cur)}` : formatAmount(amount,cur);
+    });
+  }
+  if(isEconomicAmountLink(l)){
+    const d=getEconomicTransferDate(l);
+    return d?.display ? [`${d.display} · ${formatAmount(l.amount,l.currency)}`] : [formatAmount(l.amount,l.currency)];
+  }
+  if(Array.isArray(l.labelItems) && l.labelItems.length){
+    return l.labelItems.map(item=>String(item?.label||"").trim()).filter(Boolean);
+  }
+  if(Array.isArray(l.labels) && l.labels.length){
+    return l.labels.map(label=>String(label||"").trim()).filter(Boolean);
+  }
+  return l.label ? [l.label] : [];
+}
+
+function linkLabelHtml(l){
+  return linkLabelDisplayLines(l).map(esc).join("<br>");
+}
+
+function linkLabelLinesForCanvas(l){
+  return linkLabelDisplayLines(l);
+}
+
+function groupTemporalGraphLinks(links){
+  const result=[];
+  const groups=new Map();
+  links.forEach((l,idx)=>{
+    if(l.relationType!=="temporal"){
+      result.push(l);
+      return;
+    }
+    const key=[
+      l.source,l.target,"temporal",l.separator||";",
+      l.cross?"x":"",l.partial?"p":"",l.internalApprox?"a":"",l.external?"ext":""
+    ].join("|");
+    let grouped=groups.get(key);
+    if(!grouped){
+      grouped={...l, temporalItemsAll:[], temporalItems:[], temporalLabels:[], temporalDates:[]};
+      groups.set(key,grouped);
+      result.push(grouped);
+    }
+    grouped.temporalItemsAll.push(temporalItemFromLink(l,idx));
+  });
+  groups.forEach(grouped=>{
+    const all=[...grouped.temporalItemsAll].sort(sortTemporalItems);
+    const unique=uniqueTemporalItemsForLabel(all);
+    grouped.temporalItemsAll=all;
+    grouped.temporalItems=unique;
+    grouped.temporalLabels=unique.map(item=>item.display||item.raw||item.label).filter(Boolean);
+    grouped.temporalDates=unique.map(item=>item.temporalDate || {raw:item.raw,timestamp:item.timestamp,display:item.display});
+    grouped.label=grouped.temporalLabels[0] || grouped.label || "";
+    grouped.temporalDate=grouped.temporalDates[0] || grouped.temporalDate || null;
+  });
+  return result;
+}
+
+function calculateTemporalMetrics(){
+  graphNodes.forEach(n=>{ n.temporalEvents=[]; });
+  const byId=new Map(graphNodes.map(n=>[n.id,n]));
+  graphLinks.forEach(l=>{
+    if(l.relationType!=="temporal") return;
+    const source=byId.get(l.source), target=byId.get(l.target);
+    if(!source || !target) return;
+    getTemporalItemsForLink(l,true).forEach(item=>{
+      source.temporalEvents.push({
+        raw:item.raw || item.label || "",
+        timestamp:Number.isFinite(item.timestamp) ? item.timestamp : null,
+        display:item.display || item.label || "Sin fecha",
+        targetId:target.id,
+        targetValue:target.value,
+        targetType:target.type,
+        label:item.label || item.display || "",
+        entryId:item.entryId || "",
+        entryDate:item.entryDate || "",
+        entryTitle:item.entryTitle || ""
+      });
+    });
+  });
+  graphNodes.forEach(n=>{ n.temporalEvents.sort(sortTemporalEvents); });
+}
+
+function nodeEconomicClass(n){
+  if(n.totalIn>0 && n.netFlow>0 && n.totalOut<n.totalIn*0.45) return "Posible cuenta acumuladora";
+  if(n.totalIn>0 && n.totalOut>0 && Math.abs(n.totalIn-n.totalOut)<Math.max(n.totalIn,n.totalOut)*0.35) return "Cuenta de tránsito";
+  if(n.totalOut>n.totalIn*1.5) return "Cuenta emisora";
+  return "Actividad económica";
+}
+function updateEconomicPanel(){
+  const panel=$("#economicPanel");
+  if(!panel) return;
+  if(!($("#showEconomicPanel")?.checked)){panel.style.display="none";return;}
+  panel.style.display="block";
+  panel.innerHTML=`
+    <h3>Resumen económico</h3>
+    <div class="ecoRow"><span>Total detectado</span><strong>${formatCurrencyTotals(economicSummary.totalByCurrency)}</strong></div>
+    <div class="ecoRank" style="margin-top:8px">Top receptoras</div>
+    ${(economicSummary.topIn||[]).map((n,i)=>`<div class="ecoRow"><span>${i+1}. ${n.value.slice(0,18)}...</span><strong>${formatCurrencyTotals(n.totalInByCurrency)}</strong></div>`).join("")}
+  `;
+}
+function buildGraph(){
+  const previousPositions=new Map(graphNodes.map(n=>[n.id,{x:n.x,y:n.y,vx:n.vx||0,vy:n.vy||0,fixed:!!n.fixed}]));
+  const inv=currentInvest();
+  graphNodes=[]; graphLinks=[]; selectedNode=null;
+  if(!inv) return;
+  ensureInvestMeta(inv);
+  if(!data.nodeImages) data.nodeImages={};
+
+  const allOccurrences = [];
+  data.investigations.forEach(inv2=>{
+    ensureInvestMeta(inv2);
+    inv2.entries.forEach(e=>{
+      e.body.split(/\n/).map(parseLine).filter(Boolean).forEach(p=>{
+        if(!isGraphMarkedType(p.type)) return;
+        if(isHiddenNode(inv2,p.type,p.value)) return;
+        const amountInfo=p.relationType==="economic" ? parseAmountInfo(p.label) : null;
+        allOccurrences.push({
+          investId:inv2.id, investName:inv2.name, entryId:e.id, date:e.date, title:e.title,
+          type:p.type, value:p.value, indent:p.indent, label:p.label||"",
+          separator:p.separator||"", relationType:p.relationType||"universal",
+          amount:amountInfo?.amount ?? null,
+          currency:amountInfo?.currency || "",
+          amountRaw:amountInfo?.raw || "",
+          temporalDate:p.relationType==="temporal" ? p.temporalDate : null,
+          temporalLabel:p.temporalLabel||"",
+          transferDate:p.relationType==="economic" ? (p.transferDate||null) : null,
+          movementDate:p.relationType==="economic" ? (p.transferDate||null) : null
+        });
+      });
+    });
+  });
+
+  const globalByKey = new Map();
+  allOccurrences.forEach(o=>{
+    const k=normNodeKey(o.type,o.value);
+    if(!globalByKey.has(k)) globalByKey.set(k,[]);
+    globalByKey.get(k).push(o);
+  });
+
+  const nodesMap=new Map();
+  const addNode=(type,value,external=false,externalInfo=null)=>{
+    const base=normNodeKey(type,value);
+    const key=external ? ("external|"+externalInfo.investId+"|"+base) : base;
+    const invForHide = external && externalInfo ? data.investigations.find(i=>i.id===externalInfo.investId) : inv;
+    if(invForHide && isHiddenNode(invForHide,type,value)) return null;
+    if(!nodesMap.has(key)){
+      const occ=globalByKey.get(base)||[];
+      nodesMap.set(key,{
+        id:key,type,value,external,
+        sourceType:type, sourceValue:value,
+        externalInvestId:externalInfo?.investId||null,
+        externalInvestName:externalInfo?.investName||null,
+        occurrence:externalInfo||null,
+        cross:false, partial:false,
+        occurrences: external ? [externalInfo] : occ.filter(o=>o.investId===selectedInvest),
+        allOccurrences: occ,
+        entryRefs:[],
+        x:0,y:0,vx:0,vy:0,fixed:false
+      });
+    }
+    return nodesMap.get(key);
+  };
+
+  currentInvest().entries.forEach(entry=>{
+    const stack=[];
+    entry.body.split(/\n/).map(parseLine).filter(Boolean).forEach(p=>{
+      if(!isGraphMarkedType(p.type)) return;
+      if(isHiddenNode(inv,p.type,p.value)) return;
+      const node=addNode(p.type,p.value,false,null);
+      if(!node) return;
+      node.entryRefs.push({entryId:entry.id,date:entry.date,title:entry.title});
+      node.edgeLabel=p.label||"";
+      stack[p.indent]=node;
+      for(let i=p.indent-1;i>=0;i--){
+        if(stack[i]){
+          const relationType=p.relationType || "universal";
+          const amountInfo=relationType==="economic" ? parseAmountInfo(p.label) : null;
+          graphLinks.push({
+            source:stack[i].id,target:node.id,entryId:entry.id,entryDate:entry.date,entryTitle:entry.title,
+            cross:false,partial:false,external:false,label:p.label||"",
+            separator:p.separator||"",relationType,
+            amount:amountInfo?.amount ?? null,
+            currency:amountInfo?.currency || "",
+            amountRaw:amountInfo?.raw || "",
+            temporalDate:relationType==="temporal" ? p.temporalDate : null,
+            temporalLabel:p.temporalLabel||"",
+            transferDate:relationType==="economic" ? (p.transferDate||null) : null,
+            movementDate:relationType==="economic" ? (p.transferDate||null) : null
+          });
+          break;
+        }
+      }
+    });
+  });
+
+  const selectedNodes=[...nodesMap.values()].filter(n=>!n.external);
+
+  // Coincidencias aproximadas dentro de la misma operación: línea gris discontinua.
+  for(let i=0;i<selectedNodes.length;i++){
+    for(let j=i+1;j<selectedNodes.length;j++){
+      const a=selectedNodes[i], b=selectedNodes[j];
+      if(a.type!==b.type) continue;
+      if(normNodeKey(a.type,a.value)===normNodeKey(b.type,b.value)) continue;
+      if(!looseInternalMatchValue(a.value,b.value)) continue;
+      graphLinks.push({source:a.id,target:b.id,cross:false,partial:true,internalApprox:true,external:false,label:"",separator:"",relationType:"system",amount:null,temporalDate:null});
+    }
+  }
+
+  selectedNodes.forEach(n=>{
+    const exact=(globalByKey.get(normNodeKey(n.type,n.value))||[]).filter(o=>o.investId!==selectedInvest);
+    exact.forEach(o=>{
+      const ext=addNode(o.type,o.value,true,o);
+      if(!ext) return;
+      ext.cross=true;
+      graphLinks.push({source:n.id,target:ext.id,cross:true,partial:false,external:true,label:"",separator:"",relationType:"system",amount:null,temporalDate:null});
+    });
+  });
+
+  const externalCandidates = allOccurrences.filter(o=>o.investId!==selectedInvest);
+  selectedNodes.forEach(n=>{
+    externalCandidates.forEach(o=>{
+      if(o.type!==n.type) return;
+      if(normNodeKey(o.type,o.value)===normNodeKey(n.type,n.value)) return;
+      if(!partialMatchValue(n.value,o.value)) return;
+      const ext=addNode(o.type,o.value,true,o);
+      if(!ext) return;
+      ext.cross=true; ext.partial=true;
+      graphLinks.push({source:n.id,target:ext.id,cross:true,partial:true,external:true,label:"",separator:"",relationType:"system",amount:null,temporalDate:null});
+    });
+  });
+
+  graphNodes=[...nodesMap.values()];
+  const seenLinks=new Set();
+  graphLinks=graphLinks.filter(l=>{
+    if(l.relationType==="economic" || l.relationType==="temporal") return true;
+    const k=[l.source,l.target,l.cross?"x":"i",l.partial?"p":"e",l.internalApprox?"a":"",l.external?"ext":"",l.entryId||"",l.separator||"",l.relationType||"",l.label||""].join("|");
+    if(seenLinks.has(k)) return false;
+    seenLinks.add(k);
+    return true;
+  });
+  graphLinks=groupTemporalGraphLinks(graphLinks);
+
+  calculateTemporalMetrics();
+  calculateEconomicMetrics();
+  graphNodes.forEach((n,i)=>{
+    const prev=previousPositions.get(n.id);
+    if(prev){
+      n.x=prev.x; n.y=prev.y; n.vx=prev.vx; n.vy=prev.vy; n.fixed=prev.fixed;
+      return;
+    }
+    const angle=(i/Math.max(1,graphNodes.length))*Math.PI*2;
+    const r=n.external?220:90+Math.min(180,graphNodes.length*5);
+    n.x = canvas.clientWidth/2 + Math.cos(angle)*r;
+    n.y = canvas.clientHeight/2 + Math.sin(angle)*r;
+  });
+}
+
+const canvas=$("#graph"), ctx=canvas.getContext("2d");
+function resizeCanvas(){
+  const rect=canvas.getBoundingClientRect();
+  canvas.width=rect.width*devicePixelRatio;
+  canvas.height=rect.height*devicePixelRatio;
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+}
+function stepGraph(){
+  const w=canvas.clientWidth,h=canvas.clientHeight;
+  graphNodes.forEach(n=>{
+    if(n.fixed){ n.vx=0; n.vy=0; return; }
+    let fx=(w/2-n.x)*0.004, fy=(h/2-n.y)*0.004;
+    graphNodes.forEach(m=>{
+      if(n===m) return;
+      let dx=n.x-m.x, dy=n.y-m.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+      let rep=1200/(d*d);
+      fx += dx/d*rep; fy += dy/d*rep;
+    });
+    graphLinks.forEach(l=>{
+      let a=graphNodes.find(x=>x.id===l.source), b=graphNodes.find(x=>x.id===l.target);
+      if(!a||!b) return;
+      if(a===n||b===n){
+        let other=a===n?b:a, dx=other.x-n.x, dy=other.y-n.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+        let pull=(d-80)*0.006;
+        fx += dx/d*pull; fy += dy/d*pull;
+      }
+    });
+    n.vx=(n.vx+fx)*0.82; n.vy=(n.vy+fy)*0.82;
+    n.x=Math.max(18,Math.min(w-18,n.x+n.vx));
+    n.y=Math.max(18,Math.min(h-18,n.y+n.vy));
+  });
+}
+function drawArrow(x1,y1,x2,y2,isCross){
+  const ang=Math.atan2(y2-y1,x2-x1);
+  const endX=x2-Math.cos(ang)*8, endY=y2-Math.sin(ang)*8;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(endX,endY);
+  ctx.strokeStyle=isCross?"rgba(255,77,77,.72)":"rgba(140,144,155,.30)";
+  ctx.lineWidth=isCross?2:1; ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(endX,endY);
+  ctx.lineTo(endX-Math.cos(ang-Math.PI/6)*8,endY-Math.sin(ang-Math.PI/6)*8);
+  ctx.lineTo(endX-Math.cos(ang+Math.PI/6)*8,endY-Math.sin(ang+Math.PI/6)*8);
+  ctx.closePath();
+  ctx.fillStyle=isCross?"rgba(255,77,77,.82)":"rgba(140,144,155,.45)"; ctx.fill();
+}
+
+function drawArrowLine(a,b,opts={}){
+  const dx=b.x-a.x, dy=b.y-a.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+  const ux=dx/d, uy=dy/d;
+  const width=opts.width||1;
+  const tipX=b.x-7*ux, tipY=b.y-7*uy;
+  const arrowSize=Math.max(7,Math.min(13,width*1.8));
+  const lineEndX=tipX-ux*arrowSize, lineEndY=tipY-uy*arrowSize;
+  ctx.save();
+  if(opts.dashed) ctx.setLineDash([7,6]);
+  ctx.beginPath();
+  ctx.moveTo(a.x,a.y);
+  ctx.lineTo(lineEndX,lineEndY);
+  ctx.strokeStyle=opts.color;
+  ctx.lineWidth=width;
+  ctx.lineCap="round";
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(tipX,tipY);
+  ctx.lineTo(tipX-ux*arrowSize-uy*arrowSize*.65,tipY-uy*arrowSize+ux*arrowSize*.65);
+  ctx.lineTo(tipX-ux*arrowSize+uy*arrowSize*.65,tipY-uy*arrowSize-ux*arrowSize*.65);
+  ctx.closePath();
+  ctx.fillStyle=opts.color;
+  ctx.fill();
+  ctx.restore();
+}
+
+
+function normalizeCurrencyToken(token){
+  const t=String(token||"").trim();
+  if(!t) return "EUR";
+  if(t==="€") return "EUR";
+  return t.toUpperCase();
+}
+function parseAmountInfo(label){
+  if(!label) return null;
+  const raw=String(label).trim();
+  const m=raw.match(/(-?\d[\d\.\,\s]*)(?:\s*([A-Za-z]{2,12}|€))?/);
+  if(!m) return null;
+  let s=m[1].replace(/\s/g,"");
+  const hasComma=s.includes(","), hasDot=s.includes(".");
+  if(hasComma && hasDot){
+    const lastComma=s.lastIndexOf(","), lastDot=s.lastIndexOf(".");
+    if(lastComma>lastDot) s=s.replace(/\./g,"").replace(",",".");
+    else s=s.replace(/,/g,"");
+  }else if(hasComma){
+    const parts=s.split(",");
+    if(parts.length===2 && parts[1].length===3 && parts[0].length<=3) s=parts[0]+parts[1];
+    else s=s.replace(",",".");
+  }else if(hasDot){
+    const parts=s.split(".");
+    if(parts.length>1 && parts[parts.length-1].length===3 && parts.slice(0,-1).every(x=>x.length>=1 && x.length<=3)) s=parts.join("");
+  }
+  const amount=parseFloat(s);
+  if(!Number.isFinite(amount)) return null;
+  const currency=normalizeCurrencyToken(m[2] || "EUR");
+  return {amount,currency,raw};
+}
+function parseAmount(label){
+  return parseAmountInfo(label)?.amount ?? null;
+}
+function parseCurrency(label){
+  return parseAmountInfo(label)?.currency || "EUR";
+}
+function formatAmount(n,currency="EUR"){
+  if(!Number.isFinite(n)) return "-";
+  const cur=normalizeCurrencyToken(currency);
+  const formatted=n.toLocaleString("es-ES",{minimumFractionDigits:0,maximumFractionDigits:8});
+  return cur==="EUR" ? formatted+" €" : formatted+" "+cur;
+}
+function formatCurrencyTotals(totals){
+  const entries=Object.entries(totals||{}).filter(([,v])=>Number.isFinite(v) && v!==0).sort((a,b)=>a[0].localeCompare(b[0]));
+  return entries.length ? entries.map(([cur,val])=>formatAmount(val,cur)).join("<br>") : formatAmount(0,"EUR");
+}
+function currencyTotalsText(totals){
+  const entries=Object.entries(totals||{}).filter(([,v])=>Number.isFinite(v) && v!==0).sort((a,b)=>a[0].localeCompare(b[0]));
+  return entries.length ? entries.map(([cur,val])=>formatAmount(val,cur)).join(" | ") : formatAmount(0,"EUR");
+}
+function addCurrencyTotal(obj,currency,amount){
+  const cur=normalizeCurrencyToken(currency);
+  obj[cur]=(obj[cur]||0)+amount;
+}
+function economicModeEnabled(){ return $("#economicMode")?.checked ?? true; }
+function minVisibleAmount(){ return parseFloat($("#minAmountVisible")?.value||0)||0; }
+let economicSummary={totalDetected:0,topIn:[],topNet:[]};
+
+function showApproxLinks(){
+  const cb=$("#showApproxLinks");
+  return cb ? cb.checked : true;
+}
+function showExternalLinks(){
+  const cb=$("#showExternalLinks");
+  return cb ? cb.checked : true;
+}
+function showTemporalLinks(){
+  const cb=$("#showTemporalLinks");
+  return cb ? cb.checked : true;
+}
+function showUniversalLinks(){
+  const cb=$("#showUniversalLinks");
+  return cb ? cb.checked : true;
+}
+function displayType(t){
+  return ({persona:"Persona",dato:"Dato",cuenta:"Cuenta",lugar:"Lugar",documento:"Documento",entidad:"Entidad",texto:"Texto"}[t]||String(t||"")).replace(/^./,m=>m.toUpperCase());
+}
+function isNodeVisibleInGraph(n){
+  if(!n) return false;
+  if(hiddenGraphTypes.has(n.type)) return false;
+  if(n.external && hiddenGraphTypes.has("cruce")) return false;
+  return true;
+}
+function isLinkVisibleInGraph(l){
+  if(!showExternalLinks() && (l.external || l.cross)) return false;
+  if(!showApproxLinks() && (l.internalApprox || l.partial)) return false;
+  if(l.relationType==="temporal" && !showTemporalLinks()) return false;
+  if(l.relationType==="universal" && !showUniversalLinks()) return false;
+  if(isEconomicAmountLink(l) && l.amount<minVisibleAmount()) return false;
+  const a=graphNodes.find(n=>n.id===l.source), b=graphNodes.find(n=>n.id===l.target);
+  return isNodeVisibleInGraph(a) && isNodeVisibleInGraph(b);
+}
+function showGraphNodeData(){
+  const cb=$("#exportNodeData");
+  return cb ? cb.checked : true;
+}
+function worldToScreenPoint(x,y){
+  return {x:x*graphView.scale+graphView.offsetX, y:y*graphView.scale+graphView.offsetY};
+}
+function screenToWorldPoint(x,y){
+  return {x:(x-graphView.offsetX)/graphView.scale, y:(y-graphView.offsetY)/graphView.scale};
+}
+function updateEdgeLabels(){
+  const graphArea=document.querySelector(".graphArea");
+  if(!graphArea) return;
+  let layer=$("#edgeLabelLayer");
+  if(!layer){
+    layer=document.createElement("div");
+    layer.id="edgeLabelLayer";
+    layer.style.position="absolute";
+    layer.style.inset="0";
+    layer.style.pointerEvents="none";
+    graphArea.appendChild(layer);
+  }
+  if(!showGraphNodeData()){
+    layer.innerHTML="";
+    return;
+  }
+  const groups=new Map();
+  graphLinks.forEach((l,idx)=>{
+    if(!isLinkVisibleInGraph(l)) return;
+    const lines=linkLabelDisplayLines(l);
+    if(!lines.length) return;
+    const a=graphNodes.find(n=>n.id===l.source), b=graphNodes.find(n=>n.id===l.target);
+    if(!a||!b) return;
+    const key=[l.source,l.target,l.cross?"x":"i",l.partial?"p":"e",l.internalApprox?"a":"",l.external?"ext":""].join("|");
+    if(!groups.has(key)){
+      groups.set(key,{source:a,target:b,items:[]});
+    }
+    lines.forEach((text,lineIdx)=>{
+      const clean=String(text||"").trim();
+      if(!clean) return;
+      groups.get(key).items.push({
+        text:clean,
+        entryDate:l.entryDate||"",
+        order:idx*100+lineIdx,
+        temporal:l.relationType==="temporal"
+      });
+    });
+  });
+  layer.innerHTML=[...groups.values()].map(group=>{
+    const seen=new Set();
+    const items=group.items.slice().sort((a,b)=>{
+      if(a.temporal || b.temporal) return (a.order||0)-(b.order||0);
+      const da=String(a.entryDate||""), db=String(b.entryDate||"");
+      if(da && db && da!==db) return da.localeCompare(db);
+      if(da && !db) return -1;
+      if(!da && db) return 1;
+      return (a.order||0)-(b.order||0);
+    }).filter(item=>{
+      if(seen.has(item.text)) return false;
+      seen.add(item.text);
+      return true;
+    });
+    if(!items.length) return "";
+    const pa=worldToScreenPoint(group.source.x,group.source.y), pb=worldToScreenPoint(group.target.x,group.target.y);
+    const labelHtml=items.map(item=>esc(item.text)).join("<br>");
+    return `<div class="edgeLabel" style="left:${(pa.x+pb.x)/2}px;top:${(pa.y+pb.y)/2}px">${labelHtml}</div>`;
+  }).join("");
+}
+
+function relationVisualStyle(l){
+  if(l.cross) return {color:"rgba(255,77,77,.68)",width:1.8,dashed:true};
+  if(l.internalApprox) return {color:"rgba(170,174,185,.56)",width:1.3,dashed:true};
+  if(l.relationType==="temporal") return {color:"rgba(183,181,255,.76)",width:1.25,dashed:true};
+  if(isEconomicAmountLink(l) && economicModeEnabled()){
+    return {color:"rgba(255,216,77,.68)",width:Math.min(8,1+Math.log10(Math.max(1,l.amount))*1.15),dashed:false};
+  }
+  if(l.relationType==="economic") return {color:"rgba(150,154,165,.38)",width:1,dashed:false};
+  if(l.relationType==="universal") return {color:"rgba(185,188,198,.32)",width:1,dashed:false};
+  return {color:"rgba(140,144,155,.34)",width:1,dashed:false};
+}
+
+function drawGraph(){
+  ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);
+  stepGraph();
+
+  ctx.save();
+  ctx.translate(graphView.offsetX,graphView.offsetY);
+  ctx.scale(graphView.scale,graphView.scale);
+
+  graphLinks.forEach(l=>{
+    if(!isLinkVisibleInGraph(l)) return;
+    const a=graphNodes.find(n=>n.id===l.source), b=graphNodes.find(n=>n.id===l.target);
+    if(!a||!b) return;
+    drawArrowLine(a,b,relationVisualStyle(l));
+  });
+
+  graphNodes.forEach(n=>{
+    if(!isNodeVisibleInGraph(n)) return;
+    ctx.beginPath();
+    ctx.arc(n.x,n.y,n.external?5.8:4.3,0,Math.PI*2);
+    ctx.fillStyle=n.external?colorByType(n.type,true):colorByType(n.type,false);
+    ctx.fill();
+    if(n.rankIn){
+      ctx.beginPath();
+      ctx.arc(n.x,n.y,14,0,Math.PI*2);
+      ctx.strokeStyle="rgba(255,216,77,.7)";
+      ctx.lineWidth=2;
+      ctx.stroke();
+      ctx.fillStyle="#fff";
+      ctx.font=`${12/graphView.scale}px Arial`;
+      ctx.fillText(String(n.rankIn),n.x+8/graphView.scale,n.y-8/graphView.scale);
+    }
+
+    if(selectedNode?.id===n.id){
+      ctx.beginPath();ctx.arc(n.x,n.y,10,0,Math.PI*2);
+      ctx.strokeStyle="rgba(255,255,255,.75)";ctx.lineWidth=1;ctx.stroke();
+    }
+    if(showGraphNodeData()){
+      const nodeRadius=n.external?5.8:4.3;
+      const labelOffsetX=nodeRadius+8/graphView.scale;
+      const labelOffsetY=4/graphView.scale;
+      ctx.font=`${12/graphView.scale}px Arial`;
+      ctx.fillStyle="rgba(225,228,235,.88)";
+      ctx.fillText(n.value,n.x+labelOffsetX,n.y+labelOffsetY);
+      if(economicModeEnabled() && Number.isFinite(n.totalIn) && n.totalIn>0){ ctx.fillStyle="rgba(255,216,77,.8)"; ctx.fillText(currencyTotalsText(n.totalInByCurrency),n.x+labelOffsetX,n.y+labelOffsetY+12/graphView.scale);} 
+    }
+  });
+
+  ctx.restore();
+  updateEdgeLabels();
+  updateEconomicPanel();
+  requestAnimationFrame(drawGraph);
+}
+
+
+function hitTestNode(clientX,clientY){
+  const r=canvas.getBoundingClientRect();
+  const p=screenToWorldPoint(clientX-r.left,clientY-r.top);
+  for(let i=graphNodes.length-1;i>=0;i--){
+    const n=graphNodes[i];
+    if(!isNodeVisibleInGraph(n)) continue;
+    const d=Math.hypot(n.x-p.x,n.y-p.y);
+    if(d<(14/graphView.scale)) return {node:n,point:p};
+  }
+  return {node:null,point:p};
+}
+
+canvas.addEventListener("click",e=>{
+  if(graphView.dragMoved) return;
+  const hit=hitTestNode(e.clientX,e.clientY).node;
+  if(hit){ selectedNode=hit; showNodeInfo(hit); } else { selectedNode=null; $("#nodeInfo").classList.remove("show"); }
+});
+
+canvas.addEventListener("wheel",e=>{
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  const mx=e.clientX-r.left, my=e.clientY-r.top;
+  const before=screenToWorldPoint(mx,my);
+  const factor=e.deltaY<0?1.12:0.89;
+  graphView.scale=Math.max(0.25,Math.min(4,graphView.scale*factor));
+  const after=worldToScreenPoint(before.x,before.y);
+  graphView.offsetX += mx-after.x;
+  graphView.offsetY += my-after.y;
+},{passive:false});
+
+canvas.addEventListener("mousedown",e=>{
+  if(e.button!==0) return;
+  const hit=hitTestNode(e.clientX,e.clientY);
+  graphView.dragging=true;
+  graphView.dragMoved=false;
+  graphView.lastX=e.clientX;
+  graphView.lastY=e.clientY;
+  graphView.draggingNode=hit.node;
+  if(hit.node){
+    hit.node.fixed=true;
+    selectedNode=hit.node;
+  }
+});
+window.addEventListener("mousemove",e=>{
+  if(!graphView.dragging) return;
+  const dx=e.clientX-graphView.lastX, dy=e.clientY-graphView.lastY;
+  if(Math.abs(dx)+Math.abs(dy)>2) graphView.dragMoved=true;
+  if(graphView.draggingNode){
+    graphView.draggingNode.x += dx/graphView.scale;
+    graphView.draggingNode.y += dy/graphView.scale;
+    graphView.draggingNode.vx=0;
+    graphView.draggingNode.vy=0;
+  }else{
+    graphView.offsetX+=dx;
+    graphView.offsetY+=dy;
+  }
+  graphView.lastX=e.clientX;
+  graphView.lastY=e.clientY;
+});
+window.addEventListener("mouseup",()=>{ graphView.dragging=false; graphView.draggingNode=null; });
+canvas.addEventListener("dblclick",e=>{
+  const hit=hitTestNode(e.clientX,e.clientY).node;
+  if(hit){
+    hit.fixed=false;
+    return;
+  }
+  graphView.scale=1;
+  graphView.offsetX=0;
+  graphView.offsetY=0;
+});
+
+function nodeKey(n){ return normNodeKey(n.sourceType||n.type,n.sourceValue||n.value); }
+function showNodeInfo(n){
+  const info=$("#nodeInfo");
+  if(!data.nodeImages) data.nodeImages={};
+  const k=nodeKey(n);
+  const img=data.nodeImages[k];
+  const nodeLinks=graphLinks.filter(l=>(l.source===n.id||l.target===n.id));
+
+  const conns=nodeLinks.map(l=>{
+    const other=graphNodes.find(x=>x.id===(l.source===n.id?l.target:l.source));
+    return other ? `${other.value} (${other.type})${l.cross ? " · otra operación" : ""}${l.internalApprox ? " · coincidencia aproximada interna" : ""}${l.partial && !l.internalApprox ? " · parcial" : ""}` : "";
+  }).filter(Boolean);
+
+  const incoming=nodeLinks.filter(l=>l.target===n.id).map(l=>{
+    const other=graphNodes.find(x=>x.id===l.source);
+    if(!other) return "";
+    return `${l.label ? esc(l.label)+" ← " : ""}${other.value}`;
+  }).filter(Boolean);
+
+  const outgoing=nodeLinks.filter(l=>l.source===n.id).map(l=>{
+    const other=graphNodes.find(x=>x.id===l.target);
+    if(!other) return "";
+    return `${l.label ? esc(l.label)+" → " : ""}${other.value}`;
+  }).filter(Boolean);
+
+  const hasEconomicActivity=n.type==="cuenta" && ((n.countIn||0)>0 || (n.countOut||0)>0 || (n.totalIn||0)>0 || (n.totalOut||0)>0);
+  const econBlock=hasEconomicActivity ? `
+    <div class="block">
+      <b>Resumen económico:</b><br>
+      Total recibido: ${formatCurrencyTotals(n.totalInByCurrency)}<br>
+      Total enviado: ${formatCurrencyTotals(n.totalOutByCurrency)}<br>
+      Neto: ${formatCurrencyTotals(n.netFlowByCurrency)}<br>
+      Nº entradas: ${n.countIn}<br>
+      Nº salidas: ${n.countOut}<br>
+      Mayor entrada: ${formatCurrencyTotals(n.maxInByCurrency)}<br>
+      Mayor salida: ${formatCurrencyTotals(n.maxOutByCurrency)}<br>
+      ${n.rankIn?`Top receptora: #${n.rankIn}<br>`:""}
+      <span style="color:#ffd84d">${nodeEconomicClass(n)}</span>
+    </div>` : "";
+
+  const temporalEvents=(n.temporalEvents||[]).slice().sort(sortTemporalEvents);
+  const temporalBlock=temporalEvents.length ? `
+    <div class="block"><b>Historial temporal:</b><br>
+      ${temporalEvents.map(ev=>`${esc(ev.display||ev.raw||"Sin fecha")} → ${esc(ev.targetValue)} (${esc(displayType(ev.targetType))})${ev.entryDate?`<br><span style="color:var(--soft)">Gestión: ${esc(ev.entryDate)} · ${esc(ev.entryTitle||"Sin título")}</span>`:""}`).join("<br>")}
+    </div>` : "";
+
+  const economicEvents=n.type==="cuenta" ? (n.economicEvents||[]).slice().sort(sortEconomicEvents) : [];
+  const economicHistoryBlock=economicEvents.length ? `
+    <div class="block"><b>Historial económico:</b><br>
+      ${economicEvents.map(ev=>`${esc(ev.display||ev.raw||"Sin fecha")} ${ev.direction==="out"?"→":"←"} ${esc(formatAmount(ev.amount,ev.currency))} ${ev.direction==="out"?"a":"de"} ${esc(ev.otherValue)}`).join("<br>")}
+    </div>` : "";
+
+  info.innerHTML=`
+    <h3>${esc(n.value)}</h3>
+    <div class="type">${esc((n.external?"NODO EXTERNO · ":"")+n.type.toUpperCase())}${n.partial?' · COINCIDENCIA PARCIAL':''}</div>
+    ${img?`<img class="nodePhoto" src="${img}">`:""}
+    <div class="block">
+      <button id="addNodeImage">${img?"Cambiar imagen del nodo":"Añadir imagen al nodo"}</button>
+      ${img?`<button id="removeNodeImage">Quitar imagen</button>`:""}
+      <input class="fileInput" type="file" id="nodeImageInput" accept="image/*">
+    </div>
+    <div class="block"><b>Conectado con:</b><br>${conns.length?conns.map(esc).join("<br>"):"Sin conexiones directas"}</div>
+    <div class="block"><b>Recibe:</b><br>${incoming.length?incoming.join("<br>"):"Sin entradas"}</div>
+    <div class="block"><b>Envía:</b><br>${outgoing.length?outgoing.join("<br>"):"Sin salidas"}</div>
+    ${temporalBlock}
+    ${economicHistoryBlock}
+    ${econBlock}<div class="block"><b>Apariciones:</b>
+      ${(n.occurrences||[]).map(o=>`
+        <button class="${o.investId===selectedInvest?'internalRef':'externalRef'}" data-inv="${o.investId}" data-entry="${o.entryId}">
+          ${esc(o.date)} · ${esc(o.investName||currentInvest()?.name||"")} · ${esc(o.title||"Sin título")}
+        </button>`).join("") || "<br>Sin apariciones"}
+    </div>
+    <div class="block">
+      <button class="deleteNode" id="deleteNodeBtn">Eliminar nodo del grafo</button>
+      ${lastDeletedNode?`<button class="undoDelete" id="undoDeleteBtn">Deshacer último nodo eliminado</button>`:""}
+    </div>`;
+  info.classList.add("show");
+  info.querySelectorAll("button[data-inv]").forEach(b=>b.onclick=()=>{
+    selectedInvest=b.dataset.inv; selectedEntry=b.dataset.entry;
+    renderAll();
+    const e=currentEntry(); if(e) openEditor(e);
+  });
+  const add=$("#addNodeImage"), inp=$("#nodeImageInput"), rem=$("#removeNodeImage");
+  if(add && inp){ add.onclick=()=>inp.click(); inp.onchange=()=>{
+    const file=inp.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{ data.nodeImages[k]=reader.result; persist(); showNodeInfo(n); };
+    reader.readAsDataURL(file);
+  };}
+  if(rem){ rem.onclick=()=>{ delete data.nodeImages[k]; persist(); showNodeInfo(n); }; }
+  $("#deleteNodeBtn").onclick=()=>{
+    const targetInv = n.externalInvestId ? data.investigations.find(i=>i.id===n.externalInvestId) : currentInvest();
+    if(!targetInv) return;
+    ensureInvestMeta(targetInv);
+    const key=normNodeKey(n.type,n.value);
+    lastDeletedNode={investId:targetInv.id,key,type:n.type,value:n.value,image:data.nodeImages[k]||null};
+    if(!targetInv.hiddenNodes.includes(key)) targetInv.hiddenNodes.push(key);
+    delete data.nodeImages[k];
+    persist();
+    $("#nodeInfo").classList.remove("show");
+    buildGraph();
+    updateUndoGlobalButton();
+  };
+  const undo=$("#undoDeleteBtn");
+  if(undo){ undo.onclick=()=>{
+    const item=lastDeletedNode;
+    if(!item) return;
+    const targetInv=data.investigations.find(i=>i.id===item.investId);
+    if(!targetInv) return;
+    ensureInvestMeta(targetInv);
+    targetInv.hiddenNodes=targetInv.hiddenNodes.filter(x=>x!==item.key);
+    if(item.image) data.nodeImages[item.key]=item.image;
+    lastDeletedNode=null;
+    persist();
+    $("#nodeInfo").classList.remove("show");
+    buildGraph();
+    updateUndoGlobalButton();
+  };}
+}
+
+
+function undoLastDeletedNode(){
+  const item=lastDeletedNode;
+  if(!item) return;
+  const targetInv=data.investigations.find(i=>i.id===item.investId);
+  if(!targetInv) return;
+  ensureInvestMeta(targetInv);
+  targetInv.hiddenNodes=targetInv.hiddenNodes.filter(x=>x!==item.key);
+  if(item.image) data.nodeImages[item.key]=item.image;
+  lastDeletedNode=null;
+  persist();
+  $("#nodeInfo").classList.remove("show");
+  buildGraph();
+  updateUndoGlobalButton();
+}
+function updateUndoGlobalButton(){
+  const b=$("#undoDeletedNodeGlobal");
+  if(!b) return;
+  b.disabled=!lastDeletedNode;
+  b.textContent="↶ Deshacer";
+}
+
+function renderAll(){ renderInvest(); renderEntries(); buildGraph(); updateUndoGlobalButton(); persist(); }
+
+function openInvestDetails(edit){
+  const inv=currentInvest(); if(!inv) return;
+  $("#viewInvestName").value=inv.name||"";
+  $("#viewInvestNotes").value=inv.notes||"";
+  $("#viewInvestName").readOnly=!edit;
+  $("#viewInvestNotes").readOnly=!edit;
+  $("#saveViewInvest").style.display=edit?"inline-block":"none";
+  $("#editViewInvest").style.display=edit?"none":"inline-block";
+  $("#viewInvestModal").classList.add("show");
+}
+$("#closeViewInvest").onclick=()=>$("#viewInvestModal").classList.remove("show");
+$("#editViewInvest").onclick=()=>openInvestDetails(true);
+$("#saveViewInvest").onclick=()=>{
+  const inv=currentInvest(); if(!inv) return;
+  inv.name=$("#viewInvestName").value.trim()||"Investigación sin nombre";
+  inv.notes=$("#viewInvestNotes").value.trim();
+  $("#viewInvestModal").classList.remove("show");
+  renderAll();
+};
+
+
+function splitLinesInput(value, preserveEmpty=false){
+  const lines=String(value||"").split(/\r?\n/).map(x=>x.trim());
+  return preserveEmpty ? lines : lines.filter(x=>x.length);
+}
+function buildTransferConverterResult(){
+  const origins=splitLinesInput($("#convOriginAccounts").value);
+  const originOwners=String($("#convOriginOwners").value||"").split(/\r?\n/).map(x=>x.trim());
+  const transferDates=String($("#convTransferDates")?.value||"").split(/\r?\n/).map(x=>x.trim());
+  const amounts=splitLinesInput($("#convAmounts").value);
+  const dests=splitLinesInput($("#convDestAccounts").value);
+  const destOwners=String($("#convDestOwners").value||"").split(/\r?\n/).map(x=>x.trim());
+
+  const total=Math.max(origins.length, originOwners.length, transferDates.length, amounts.length, dests.length, destOwners.length);
+  const rows=[];
+  for(let i=0;i<total;i++){
+    const origin=origins[i]||"";
+    const amount=amounts[i]||"";
+    const transferDate=transferDates[i]||"";
+    const dest=dests[i]||"";
+    const originOwner=originOwners[i]||"";
+    const destOwner=destOwners[i]||"";
+    if(!origin && !amount && !transferDate && !dest && !originOwner && !destOwner) continue;
+
+    if(origin){
+      rows.push(`[${origin}]`);
+    }else if(amount || dest || transferDate){
+      rows.push(`[CUENTA_ORIGEN_PENDIENTE]`);
+    }
+
+    if(originOwner) rows.push(`    Titular=*${originOwner}*`);
+    if(dest){
+      const economicPart=`${amount?amount+":" : ""}[${dest}]`;
+      rows.push(`    ${transferDate?transferDate+";":""}${economicPart}`);
+    }
+    if(destOwner) rows.push(`        Titular=*${destOwner}*`);
+    rows.push("");
+  }
+  $("#convResult").value=rows.join("\n").trim();
+}
+
+function buildCallConverterResult(){
+  const origins=splitLinesInput($("#callOriginNumbers").value,true);
+  const originOwners=splitLinesInput($("#callOriginOwners").value,true);
+  const dests=splitLinesInput($("#callDestNumbers").value,true);
+  const destOwners=splitLinesInput($("#callDestOwners").value,true);
+
+  const total=Math.max(origins.length, originOwners.length, dests.length, destOwners.length);
+  const rows=[];
+  for(let i=0;i<total;i++){
+    const origin=origins[i]||"";
+    const originOwner=originOwners[i]||"";
+    const dest=dests[i]||"";
+    const destOwner=destOwners[i]||"";
+
+    if(!origin && !originOwner && !dest && !destOwner) continue;
+
+    const originNode=origin || "NUMERO_ORIGEN_PENDIENTE";
+    const destNode=dest || "NUMERO_DESTINO_PENDIENTE";
+
+    rows.push(`(${originNode})`);
+    if(originOwner) rows.push(`    Titular:*${originOwner}*`);
+    rows.push(`    Llamada:(${destNode})`);
+    if(destOwner) rows.push(`        Titular:*${destOwner}*`);
+    rows.push("");
+  }
+  $("#callResult").value=rows.join("\n").trim();
+}
+
+const blockchainKeyStore="mapache_blockchain_api_keys_v1";
+let blockchainMovements=[];
+let blockchainRawMovements=[];
+
+function loadBlockchainKeys(){
+  try{return JSON.parse(localStorage.getItem(blockchainKeyStore)||"{}");}
+  catch(e){return {};}
+}
+function saveBlockchainKeys(){
+  const keys={
+    etherscan:$("#apiKeyEtherscan")?.value.trim()||"",
+    trongrid:$("#apiKeyTronGrid")?.value.trim()||"",
+    tonapi:$("#apiKeyTonApi")?.value.trim()||"",
+    blockstreamBase:$("#apiBaseBlockstream")?.value.trim()||"https://blockstream.info/api"
+  };
+  localStorage.setItem(blockchainKeyStore,JSON.stringify(keys));
+  setBlockchainStatus("APIs guardadas en localStorage del navegador.","ok");
+  return keys;
+}
+function hydrateBlockchainKeyFields(){
+  const keys=loadBlockchainKeys();
+  const fields={apiKeyEtherscan:keys.etherscan||"",apiKeyTronGrid:keys.trongrid||"",apiKeyTonApi:keys.tonapi||"",apiBaseBlockstream:keys.blockstreamBase||"https://blockstream.info/api"};
+  Object.entries(fields).forEach(([id,val])=>{const el=$("#"+id); if(el) el.value=val;});
+}
+function setBlockchainStatus(msg,type=""){
+  const el=$("#bcStatus");
+  if(!el) return;
+  el.className="blockchainStatus"+(type?" "+type:"");
+  el.textContent=msg;
+}
+function sanitizeExplorerAddress(address){return String(address||"").trim();}
+function clampBlockchainLimit(){
+  const n=parseInt($("#bcLimit")?.value||"50",10);
+  return Math.max(1,Math.min(100,Number.isFinite(n)?n:50));
+}
+function amountPassesMin(amount,min=0){
+  return !min || (Number.isFinite(amount) && amount>=min);
+}
+function normalizeComparableAddress(value){
+  return String(value||"").trim().toLowerCase();
+}
+function movementDirectionForAddress(m,address){
+  const q=normalizeComparableAddress(address);
+  const from=normalizeComparableAddress(m.from);
+  const to=normalizeComparableAddress(m.to);
+  if(!q) return "unknown";
+  if(from===q && to===q) return "self";
+  if(to===q) return "in";
+  if(from===q) return "out";
+  return "related";
+}
+function movementDirectionText(dir){
+  return dir==="in"?"Entrante":dir==="out"?"Saliente":dir==="self"?"Interno":"Relacionado";
+}
+function movementDirectionIcon(dir){
+  return dir==="in"?"←":dir==="out"?"→":dir==="self"?"↔":"•";
+}
+function datePassesBlockchainFilter(iso,from,to){
+  if(!from && !to) return true;
+  const d=iso ? new Date(iso) : null;
+  if(!d || Number.isNaN(d.getTime())) return false;
+  if(from){
+    const start=new Date(from+"T00:00:00");
+    if(d<start) return false;
+  }
+  if(to){
+    const end=new Date(to+"T23:59:59.999");
+    if(d>end) return false;
+  }
+  return true;
+}
+function hashPassesBlockchainFilter(txHash,hash){
+  const h=String(hash||"").trim().toLowerCase();
+  if(!h) return true;
+  return String(txHash||"").toLowerCase().includes(h);
+}
+
+function parseBlockchainDateInput(value){
+  if(!value) return null;
+  const dt=new Date(String(value)+"T00:00:00");
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+function blockchainDateRangeError(opts){
+  const from=parseBlockchainDateInput(opts.dateFrom);
+  const to=parseBlockchainDateInput(opts.dateTo);
+  if(opts.dateFrom && !from) return "La fecha inicial no es válida.";
+  if(opts.dateTo && !to) return "La fecha final no es válida.";
+  if(from && to && from>to) return `El filtro temporal está invertido: la fecha inicial (${opts.dateFrom}) es posterior a la fecha final (${opts.dateTo}).`;
+  return "";
+}
+function inferBlockchainAddressFamily(address){
+  const a=String(address||"").trim();
+  if(!a) return "unknown";
+  if(/^0x[a-fA-F0-9]{40}$/.test(a)) return "evm";
+  if(/^T[1-9A-HJ-NP-Za-km-z]{33}$/.test(a)) return "tron";
+  if(/^(bc1[ac-hj-np-z02-9]{11,}|[13][a-km-zA-HJ-NP-Z1-9]{25,34})$/.test(a)) return "bitcoin";
+  if(/^(EQ|UQ)[A-Za-z0-9_-]{46}$/.test(a)) return "ton";
+  return "unknown";
+}
+function blockchainFamilyName(family){
+  return ({evm:"EVM / Ethereum-compatible",tron:"TRON",bitcoin:"Bitcoin",ton:"TON",unknown:"desconocida"}[family]||family);
+}
+function blockchainProviderExpectedFamily(provider){
+  if(provider==="tron_trc20") return "tron";
+  if(provider==="evm_token" || provider==="evm_native") return "evm";
+  if(provider==="bitcoin") return "bitcoin";
+  if(provider==="ton") return "ton";
+  return "unknown";
+}
+function blockchainProviderAddressDiagnostic(opts){
+  const family=inferBlockchainAddressFamily(opts.address);
+  const expected=blockchainProviderExpectedFamily(opts.provider);
+  if(!opts.address || family==="unknown" || expected==="unknown" || family===expected) return "";
+  if(expected==="tron" && family==="evm"){
+    return "La dirección introducida empieza por 0x y parece EVM/Ethereum, pero está seleccionado TRON/TRC20. Para el caso mostrado en Ethplorer selecciona ‘EVM · Tokens ERC20/BEP20’, Chain ID Ethereum · 1, y deja vacío el contrato si quieres ver todos los tokens o usa el contrato ERC20 correcto.";
+  }
+  if(expected==="evm" && family==="tron"){
+    return "La dirección introducida parece TRON porque empieza por T, pero está seleccionada una red EVM. Selecciona TRON · TRC20 / USDT.";
+  }
+  return `La dirección parece de tipo ${blockchainFamilyName(family)}, pero el explorador seleccionado espera ${blockchainFamilyName(expected)}. Revisa Red / explorador antes de consultar.`;
+}
+function blockchainTokenContractDiagnostic(opts){
+  const contract=String(opts.tokenContract||"").trim();
+  if(!contract) return "";
+  if(opts.provider==="evm_token" && /^T[1-9A-HJ-NP-Za-km-z]{20,}$/.test(contract)){
+    return "El contrato token introducido parece de TRON. En EVM debe ser un contrato 0x...; si no estás seguro, deja el contrato vacío para descargar todos los tokens de la dirección.";
+  }
+  if(opts.provider==="tron_trc20" && /^0x[a-fA-F0-9]{40}$/.test(contract)){
+    return "El contrato token introducido parece EVM 0x..., pero está seleccionado TRON. Para TRON/USDT usa TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t o deja el campo vacío.";
+  }
+  return "";
+}
+function validateBlockchainOptions(opts,{requireAddress=true}={}){
+  if(requireAddress && !opts.address) return {ok:false,type:"warn",message:"Introduce una dirección o wallet."};
+  const dateErr=blockchainDateRangeError(opts);
+  if(dateErr) return {ok:false,type:"warn",message:dateErr};
+  const addrDiag=blockchainProviderAddressDiagnostic(opts);
+  if(addrDiag) return {ok:false,type:"warn",message:addrDiag};
+  const tokenDiag=blockchainTokenContractDiagnostic(opts);
+  if(tokenDiag) return {ok:false,type:"warn",message:tokenDiag};
+  return {ok:true,type:"ok",message:""};
+}
+function blockchainZeroResultsHint(opts,downloaded,visible){
+  const parts=[];
+  if(downloaded===0){
+    parts.push("El explorador no devolvió movimientos. Verifica que la red sea correcta, que la dirección pertenezca a esa red y que el contrato token no esté limitando la consulta.");
+    if(opts.provider==="evm_token" && !opts.tokenContract) parts.push("En EVM tokens el contrato vacío descarga todos los tokens que devuelva Etherscan para esa dirección; si buscas USDT concreto puedes filtrar por el contrato ERC20 adecuado.");
+    if(opts.provider==="tron_trc20") parts.push("En TRON las direcciones suelen empezar por T. Una dirección 0x no devolverá resultados en TronGrid.");
+  }else if(visible===0){
+    parts.push("La API sí devolvió movimientos, pero los filtros actuales los han ocultado. Revisa fechas, sentido, hash o importe mínimo.");
+  }
+  return parts.join(" ");
+}
+function showBlockchainFormDiagnostic(){
+  const opts=currentBlockchainOptions();
+  const validation=validateBlockchainOptions(opts,{requireAddress:false});
+  if(!validation.ok){
+    setBlockchainStatus(validation.message,validation.type||"warn");
+    return false;
+  }
+  return true;
+}
+function unitsToNumber(value,decimals=0){
+  const raw=String(value ?? "0").replace(/^0+(?=\d)/,"") || "0";
+  const dec=Math.max(0,parseInt(decimals||0,10)||0);
+  if(!dec) return Number(raw);
+  const padded=raw.padStart(dec+1,"0");
+  const intPart=padded.slice(0,-dec)||"0";
+  const fracPart=padded.slice(-dec).replace(/0+$/g,"");
+  return Number(fracPart?`${intPart}.${fracPart}`:intPart);
+}
+function isoFromUnixSeconds(seconds){
+  const n=Number(seconds);
+  return Number.isFinite(n) && n>0 ? new Date(n*1000).toISOString() : "";
+}
+function isoFromUnixMs(ms){
+  const n=Number(ms);
+  return Number.isFinite(n) && n>0 ? new Date(n).toISOString() : "";
+}
+function mapacheDateFromIso(iso){
+  const d=iso ? new Date(iso) : null;
+  if(!d || Number.isNaN(d.getTime())) return "Sin fecha";
+  const dd=String(d.getDate()).padStart(2,"0");
+  const mm=String(d.getMonth()+1).padStart(2,"0");
+  const yyyy=d.getFullYear();
+  const hh=String(d.getHours()).padStart(2,"0");
+  const mi=String(d.getMinutes()).padStart(2,"0");
+  return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
+}
+function mapacheAmountLabel(m){
+  const amount=Number(m.amount);
+  const clean=Number.isFinite(amount) ? amount.toFixed(8).replace(/\.?0+$/g,"") : String(m.amount||"");
+  return `${clean} ${normalizeCurrencyToken(m.currency||"EUR")}`.trim();
+}
+function normalizeMovement(m){
+  return {
+    chain:m.chain||"",
+    txHash:m.txHash||"",
+    date:m.date||"",
+    from:sanitizeExplorerAddress(m.from)||"ORIGEN_DESCONOCIDO",
+    to:sanitizeExplorerAddress(m.to)||"DESTINO_DESCONOCIDO",
+    amount:Number(m.amount),
+    currency:normalizeCurrencyToken(m.currency||"EUR"),
+    tokenContract:m.tokenContract||"",
+    type:m.type||"transfer",
+    source:m.source||"",
+    raw:m.raw||null
+  };
+}
+function dedupeMovements(movs){
+  const seen=new Set();
+  return movs.map(normalizeMovement).filter(m=>{
+    if(!Number.isFinite(m.amount)) return false;
+    const key=[m.chain,m.txHash,m.from,m.to,m.amount,m.currency,m.type].join("|");
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+}
+function filterBlockchainMovements(movs,opts){
+  const normalized=dedupeMovements(movs);
+  return normalized.filter(m=>{
+    if(!amountPassesMin(m.amount,opts.minAmount||0)) return false;
+    if(!datePassesBlockchainFilter(m.date,opts.dateFrom,opts.dateTo)) return false;
+    if(!hashPassesBlockchainFilter(m.txHash,opts.hash)) return false;
+    const dir=movementDirectionForAddress(m,opts.address);
+    if(opts.direction==="in" && dir!=="in") return false;
+    if(opts.direction==="out" && dir!=="out") return false;
+    return true;
+  }).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+}
+function blockchainFilterDescription(opts){
+  const parts=[];
+  if(opts.dateFrom) parts.push(`desde ${opts.dateFrom}`);
+  if(opts.dateTo) parts.push(`hasta ${opts.dateTo}`);
+  if(opts.direction==="in") parts.push("solo entrantes");
+  if(opts.direction==="out") parts.push("solo salientes");
+  if(opts.hash) parts.push(`hash contiene ${opts.hash}`);
+  if(opts.minAmount) parts.push(`importe mínimo ${opts.minAmount}`);
+  return parts.length ? parts.join(" · ") : "sin filtros adicionales";
+}
+async function fetchJson(url,opts={}){
+  const res=await fetch(url,opts);
+  const text=await res.text();
+  let json=null;
+  try{json=text?JSON.parse(text):null;}catch(e){throw new Error(`Respuesta no JSON de ${res.status}`);}
+  if(!res.ok) throw new Error((json && (json.message||json.error)) || `HTTP ${res.status}`);
+  return json;
+}
+function currentBlockchainOptions(){
+  return {
+    provider:$("#bcProvider")?.value||"tron_trc20",
+    address:sanitizeExplorerAddress($("#bcAddress")?.value),
+    chainId:$("#bcChainId")?.value||"1",
+    tokenContract:sanitizeExplorerAddress($("#bcTokenContract")?.value),
+    limit:clampBlockchainLimit(),
+    minAmount:parseFloat($("#bcMinAmount")?.value||"0")||0,
+    dateFrom:$("#bcDateFrom")?.value||"",
+    dateTo:$("#bcDateTo")?.value||"",
+    direction:$("#bcDirection")?.value||"all",
+    hash:sanitizeExplorerAddress($("#bcHash")?.value),
+    keys:loadBlockchainKeys()
+  };
+}
+async function fetchTronTrc20Movements(opts){
+  const contract=opts.tokenContract || "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+  const queryLimit=opts.hash?Math.max(opts.limit,100):opts.limit;
+  const url=`https://api.trongrid.io/v1/accounts/${encodeURIComponent(opts.address)}/transactions/trc20?limit=${queryLimit}&contract_address=${encodeURIComponent(contract)}`;
+  const headers={};
+  if(opts.keys.trongrid) headers["TRON-PRO-API-KEY"]=opts.keys.trongrid;
+  const json=await fetchJson(url,{headers});
+  const items=Array.isArray(json.data)?json.data:[];
+  return dedupeMovements(items.map(tx=>{
+    const decimals=Number(tx.token_info?.decimals ?? 6);
+    const symbol=tx.token_info?.symbol || (contract==="TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"?"USDT":"TRC20");
+    return {
+      chain:"TRON",txHash:tx.transaction_id||tx.txID||"",date:isoFromUnixMs(tx.block_timestamp),
+      from:tx.from||tx.from_address||"",to:tx.to||tx.to_address||"",
+      amount:unitsToNumber(tx.value,decimals),currency:symbol,tokenContract:tx.token_info?.address||contract,
+      type:"trc20_transfer",source:"TronGrid",raw:tx
+    };
+  }));
+}
+async function fetchEvmTokenMovements(opts){
+  if(!opts.keys.etherscan) throw new Error("Etherscan API Key obligatoria para redes EVM.");
+  const queryLimit=opts.hash?Math.max(opts.limit,100):opts.limit;
+  const params=new URLSearchParams({chainid:opts.chainId,module:"account",action:"tokentx",address:opts.address,page:"1",offset:String(queryLimit),sort:"desc",apikey:opts.keys.etherscan});
+  if(opts.tokenContract) params.set("contractaddress",opts.tokenContract);
+  const json=await fetchJson(`https://api.etherscan.io/v2/api?${params.toString()}`);
+  if(json.status==="0" && !Array.isArray(json.result)) throw new Error(json.message||String(json.result||"Error Etherscan"));
+  const items=Array.isArray(json.result)?json.result:[];
+  return dedupeMovements(items.map(tx=>({
+    chain:`EVM-${opts.chainId}`,txHash:tx.hash||"",date:isoFromUnixSeconds(tx.timeStamp),
+    from:tx.from||"",to:tx.to||"",amount:unitsToNumber(tx.value,tx.tokenDecimal||0),
+    currency:tx.tokenSymbol||"TOKEN",tokenContract:tx.contractAddress||opts.tokenContract||"",
+    type:"evm_token_transfer",source:"Etherscan V2",raw:tx
+  })));
+}
+async function fetchEvmNativeMovements(opts){
+  if(!opts.keys.etherscan) throw new Error("Etherscan API Key obligatoria para redes EVM.");
+  const queryLimit=opts.hash?Math.max(opts.limit,100):opts.limit;
+  const params=new URLSearchParams({chainid:opts.chainId,module:"account",action:"txlist",address:opts.address,page:"1",offset:String(queryLimit),sort:"desc",apikey:opts.keys.etherscan});
+  const json=await fetchJson(`https://api.etherscan.io/v2/api?${params.toString()}`);
+  if(json.status==="0" && !Array.isArray(json.result)) throw new Error(json.message||String(json.result||"Error Etherscan"));
+  const nativeSymbols={"1":"ETH","56":"BNB","137":"MATIC","8453":"ETH","42161":"ETH","10":"ETH","43114":"AVAX"};
+  const items=Array.isArray(json.result)?json.result:[];
+  return dedupeMovements(items.filter(tx=>Number(tx.value)>0).map(tx=>({
+    chain:`EVM-${opts.chainId}`,txHash:tx.hash||"",date:isoFromUnixSeconds(tx.timeStamp),
+    from:tx.from||"",to:tx.to||"",amount:unitsToNumber(tx.value,18),
+    currency:nativeSymbols[opts.chainId]||"NATIVE",tokenContract:"",type:"evm_native_transfer",source:"Etherscan V2",raw:tx
+  })));
+}
+async function fetchBitcoinMovements(opts){
+  const base=(opts.keys.blockstreamBase||"https://blockstream.info/api").replace(/\/+$/g,"");
+  let txs=[];
+  if(opts.hash){
+    const tx=await fetchJson(`${base}/tx/${encodeURIComponent(opts.hash)}`);
+    txs=tx ? [tx] : [];
+  }else{
+    const json=await fetchJson(`${base}/address/${encodeURIComponent(opts.address)}/txs`);
+    txs=Array.isArray(json)?json:[];
+  }
+  const movs=[];
+  txs.slice(0,opts.limit).forEach(tx=>{
+    const date=isoFromUnixSeconds(tx.status?.block_time);
+    const inputAddresses=(tx.vin||[]).map(v=>v.prevout?.scriptpubkey_address).filter(Boolean);
+    const spendsAddress=inputAddresses.includes(opts.address);
+    const externalInputs=[...new Set(inputAddresses.filter(a=>a!==opts.address))];
+    (tx.vout||[]).forEach(out=>{
+      const outAddress=out.scriptpubkey_address||"";
+      const amount=Number(out.value)/100000000;
+      if(!outAddress || !Number.isFinite(amount) || amount<=0) return;
+      if(outAddress===opts.address && externalInputs.length){
+        externalInputs.forEach(from=>movs.push({chain:"BTC",txHash:tx.txid,date,from,to:opts.address,amount,currency:"BTC",type:"btc_utxo_in",source:"Blockstream Esplora",raw:tx}));
+      }else if(spendsAddress && outAddress!==opts.address){
+        movs.push({chain:"BTC",txHash:tx.txid,date,from:opts.address,to:outAddress,amount,currency:"BTC",type:"btc_utxo_out",source:"Blockstream Esplora",raw:tx});
+      }
+    });
+  });
+  return dedupeMovements(movs);
+}
+async function fetchTonMovements(opts){
+  const headers={};
+  if(opts.keys.tonapi) headers["Authorization"]=`Bearer ${opts.keys.tonapi}`;
+  const queryLimit=opts.hash?Math.max(opts.limit,100):opts.limit;
+  const json=await fetchJson(`https://tonapi.io/v2/accounts/${encodeURIComponent(opts.address)}/events?limit=${queryLimit}`,{headers});
+  const events=Array.isArray(json.events)?json.events:[];
+  const movs=[];
+  events.forEach(ev=>{
+    const date=isoFromUnixSeconds(ev.timestamp);
+    (ev.actions||[]).forEach(action=>{
+      const type=action.type||"";
+      const ton=action.TonTransfer||action.ton_transfer||action.TonTransferAction;
+      const jet=action.JettonTransfer||action.jetton_transfer||action.JettonTransferAction;
+      if(type.includes("TonTransfer") && ton){
+        movs.push({chain:"TON",txHash:ev.event_id||ev.trace_id||"",date,from:ton.sender?.address||ton.sender||"",to:ton.recipient?.address||ton.recipient||"",amount:unitsToNumber(ton.amount,9),currency:"TON",type:"ton_transfer",source:"TONAPI",raw:action});
+      }
+      if(type.includes("JettonTransfer") && jet){
+        const decimals=jet.jetton?.decimals ?? jet.jetton?.metadata?.decimals ?? 9;
+        const symbol=jet.jetton?.symbol || jet.jetton?.metadata?.symbol || "JETTON";
+        movs.push({chain:"TON",txHash:ev.event_id||ev.trace_id||"",date,from:jet.sender?.address||jet.sender||"",to:jet.recipient?.address||jet.recipient||"",amount:unitsToNumber(jet.amount,decimals),currency:symbol,tokenContract:jet.jetton?.address||"",type:"ton_jetton_transfer",source:"TONAPI",raw:action});
+      }
+    });
+  });
+  return dedupeMovements(movs);
+}
+function applyCurrentBlockchainFilters(updateStatus=false){
+  const opts=currentBlockchainOptions();
+  const validation=validateBlockchainOptions(opts,{requireAddress:false});
+  if(!validation.ok){
+    blockchainMovements=[];
+    renderBlockchainMovements();
+    buildBlockchainBlock();
+    if(updateStatus) setBlockchainStatus(validation.message,validation.type||"warn");
+    return;
+  }
+  blockchainMovements=filterBlockchainMovements(blockchainRawMovements,opts);
+  renderBlockchainMovements();
+  buildBlockchainBlock();
+  if(updateStatus && blockchainRawMovements.length){
+    const hint=blockchainZeroResultsHint(opts,blockchainRawMovements.length,blockchainMovements.length);
+    setBlockchainStatus(`Filtros aplicados. Movimientos visibles: ${blockchainMovements.length} de ${blockchainRawMovements.length}. Filtros: ${blockchainFilterDescription(opts)}.${hint?" "+hint:""}`,blockchainMovements.length?"ok":"warn");
+  }else if(updateStatus){
+    showBlockchainFormDiagnostic();
+  }
+}
+async function fetchBlockchainMovements(){
+  saveBlockchainKeys();
+  const opts=currentBlockchainOptions();
+  const validation=validateBlockchainOptions(opts,{requireAddress:true});
+  if(!validation.ok){setBlockchainStatus(validation.message,validation.type||"warn");return;}
+  setBlockchainStatus("Consultando explorador...","");
+  try{
+    let movs=[];
+    if(opts.provider==="tron_trc20") movs=await fetchTronTrc20Movements(opts);
+    else if(opts.provider==="evm_token") movs=await fetchEvmTokenMovements(opts);
+    else if(opts.provider==="evm_native") movs=await fetchEvmNativeMovements(opts);
+    else if(opts.provider==="bitcoin") movs=await fetchBitcoinMovements(opts);
+    else if(opts.provider==="ton") movs=await fetchTonMovements(opts);
+    blockchainRawMovements=movs;
+    applyCurrentBlockchainFilters(false);
+    const hint=blockchainZeroResultsHint(opts,movs.length,blockchainMovements.length);
+    setBlockchainStatus(`Consulta finalizada. Movimientos descargados: ${movs.length}. Visibles tras filtros: ${blockchainMovements.length}. Filtros: ${blockchainFilterDescription(opts)}.${hint?" "+hint:""}`,blockchainMovements.length?"ok":"warn");
+  }catch(err){
+    blockchainRawMovements=[];
+    blockchainMovements=[];
+    renderBlockchainMovements();
+    setBlockchainStatus("Error: "+err.message,"err");
+  }
+}
+function renderBlockchainMovements(){
+  const wrap=$("#bcTableWrap");
+  if(!wrap) return;
+  if(!blockchainMovements.length){
+    wrap.style.display="none";
+    wrap.innerHTML="";
+    renderBlockchainAnalysis();
+    return;
+  }
+  const opts=currentBlockchainOptions();
+  wrap.style.display="block";
+  wrap.innerHTML=`<table class="blockchainTable">
+    <tr><th>Fecha</th><th>Sentido</th><th>Origen</th><th>Destino</th><th>Importe</th><th>Hash</th></tr>
+    ${blockchainMovements.map(m=>{
+      const dir=movementDirectionForAddress(m,opts.address);
+      return `<tr>
+        <td>${esc(mapacheDateFromIso(m.date))}</td>
+        <td>${esc(movementDirectionIcon(dir)+" "+movementDirectionText(dir))}</td>
+        <td>${esc(m.from)}</td>
+        <td>${esc(m.to)}</td>
+        <td>${esc(formatAmount(m.amount,m.currency))}</td>
+        <td>${esc((m.txHash||"").slice(0,22))}${m.txHash&&m.txHash.length>22?"...":""}</td>
+      </tr>`;
+    }).join("")}
+  </table>`;
+  renderBlockchainAnalysis();
+}
+function renderBlockchainAnalysis(){
+  const box=$("#bcAnalysis");
+  if(!box) return;
+  const opts=currentBlockchainOptions();
+  if(!blockchainMovements.length){box.style.display="none";box.innerHTML="";return;}
+  const totals={in:{},out:{},net:{},all:{}};
+  const counters={in:0,out:0,self:0,related:0};
+  const counterparties=new Map();
+  let firstDate=null,lastDate=null;
+  let largest=null;
+  blockchainMovements.forEach(m=>{
+    const dir=movementDirectionForAddress(m,opts.address);
+    counters[dir]=(counters[dir]||0)+1;
+    addCurrencyTotal(totals.all,m.currency,m.amount);
+    if(dir==="in"){
+      addCurrencyTotal(totals.in,m.currency,m.amount);
+      addCurrencyTotal(totals.net,m.currency,m.amount);
+    }else if(dir==="out"){
+      addCurrencyTotal(totals.out,m.currency,m.amount);
+      addCurrencyTotal(totals.net,m.currency,-m.amount);
+    }
+    const dt=m.date ? new Date(m.date) : null;
+    if(dt && !Number.isNaN(dt.getTime())){
+      if(!firstDate || dt<firstDate) firstDate=dt;
+      if(!lastDate || dt>lastDate) lastDate=dt;
+    }
+    if(!largest || m.amount>largest.amount) largest=m;
+    const other=dir==="in" ? m.from : dir==="out" ? m.to : (m.from===opts.address?m.to:m.from);
+    const key=`${other}|${m.currency}`;
+    if(other){
+      const item=counterparties.get(key)||{address:other,currency:m.currency,in:0,out:0,count:0};
+      item.count++;
+      if(dir==="in") item.in+=m.amount;
+      else if(dir==="out") item.out+=m.amount;
+      counterparties.set(key,item);
+    }
+  });
+  const topCounterparties=[...counterparties.values()].sort((a,b)=>(b.in+b.out)-(a.in+a.out)).slice(0,5);
+  const hashHits=opts.hash ? blockchainMovements.filter(m=>hashPassesBlockchainFilter(m.txHash,opts.hash)) : [];
+  const warnings=[];
+  if(opts.hash && !hashHits.length) warnings.push("No se ha localizado ese hash en los movimientos descargados. Aumenta el límite o verifica red/dirección.");
+  if(opts.provider==="bitcoin") warnings.push("Bitcoin usa modelo UTXO: las entradas/salidas pueden incluir cambio y múltiples participantes; la atribución es orientativa.");
+  if(opts.provider.startsWith("evm_") && opts.direction!=="all") warnings.push("En EVM nativo no se incluyen movimientos internos salvo que el explorador los exponga en el endpoint usado.");
+  if(opts.dateFrom || opts.dateTo) warnings.push("El filtro de fecha se aplica sobre los movimientos devueltos por el explorador; si el límite es bajo pueden quedar fuera movimientos antiguos.");
+  box.style.display="block";
+  box.innerHTML=`
+    <h3>Análisis de trazabilidad</h3>
+    <div class="bcAnalysisGrid">
+      <div class="bcMiniBox"><b>Consulta</b><br><span class="bcMuted">${esc(opts.provider)} · ${esc(blockchainFilterDescription(opts))}</span></div>
+      <div class="bcMiniBox"><b>Movimientos</b><br>${blockchainMovements.length} detectados · Entrantes: ${counters.in||0} · Salientes: ${counters.out||0}</div>
+      <div class="bcMiniBox"><b>Recibido</b><br>${formatCurrencyTotals(totals.in)}</div>
+      <div class="bcMiniBox"><b>Enviado</b><br>${formatCurrencyTotals(totals.out)}</div>
+      <div class="bcMiniBox"><b>Neto respecto a la wallet</b><br>${formatCurrencyTotals(totals.net)}</div>
+      <div class="bcMiniBox"><b>Periodo</b><br>${firstDate?esc(mapacheDateFromIso(firstDate.toISOString())):"Sin fecha"} → ${lastDate?esc(mapacheDateFromIso(lastDate.toISOString())):"Sin fecha"}</div>
+    </div>
+    ${largest?`<h4>Movimiento de mayor importe</h4><div>${esc(mapacheDateFromIso(largest.date))} · ${esc(formatAmount(largest.amount,largest.currency))} · ${esc(largest.from)} → ${esc(largest.to)}</div>`:""}
+    ${topCounterparties.length?`<h4>Contrapartes principales</h4><ul>${topCounterparties.map(c=>`<li>${esc(c.address)} · ${esc(c.currency)} · recibido ${esc(formatAmount(c.in,c.currency))} · enviado ${esc(formatAmount(c.out,c.currency))} · ${c.count} mov.</li>`).join("")}</ul>`:""}
+    ${hashHits.length?`<h4>Resultado de búsqueda por hash</h4><ul>${hashHits.map(m=>`<li>${esc(m.txHash)} · ${esc(mapacheDateFromIso(m.date))} · ${esc(movementDirectionText(movementDirectionForAddress(m,opts.address)))} · ${esc(formatAmount(m.amount,m.currency))}</li>`).join("")}</ul>`:""}
+    ${warnings.length?`<h4>Notas de interpretación</h4><ul>${warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:""}
+  `;
+}
+function buildBlockchainBlock(){
+  const rows=[];
+  blockchainMovements.forEach(m=>{
+    rows.push(`[${m.from}]`);
+    rows.push(`    ${mapacheDateFromIso(m.date)};${mapacheAmountLabel(m)}:[${m.to}]`);
+    if(m.txHash) rows.push(`        Hash=(${m.txHash})`);
+    if(m.chain) rows.push(`        Red="${m.chain}"`);
+    if(m.source) rows.push(`        Fuente="${m.source}"`);
+    if(m.tokenContract) rows.push(`        Contrato=(${m.tokenContract})`);
+    rows.push("");
+  });
+  const out=rows.join("\n").trim();
+  const el=$("#bcResult");
+  if(el) el.value=out;
+  return out;
+}
+function insertBlockchainEntry(){
+  const inv=currentInvest();
+  if(!inv){alert("No se ha podido preparar el grafo móvil.");return;}
+  const body=buildBlockchainBlock();
+  if(!body){alert("No hay movimientos blockchain para añadir al grafo.");return;}
+  const opts=currentBlockchainOptions();
+  const e={id:uid(),date:today(),title:`Trazabilidad blockchain · ${opts.provider} · ${opts.address.slice(0,18)}`,body};
+  inv.entries.unshift(e);
+  selectedEntry=e.id;
+  renderAll();
+  const modal=$("#blockchainModal"); if(modal) modal.classList.remove("show");
+  setBlockchainStatus("Movimientos añadidos al grafo móvil.","ok");
+}
+function clearBlockchainTracer(){
+  ["#bcAddress","#bcTokenContract","#bcMinAmount","#bcDateFrom","#bcDateTo","#bcHash","#bcResult"].forEach(id=>{const el=$(id); if(el) el.value="";});
+  const dir=$("#bcDirection"); if(dir) dir.value="all";
+  blockchainRawMovements=[];
+  blockchainMovements=[];
+  renderBlockchainMovements();
+  renderBlockchainAnalysis();
+  setBlockchainStatus("Formulario limpiado.","");
+}
+function updateBlockchainProviderUI(){
+  const provider=$("#bcProvider")?.value||"tron_trc20";
+  const chainLabel=$("#bcChainIdLabel");
+  const token=$("#bcTokenContract");
+  if(chainLabel) chainLabel.style.display=provider.startsWith("evm_")?"flex":"none";
+  if(token){
+    token.parentElement.style.display=(provider==="evm_native" || provider==="bitcoin" || provider==="ton")?"none":"flex";
+    if(provider==="tron_trc20" && !token.value) token.placeholder="USDT TRON: TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";
+    if(provider==="evm_token") token.placeholder="Contrato token opcional, ej. USDT ERC20 0xdAC17F958D2ee523a2206206994597C13D831ec7, o vacío para todos";
+  }
+  showBlockchainFormDiagnostic();
+}
+
+const exportNodeDataCb=$("#exportNodeData");
+if(exportNodeDataCb) exportNodeDataCb.onchange=()=>updateEdgeLabels();
+const approxLinksCb=$("#showApproxLinks");
+if(approxLinksCb) approxLinksCb.onchange=()=>updateEdgeLabels();
+const externalLinksCb=$("#showExternalLinks");
+if(externalLinksCb) externalLinksCb.onchange=()=>updateEdgeLabels();
+const temporalLinksCb=$("#showTemporalLinks");
+if(temporalLinksCb) temporalLinksCb.onchange=()=>updateEdgeLabels();
+const universalLinksCb=$("#showUniversalLinks");
+if(universalLinksCb) universalLinksCb.onchange=()=>updateEdgeLabels();
+document.querySelectorAll(".legend span[data-type]").forEach(el=>{
+  el.onclick=()=>{
+    const type=el.dataset.type;
+    if(hiddenGraphTypes.has(type)){
+      hiddenGraphTypes.delete(type);
+      el.classList.remove("legendOff");
+    }else{
+      hiddenGraphTypes.add(type);
+      el.classList.add("legendOff");
+    }
+    updateEdgeLabels();
+  };
+});
+
+
+const helpBtn=$("#openHelpModal");
+if(helpBtn) helpBtn.onclick=()=>$("#helpModal").classList.add("show");
+const closeHelpBtn=$("#closeHelpModal");
+if(closeHelpBtn) closeHelpBtn.onclick=()=>$("#helpModal").classList.remove("show");
+
+const transferBtn=$("#openTransferConverter");
+if(transferBtn) transferBtn.onclick=()=>$("#transferModal").classList.add("show");
+const closeTransferBtn=$("#closeTransferModal");
+if(closeTransferBtn) closeTransferBtn.onclick=()=>$("#transferModal").classList.remove("show");
+const buildTransferBtn=$("#buildTransferResult");
+if(buildTransferBtn) buildTransferBtn.onclick=buildTransferConverterResult;
+const copyTransferBtn=$("#copyTransferResult");
+if(copyTransferBtn) copyTransferBtn.onclick=async()=>{
+  buildTransferConverterResult();
+  const out=$("#convResult").value;
+  try{
+    await navigator.clipboard.writeText(out);
+    copyTransferBtn.textContent="Copiado";
+    setTimeout(()=>copyTransferBtn.textContent="Copiar resultado",1200);
+  }catch(e){
+    $("#convResult").select();
+    document.execCommand("copy");
+  }
+};
+const clearTransferBtn=$("#clearTransferConverter");
+if(clearTransferBtn) clearTransferBtn.onclick=()=>{
+  ["#convOriginAccounts","#convOriginOwners","#convTransferDates","#convAmounts","#convDestAccounts","#convDestOwners","#convResult"].forEach(id=>{ const el=$(id); if(el) el.value=""; });
+};
+
+const callBtn=$("#openCallConverter");
+if(callBtn) callBtn.onclick=()=>$("#callModal").classList.add("show");
+const closeCallBtn=$("#closeCallModal");
+if(closeCallBtn) closeCallBtn.onclick=()=>$("#callModal").classList.remove("show");
+const buildCallBtn=$("#buildCallResult");
+if(buildCallBtn) buildCallBtn.onclick=buildCallConverterResult;
+const copyCallBtn=$("#copyCallResult");
+if(copyCallBtn) copyCallBtn.onclick=async()=>{
+  buildCallConverterResult();
+  const out=$("#callResult").value;
+  try{
+    await navigator.clipboard.writeText(out);
+    copyCallBtn.textContent="Copiado";
+    setTimeout(()=>copyCallBtn.textContent="Copiar resultado",1200);
+  }catch(e){
+    $("#callResult").select();
+    document.execCommand("copy");
+  }
+};
+const clearCallBtn=$("#clearCallConverter");
+if(clearCallBtn) clearCallBtn.onclick=()=>{
+  [
+    "#callOriginNumbers",
+    "#callOriginOwners",
+    "#callDestNumbers",
+    "#callDestOwners",
+    "#callResult"
+  ].forEach(id=>$(id).value="");
+};
+
+const blockchainBtn=$("#openBlockchainTracer");
+if(blockchainBtn) blockchainBtn.onclick=()=>{hydrateBlockchainKeyFields();updateBlockchainProviderUI();$("#blockchainModal").classList.add("show");};
+const closeBlockchainBtn=$("#closeBlockchainModal");
+if(closeBlockchainBtn) closeBlockchainBtn.onclick=()=>$("#blockchainModal").classList.remove("show");
+const bcProvider=$("#bcProvider");
+if(bcProvider) bcProvider.onchange=updateBlockchainProviderUI;
+["bcDirection","bcDateFrom","bcDateTo","bcMinAmount","bcHash"].forEach(id=>{
+  const el=$("#"+id);
+  if(el) el.oninput=()=>applyCurrentBlockchainFilters(true);
+});
+["bcAddress","bcTokenContract","bcChainId"].forEach(id=>{
+  const el=$("#"+id);
+  if(el) el.oninput=()=>showBlockchainFormDiagnostic();
+});
+const saveBlockchainKeysBtn=$("#saveBlockchainKeys");
+if(saveBlockchainKeysBtn) saveBlockchainKeysBtn.onclick=saveBlockchainKeys;
+const fetchBlockchainBtn=$("#fetchBlockchainMovements");
+if(fetchBlockchainBtn) fetchBlockchainBtn.onclick=fetchBlockchainMovements;
+const buildBlockchainBtn=$("#buildBlockchainBlock");
+if(buildBlockchainBtn) buildBlockchainBtn.onclick=buildBlockchainBlock;
+const insertBlockchainBtn=$("#insertBlockchainEntry");
+if(insertBlockchainBtn) insertBlockchainBtn.onclick=insertBlockchainEntry;
+const clearBlockchainBtn=$("#clearBlockchainTracer");
+if(clearBlockchainBtn) clearBlockchainBtn.onclick=clearBlockchainTracer;
+const copyBlockchainBtn=$("#copyBlockchainResult");
+if(copyBlockchainBtn) copyBlockchainBtn.onclick=async()=>{
+  const out=buildBlockchainBlock();
+  try{
+    await navigator.clipboard.writeText(out);
+    copyBlockchainBtn.textContent="Copiado";
+    setTimeout(()=>copyBlockchainBtn.textContent="Copiar bloque",1200);
+  }catch(e){
+    const el=$("#bcResult");
+    if(el){el.select();document.execCommand("copy");}
+  }
+};
+hydrateBlockchainKeyFields();
+updateBlockchainProviderUI();
+
+["economicMode","showEconomicPanel","minAmountVisible","showTemporalLinks","showUniversalLinks"].forEach(id=>{
+  const el=$("#"+id);
+  if(el) el.oninput=()=>updateEconomicPanel();
+});
+
+const undoGlobalBtn=$("#undoDeletedNodeGlobal");
+if(undoGlobalBtn) undoGlobalBtn.onclick=undoLastDeletedNode;
+$("#newInvest").onclick=()=>$("#nameModal").classList.add("show");
+$("#cancelModal").onclick=()=>$("#nameModal").classList.remove("show");
+$("#createInvest").onclick=()=>{
+  const name=$("#investName").value.trim()||"Nueva investigación";
+  const inv={id:uid(),name,notes:$("#investNotes").value.trim(),created:today(),entries:[],hiddenNodes:[]};
+  data.investigations.unshift(inv); selectedInvest=inv.id; selectedEntry=null;
+  $("#investName").value=""; $("#investNotes").value=""; $("#nameModal").classList.remove("show");
+  renderAll();
+};
+$("#delInvest").onclick=()=>{
+  if(!currentInvest()) return;
+  if(!confirm("¿Eliminar la investigación seleccionada?")) return;
+  data.investigations=data.investigations.filter(i=>i.id!==selectedInvest);
+  selectedInvest=data.investigations[0]?.id||null; selectedEntry=currentInvest()?.entries[0]?.id||null;
+  renderAll();
+};
+$("#addEntry").onclick=()=>{
+  if(!currentInvest()) return;
+  selectedEntry=null;
+  openEditor({date:today(),title:"",body:""});
+};
+$("#saveEntry").onclick=()=>{
+  const inv=currentInvest(); if(!inv) return;
+  const payload={date:$("#entryDate").value||today(),title:$("#entryTitle").value.trim(),body:$("#entryBody").value};
+  if(selectedEntry){
+    Object.assign(currentEntry(),payload);
+  }else{
+    const e={id:uid(),...payload};
+    inv.entries.unshift(e); selectedEntry=e.id;
+  }
+  renderAll();
+  openEditor(currentEntry());
+};
+$("#delEntry").onclick=()=>{
+  const inv=currentInvest(); if(!inv||!selectedEntry) return;
+  if(!confirm("¿Eliminar la gestión seleccionada?")) return;
+  inv.entries=inv.entries.filter(e=>e.id!==selectedEntry);
+  selectedEntry=inv.entries[0]?.id||null;
+  closeEditor(); renderAll();
+};
+$("#searchInvest").oninput=()=>{
+  const q=$("#searchInvest").value.toLowerCase().trim();
+  const visible=data.investigations.filter(i=>operationMatchesGlobalSearch(i,q));
+  if(q && visible.length && !visible.some(i=>i.id===selectedInvest)){
+    selectedInvest=visible[0].id;
+    selectedEntry=null;
+  }
+  renderInvest();
+  renderEntries();
+  buildGraph();
+};
+$("#searchEntry").oninput=renderEntries;
+
+document.querySelectorAll(".chip[data-wrap]").forEach(btn=>btn.onclick=()=>{
+  const ta=$("#entryBody"), [a,b]=btn.dataset.wrap.split("|");
+  const s=ta.selectionStart,e=ta.selectionEnd,val=ta.value;
+  ta.value=val.slice(0,s)+a+val.slice(s,e)+b+val.slice(e);
+  ta.focus(); ta.selectionStart=s+a.length; ta.selectionEnd=e+a.length;
+});
+function insertAtCursor(text){
+  const ta=$("#entryBody");
+  if(!ta) return;
+  const s=ta.selectionStart ?? ta.value.length;
+  const e=ta.selectionEnd ?? ta.value.length;
+  const val=ta.value || "";
+  ta.value=val.slice(0,s)+text+val.slice(e);
+  ta.focus();
+  ta.selectionStart=ta.selectionEnd=s+text.length;
+}
+const insertEconomicJoinBtn=$("#insertEconomicJoin");
+if(insertEconomicJoinBtn) insertEconomicJoinBtn.onclick=()=>insertAtCursor(":");
+const insertTemporalJoinBtn=$("#insertTemporalJoin");
+if(insertTemporalJoinBtn) insertTemporalJoinBtn.onclick=()=>insertAtCursor(";");
+const insertUniversalJoinBtn=$("#insertUniversalJoin");
+if(insertUniversalJoinBtn) insertUniversalJoinBtn.onclick=()=>insertAtCursor("=");
+const indentBtn=$("#indentBtn");
+if(indentBtn) indentBtn.onclick=()=>indentSelection(4);
+const outdentBtn=$("#outdentBtn");
+if(outdentBtn) outdentBtn.onclick=()=>indentSelection(-4);
+function indentSelection(n){
+  const ta=$("#entryBody"), start=ta.selectionStart, end=ta.selectionEnd;
+  const before=ta.value.slice(0,start), sel=ta.value.slice(start,end), after=ta.value.slice(end);
+  const lines=(sel||ta.value.slice(ta.value.lastIndexOf("\n",start-1)+1,end)).split("\n");
+  const changed=lines.map(l=> n>0 ? " ".repeat(n)+l : l.replace(/^ {1,4}/,"")).join("\n");
+  if(sel){
+    ta.value=before+changed+after; ta.selectionStart=start; ta.selectionEnd=start+changed.length;
+  }else{
+    const lineStart=ta.value.lastIndexOf("\n",start-1)+1;
+    const lineEnd=ta.value.indexOf("\n",start); 
+    const le=lineEnd<0?ta.value.length:lineEnd;
+    const line=ta.value.slice(lineStart,le);
+    const repl=n>0?" ".repeat(n)+line:line.replace(/^ {1,4}/,"");
+    ta.value=ta.value.slice(0,lineStart)+repl+ta.value.slice(le);
+    ta.selectionStart=ta.selectionEnd=lineStart+repl.length;
+  }
+  ta.focus();
+}
+
+function safeJsonFileNamePart(name){
+  return String(name||"Operacion")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-zA-Z0-9_-]+/g,"_")
+    .replace(/^_+|_+$/g,"")
+    .slice(0,80) || "Operacion";
+}
+function clonePlain(obj){
+  return JSON.parse(JSON.stringify(obj||{}));
+}
+function collectOperationNodeImageKeys(operation){
+  const keys=new Set(Array.isArray(operation?.hiddenNodes) ? operation.hiddenNodes : []);
+  (operation?.entries||[]).forEach(entry=>{
+    String(entry?.body||"").split(/\n/).map(parseLine).filter(Boolean).forEach(p=>{
+      if(isGraphMarkedType(p.type)) keys.add(normNodeKey(p.type,p.value));
+    });
+  });
+  return keys;
+}
+function collectOperationNodeImages(operation){
+  const images={};
+  if(!data.nodeImages) data.nodeImages={};
+  collectOperationNodeImageKeys(operation).forEach(key=>{
+    if(Object.prototype.hasOwnProperty.call(data.nodeImages,key)) images[key]=data.nodeImages[key];
+  });
+  return images;
+}
+function extractOperationsFromImportObject(obj){
+  if(obj?.format==="mapache_nexus_operation_export_v1" && obj.operation) return [obj.operation];
+  if(obj?.operation) return [obj.operation];
+  if(Array.isArray(obj?.operations)) return obj.operations;
+  if(Array.isArray(obj?.investigations)) return obj.investigations;
+  if(obj && typeof obj==="object" && Array.isArray(obj.entries)) return [obj];
+  return [];
+}
+function makeUniqueImportedName(baseName, forceImportedSuffix=false){
+  const existingNames=new Set((data.investigations||[]).map(i=>String(i.name||"")));
+  const clean=String(baseName||"Operación importada").trim() || "Operación importada";
+  let candidate=forceImportedSuffix ? `${clean} (importada)` : clean;
+  if(!existingNames.has(candidate)) return candidate;
+  candidate=`${clean} (importada)`;
+  if(!existingNames.has(candidate)) return candidate;
+  let i=2;
+  while(existingNames.has(`${clean} (importada ${i})`)) i++;
+  return `${clean} (importada ${i})`;
+}
+function prepareImportedOperation(operation){
+  const op=clonePlain(operation);
+  if(!op || typeof op!=="object") return null;
+  if(!Array.isArray(op.entries)) op.entries=[];
+  const existingIds=new Set((data.investigations||[]).map(i=>i.id));
+  const idConflict=!op.id || existingIds.has(op.id);
+  const nameConflict=(data.investigations||[]).some(i=>String(i.name||"")===String(op.name||""));
+  op.id=idConflict ? uid() : op.id;
+  op.name=makeUniqueImportedName(op.name || "Operación importada", idConflict || nameConflict);
+  op.created=op.created || today();
+  if(!Array.isArray(op.hiddenNodes)) op.hiddenNodes=[];
+
+  const seenEntryIds=new Set();
+  op.entries=op.entries.map(entry=>{
+    const e={...entry};
+    if(!e.id || seenEntryIds.has(e.id)) e.id=uid();
+    seenEntryIds.add(e.id);
+    e.date=e.date || today();
+    e.title=e.title || "";
+    e.body=String(e.body||"");
+    return e;
+  });
+  return op;
+}
+function mergeImportedNodeImages(nodeImages){
+  if(!nodeImages || typeof nodeImages!=="object") return;
+  data.nodeImages=data.nodeImages||{};
+  Object.assign(data.nodeImages,nodeImages);
+}
+
+$("#saveJson").onclick=()=>{
+  const inv=currentInvest();
+  if(!inv){ alert("Selecciona una operación para exportar."); return; }
+  const payload={
+    format:"mapache_nexus_operation_export_v1",
+    exportedAt:new Date().toISOString(),
+    operation:clonePlain(inv),
+    nodeImages:collectOperationNodeImages(inv)
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`mapache_nexus_operacion_${safeJsonFileNamePart(inv.name)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+};
+$("#loadJsonBtn").onclick=()=>$("#loadJson").click();
+$("#loadJson").onchange=async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  try{
+    const txt=await file.text();
+    const obj=JSON.parse(txt);
+    const operations=extractOperationsFromImportObject(obj);
+    if(!operations.length) throw new Error("JSON no válido o sin operaciones importables");
+
+    data.investigations=data.investigations||[];
+    data.nodeImages=data.nodeImages||{};
+    mergeImportedNodeImages(obj.nodeImages);
+
+    const imported=[];
+    operations.forEach(operation=>{
+      const prepared=prepareImportedOperation(operation);
+      if(!prepared) return;
+      data.investigations.unshift(prepared);
+      imported.push(prepared);
+    });
+
+    if(!imported.length) throw new Error("No se pudo preparar ninguna operación válida");
+    selectedInvest=imported[0].id;
+    selectedEntry=imported[0].entries[0]?.id||null;
+    persist();
+    renderAll();
+    alert(imported.length===1 ? "Operación importada correctamente." : `Operaciones importadas correctamente: ${imported.length}`);
+  }catch(err){
+    alert("No se pudo importar el JSON: "+err.message);
+  }finally{
+    e.target.value="";
+  }
+};
+
+
+function makeReportGraphImage(showNodeData=true){
+  const w=1200,h=760, pad=80;
+  const off=document.createElement("canvas");
+  off.width=w; off.height=h;
+  const c=off.getContext("2d");
+  c.fillStyle="#ffffff"; c.fillRect(0,0,w,h);
+  if(!graphNodes.length) return off.toDataURL("image/png");
+  if(!data.nodeImages) data.nodeImages={};
+  const xs=graphNodes.map(n=>n.x), ys=graphNodes.map(n=>n.y);
+  const minX=Math.min(...xs), maxX=Math.max(...xs), minY=Math.min(...ys), maxY=Math.max(...ys);
+  const sx=(w-pad*2)/Math.max(1,maxX-minX), sy=(h-pad*2)/Math.max(1,maxY-minY);
+  const s=Math.min(sx,sy,2.1);
+  const pos=n=>({x:pad+(n.x-minX)*s, y:pad+(n.y-minY)*s});
+  graphLinks.forEach(l=>{
+    if(!isLinkVisibleInGraph(l)) return;
+    const a=graphNodes.find(n=>n.id===l.source), b=graphNodes.find(n=>n.id===l.target);
+    if(!a||!b) return;
+    const pa=pos(a), pb=pos(b);
+    const style=relationVisualStyle(l);
+    c.save();
+    if(style.dashed) c.setLineDash([8,7]);
+    c.strokeStyle=l.cross?"#d33":(l.internalApprox?"#888":(l.relationType==="temporal"?"#6b63c9":(isEconomicAmountLink(l)?"#b28a00":"#999")));
+    c.lineWidth=Math.max(1,style.width||1);
+    c.beginPath(); c.moveTo(pa.x,pa.y); c.lineTo(pb.x,pb.y); c.stroke();
+    c.restore();
+    if(showNodeData){
+      const labelLines=linkLabelLinesForCanvas(l);
+      if(labelLines.length){
+        c.font="12px Arial";
+        const mx=(pa.x+pb.x)/2, my=(pa.y+pb.y)/2;
+        const lineHeight=14;
+        const maxW=Math.max(...labelLines.map(text=>c.measureText(text).width));
+        const boxH=labelLines.length*lineHeight+4;
+        c.fillStyle="rgba(255,255,255,.86)"; c.fillRect(mx-maxW/2-4,my-boxH/2,maxW+8,boxH);
+        c.fillStyle="#333";
+        const startY=my-boxH/2+lineHeight;
+        labelLines.forEach((text,i)=>c.fillText(text,mx-c.measureText(text).width/2,startY+i*lineHeight-3));
+      }
+    }
+  });
+  graphNodes.forEach(n=>{
+    if(!isNodeVisibleInGraph(n)) return;
+    const p=pos(n), key=nodeKey(n), img=data.nodeImages[key];
+    if(showNodeData && img){
+      const imgObj=new Image(); imgObj.src=img;
+      try{ c.drawImage(imgObj,p.x-18,p.y-18,36,36); c.strokeStyle=n.external?"#d33":"#555"; c.strokeRect(p.x-18,p.y-18,36,36); }
+      catch(e){ c.beginPath(); c.arc(p.x,p.y,n.external?6:5,0,Math.PI*2); c.fillStyle=n.external?"#d33":colorByType(n.type,false); c.fill(); }
+    }else{
+      c.beginPath(); c.arc(p.x,p.y,n.external?6:5,0,Math.PI*2); c.fillStyle=n.external?"#d33":colorByType(n.type,false); c.fill();
+    }
+    if(showNodeData){ c.fillStyle="#111"; c.font="13px Arial"; c.fillText(n.value, p.x+24, p.y+4); }
+  });
+  return off.toDataURL("image/png");
+}
+
+
+function buildEconomicReportTable(){
+  const rows=[...graphNodes].filter(n=>n.type==="cuenta" && ((n.countIn||0)>0 || (n.countOut||0)>0 || (n.totalIn||0)>0 || (n.totalOut||0)>0)).sort((a,b)=>b.totalIn-a.totalIn);
+  if(!rows.length) return `<p class="small">No se han detectado importes económicos reales.</p>`;
+  return `<table style="width:100%;border-collapse:collapse;font-size:12px">
+    <tr><th>Cuenta</th><th>Recibido</th><th>Enviado</th><th>Neto</th><th>Entradas</th><th>Salidas</th><th>Mayor entrada</th><th>Mayor salida</th><th>Clasificación</th></tr>
+    ${rows.map(n=>`<tr>
+      <td>${esc(n.value)}</td>
+      <td>${formatCurrencyTotals(n.totalInByCurrency)}</td>
+      <td>${formatCurrencyTotals(n.totalOutByCurrency)}</td>
+      <td>${formatCurrencyTotals(n.netFlowByCurrency)}</td>
+      <td>${n.countIn}</td>
+      <td>${n.countOut}</td>
+      <td>${formatCurrencyTotals(n.maxInByCurrency)}</td>
+      <td>${formatCurrencyTotals(n.maxOutByCurrency)}</td>
+      <td>${nodeEconomicClass(n)}</td>
+    </tr>`).join("")}
+  </table>`;
+}
+
+function buildEconomicMovementReportTable(){
+  const byId=new Map(graphNodes.map(n=>[n.id,n]));
+  const rows=graphLinks.filter(l=>isEconomicAmountLink(l) && getEconomicTransferDate(l)).map((l,idx)=>{
+    const source=byId.get(l.source), target=byId.get(l.target), d=getEconomicTransferDate(l);
+    if(!source || !target || !d) return null;
+    return {
+      source,target,amount:l.amount,currency:l.currency||parseCurrency(l.label),
+      raw:d.raw||"",
+      display:d.display||d.raw||"Sin fecha",
+      timestamp:Number.isFinite(d.timestamp)?d.timestamp:null,
+      order:idx
+    };
+  }).filter(Boolean).sort((a,b)=>{
+    const at=Number.isFinite(a.timestamp)?a.timestamp:null, bt=Number.isFinite(b.timestamp)?b.timestamp:null;
+    if(at!==null && bt!==null && at!==bt) return at-bt;
+    if(at!==null && bt===null) return -1;
+    if(at===null && bt!==null) return 1;
+    return a.order-b.order;
+  });
+  if(!rows.length) return "";
+  return `<h2>Historial económico de movimientos</h2>
+  <table style="width:100%;border-collapse:collapse;font-size:12px">
+    <tr><th>Fecha</th><th>Cuenta origen</th><th>Cuenta destino</th><th>Importe</th></tr>
+    ${rows.map(r=>`<tr>
+      <td>${esc(r.display)}</td>
+      <td>${esc(r.source.value)}</td>
+      <td>${esc(r.target.value)}</td>
+      <td>${formatAmount(r.amount,r.currency)}</td>
+    </tr>`).join("")}
+  </table>`;
+}
+
+function buildTemporalReportTable(){
+  const byId=new Map(graphNodes.map(n=>[n.id,n]));
+  const rows=graphLinks.filter(l=>l.relationType==="temporal").flatMap(l=>{
+    const source=byId.get(l.source), target=byId.get(l.target);
+    if(!source || !target) return [];
+    return getTemporalItemsForLink(l,true).map(item=>({
+      source,target,
+      raw:item.raw || item.label || "",
+      display:item.display || item.label || "Sin fecha",
+      timestamp:Number.isFinite(item.timestamp)?item.timestamp:null,
+      label:item.label || item.display || ""
+    }));
+  }).sort((a,b)=>{
+    const bySource=String(a.source.value).localeCompare(String(b.source.value),"es");
+    if(bySource) return bySource;
+    const at=Number.isFinite(a.timestamp)?a.timestamp:null, bt=Number.isFinite(b.timestamp)?b.timestamp:null;
+    if(at!==null && bt!==null && at!==bt) return at-bt;
+    if(at!==null && bt===null) return -1;
+    if(at===null && bt!==null) return 1;
+    return String(a.display).localeCompare(String(b.display),"es");
+  });
+  if(!rows.length) return `<p class="small">No se han detectado relaciones temporales.</p>`;
+  return `<table style="width:100%;border-collapse:collapse;font-size:12px">
+    <tr><th>Nodo origen</th><th>Tipo origen</th><th>Fecha</th><th>Nodo destino</th><th>Tipo destino</th><th>Relación</th></tr>
+    ${rows.map(r=>`<tr>
+      <td>${esc(r.source.value)}</td>
+      <td>${esc(displayType(r.source.type))}</td>
+      <td>${esc(r.display)}</td>
+      <td>${esc(r.target.value)}</td>
+      <td>${esc(displayType(r.target.type))}</td>
+      <td>${esc(r.label)}</td>
+    </tr>`).join("")}
+  </table>`;
+}
+function buildNodeReportSummary(){
+  if(!data.nodeImages) data.nodeImages={};
+  const byId=new Map(graphNodes.map(n=>[n.id,n]));
+  return graphNodes.filter(isNodeVisibleInGraph).map(n=>{
+    const key=nodeKey(n);
+    const img=data.nodeImages[key];
+    const relatedLinks=graphLinks.filter(l=>isLinkVisibleInGraph(l) && (l.source===n.id||l.target===n.id));
+
+    const conns=relatedLinks.map(l=>{
+      const other=byId.get(l.source===n.id?l.target:l.source);
+      if(!other) return "";
+      const extra=l.cross?" · otra operación":(l.internalApprox?" · aproximada interna":"");
+      const lbl=l.label?` · ${l.label}`:"";
+      return `${other.value} (${other.type})${extra}${lbl}`;
+    }).filter(Boolean);
+
+    const incoming=relatedLinks.filter(l=>l.target===n.id).map(l=>{
+      const other=byId.get(l.source);
+      if(!other) return "";
+      return `${l.label ? l.label+" ← " : ""}${other.value}`;
+    }).filter(Boolean);
+
+    const outgoing=relatedLinks.filter(l=>l.source===n.id).map(l=>{
+      const other=byId.get(l.target);
+      if(!other) return "";
+      return `${l.label ? l.label+" → " : ""}${other.value}`;
+    }).filter(Boolean);
+
+  
+  const econBlock=n.type==="cuenta" ? `
+    <div class="block">
+      <b>Resumen económico:</b><br>
+      Total recibido: ${formatCurrencyTotals(n.totalInByCurrency)}<br>
+      Total enviado: ${formatCurrencyTotals(n.totalOutByCurrency)}<br>
+      Neto: ${formatCurrencyTotals(n.netFlowByCurrency)}<br>
+      Nº entradas: ${n.countIn}<br>
+      Nº salidas: ${n.countOut}<br>
+      Mayor entrada: ${formatCurrencyTotals(n.maxInByCurrency)}<br>
+      Mayor salida: ${formatCurrencyTotals(n.maxOutByCurrency)}<br>
+      ${n.rankIn?`Top receptora: #${n.rankIn}<br>`:""}
+      <span style="color:#ffd84d">${nodeEconomicClass(n)}</span>
+    </div>` : "";
+
+  const occ=(n.occurrences||[]).map(o=>`${o.date} · ${o.investName||currentInvest()?.name||""} · ${o.title||"Sin título"}`);
+    return `
+      <div class="nodeCard">
+        ${img?`<img class="nodeThumb" src="${img}">`:`<div class="nodeThumb empty">Sin imagen</div>`}
+        <div>
+          <h3>${esc(n.value)}</h3>
+          <p><b>Tipo:</b> ${esc(n.type)}${n.external?" · nodo externo":""}${n.partial?" · coincidencia parcial":""}</p>
+          <p><b>Conexiones:</b> ${conns.length?conns.map(esc).join(" | "):"Sin conexiones directas"}</p>
+          <p><b>Recibe:</b> ${incoming.length?incoming.map(esc).join(" | "):"Sin entradas"}</p>
+          <p><b>Envía:</b> ${outgoing.length?outgoing.map(esc).join(" | "):"Sin salidas"}</p>
+          ${(n.temporalEvents||[]).length?`<p><b>Historial temporal:</b> ${(n.temporalEvents||[]).map(ev=>`${ev.display||ev.raw||"Sin fecha"} → ${ev.targetValue} (${displayType(ev.targetType)})`).map(esc).join(" | ")}</p>`:""}
+          <p><b>Apariciones:</b> ${occ.length?occ.map(esc).join(" | "):"Sin apariciones"}</p>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+$("#exportDocBtn").onclick=()=>{
+  const inv=currentInvest();
+  if(!inv){alert("Selecciona una investigación.");return;}
+  const allNodes=graphNodes;
+  const typeCounts=allNodes.reduce((a,n)=>(a[n.type]=(a[n.type]||0)+1,a),{});
+  const showNodeData=$("#exportNodeData") ? $("#exportNodeData").checked : true;
+  $("#report").classList.toggle("hideNodeData", !showNodeData);
+  $("#report").innerHTML=`
+    <div class="cover">
+      <h1>MAPACHE NEXUS · DIARIO DE GESTIONES</h1>
+      <p><b>Investigación:</b> ${esc(inv.name)}</p>
+      <p><b>Fecha de exportación:</b> ${new Date().toLocaleDateString("es-ES")}</p>
+      <p><b>Número de gestiones:</b> ${inv.entries.length}</p>
+      <p><b>Elementos identificados:</b> ${allNodes.length}</p>
+      <p class="small">${esc(inv.notes||"")}</p>
+    </div>
+    <h2>Resumen de elementos</h2>
+    <table>
+      <tr><th>Tipo</th><th>Total</th></tr>
+      ${Object.entries(typeCounts).map(([k,v])=>`<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join("")}
+    </table>
+    <h2>Relaciones detectadas</h2>
+    <table>
+      <tr><th>Elemento</th><th>Tipo</th><th>Apariciones</th><th>Relación cruzada</th></tr>
+      ${allNodes.map(n=>`<tr>
+        <td>${esc(n.value)}</td><td>${esc(n.type)}</td>
+        <td>${(n.occurrences||[]).map(o=>esc(o.date+" · "+o.investName+" · "+o.title)).join("<br>")}</td>
+        <td>${n.cross?"Sí":"No"}</td>
+      </tr>`).join("")}
+    </table>
+    <h2>Diario cronológico</h2>
+    ${[...inv.entries].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>`
+      <div class="entryReport">
+        <h3>${esc(e.date)} · ${esc(e.title||"Sin título")}</h3>
+        <pre>${esc(e.body)}</pre>
+      </div>
+    `).join("")}
+    <h2>Grafo relacional</h2>
+    <p class="small nodeDataNote">Las líneas discontinuas rojas representan coincidencias con otras operaciones. Las líneas discontinuas grises representan coincidencias aproximadas internas. Las etiquetas muestran únicamente el valor de cada nodo/conexión. Cuando un nodo tiene imagen, se incorpora como miniatura en el grafo.</p>
+    <img src="${makeReportGraphImage(showNodeData)}" style="width:100%;border:1px solid #ccc;margin-top:8px">
+    ${showNodeData?`<h2>Resumen económico de cuentas</h2>
+    <p><b>Total económico detectado:</b> ${formatCurrencyTotals(economicSummary.totalByCurrency)}</p>
+    <p><b>Top 3 cuentas receptoras:</b> ${(economicSummary.topIn||[]).map((n,i)=>`#${i+1} ${esc(n.value)} · recibido ${formatCurrencyTotals(n.totalInByCurrency)} · neto ${formatCurrencyTotals(n.netFlowByCurrency)} · ${nodeEconomicClass(n)}`).join("<br>") || "Sin importes detectados"}</p>
+    <p><b>Top 3 cuentas con mayor neto positivo:</b> ${(economicSummary.topNet||[]).map((n,i)=>`#${i+1} ${esc(n.value)} · neto ${formatCurrencyTotals(n.netFlowByCurrency)} · recibido ${formatCurrencyTotals(n.totalInByCurrency)} · enviado ${formatCurrencyTotals(n.totalOutByCurrency)}`).join("<br>") || "Sin importes detectados"}</p>
+    ${buildEconomicReportTable()}
+    ${buildEconomicMovementReportTable()}
+    <h2>Historial temporal</h2>
+    ${buildTemporalReportTable()}
+    <h2>Resumen de nodos del grafo</h2><div class="nodeSummaryGrid">${buildNodeReportSummary()}</div>`:""}
+  `;
+  $("#exportView").style.display="block";
+};
+$("#closeExport").onclick=()=>$("#exportView").style.display="none";
+
+document.querySelectorAll(".resizer").forEach(r=>{
+  let startX,startL,startR,left,right;
+  r.addEventListener("mousedown",e=>{
+    left=$("#"+r.dataset.left); right=$("#"+r.dataset.right);
+    startX=e.clientX; startL=left.offsetWidth; startR=right.offsetWidth;
+    document.body.style.cursor="col-resize";
+    window.addEventListener("mousemove",move);
+    window.addEventListener("mouseup",up);
+  });
+  function move(e){
+    const dx=e.clientX-startX;
+    left.style.width=(startL+dx)+"px";
+    right.style.width=(startR-dx)+"px";
+    resizeCanvas();
+  }
+  function up(){
+    document.body.style.cursor="";
+    window.removeEventListener("mousemove",move);
+    window.removeEventListener("mouseup",up);
+  }
+});
+
+$("#entryBody").addEventListener("keydown",e=>{
+  if(e.key==="Tab"){
+    e.preventDefault();
+    indentSelection(e.shiftKey?-4:4);
+  }
+});
+
+
+
+// --- MAPACHE NEXUS MOBILE: integración sin diario visible ---
+function mobileToast(msg){
+  const el=document.getElementById("mobileStatus");
+  if(!el) return;
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(mobileToast._t);
+  mobileToast._t=setTimeout(()=>el.classList.remove("show"),2200);
+}
+function ensureMobileInvest(){
+  if(!data.investigations || !data.investigations.length){
+    data.investigations=[{id:uid(),name:"Mapache Nexus Mobile",notes:"",created:today(),hiddenNodes:[],entries:[]}];
+    selectedInvest=data.investigations[0].id;
+  }
+  selectedInvest=selectedInvest || data.investigations[0].id;
+  return currentInvest();
+}
+function insertTransferEntry(){
+  buildTransferConverterResult();
+  const body=(document.getElementById("convResult")?.value||"").trim();
+  if(!body){ alert("No hay bloque bancario para añadir al grafo."); return; }
+  const inv=ensureMobileInvest();
+  const e={id:uid(),date:today(),title:"Conversor de transferencias bancarias",body};
+  inv.entries.unshift(e);
+  selectedEntry=e.id;
+  renderAll();
+  const modal=document.getElementById("transferModal");
+  if(modal) modal.classList.remove("show");
+  mobileToast("Transferencias añadidas al grafo.");
+}
+function clearMobileGraph(){
+  const inv=ensureMobileInvest();
+  if(!inv.entries.length){ mobileToast("El grafo ya está vacío."); return; }
+  if(!confirm("¿Vaciar el grafo móvil actual?")) return;
+  inv.entries=[];
+  inv.hiddenNodes=[];
+  selectedEntry=null;
+  lastDeletedNode=null;
+  renderAll();
+  mobileToast("Grafo vaciado.");
+}
+function resetMobileGraphView(){
+  graphView.scale=1;
+  graphView.offsetX=0;
+  graphView.offsetY=0;
+  graphNodes.forEach(n=>{ n.fixed=false; });
+  mobileToast("Vista del grafo centrada.");
+}
+const insertTransferMobileBtn=document.getElementById("insertTransferEntry");
+if(insertTransferMobileBtn) insertTransferMobileBtn.onclick=insertTransferEntry;
+const clearMobileGraphBtn=document.getElementById("clearMobileGraphBtn");
+if(clearMobileGraphBtn) clearMobileGraphBtn.onclick=clearMobileGraph;
+const resetMobileGraphBtn=document.getElementById("resetGraphViewBtn");
+if(resetMobileGraphBtn) resetMobileGraphBtn.onclick=resetMobileGraphView;
+
+// Eventos táctiles para móvil: arrastrar, mover lienzo y zoom con dos dedos.
+let touchState={mode:null,lastX:0,lastY:0,startDist:0,startScale:1,startOffsetX:0,startOffsetY:0,midX:0,midY:0,startNode:null,moved:false};
+function touchPoint(t){return {x:t.clientX,y:t.clientY};}
+function touchDistance(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)||1;}
+function touchMidpoint(a,b){return {x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2};}
+canvas.addEventListener("touchstart",e=>{
+  if(!e.touches.length) return;
+  e.preventDefault();
+  if(e.touches.length===1){
+    const t=e.touches[0];
+    const hit=hitTestNode(t.clientX,t.clientY);
+    touchState={mode:"single",lastX:t.clientX,lastY:t.clientY,startDist:0,startScale:graphView.scale,startOffsetX:graphView.offsetX,startOffsetY:graphView.offsetY,midX:0,midY:0,startNode:hit.node,moved:false};
+    graphView.draggingNode=hit.node;
+    if(hit.node){ hit.node.fixed=true; selectedNode=hit.node; }
+  }else{
+    const a=e.touches[0], b=e.touches[1], mid=touchMidpoint(a,b);
+    touchState={mode:"pinch",lastX:mid.x,lastY:mid.y,startDist:touchDistance(a,b),startScale:graphView.scale,startOffsetX:graphView.offsetX,startOffsetY:graphView.offsetY,midX:mid.x,midY:mid.y,startNode:null,moved:true};
+  }
+},{passive:false});
+canvas.addEventListener("touchmove",e=>{
+  if(!touchState.mode) return;
+  e.preventDefault();
+  const rect=canvas.getBoundingClientRect();
+  if(touchState.mode==="single" && e.touches.length===1){
+    const t=e.touches[0];
+    const dx=t.clientX-touchState.lastX, dy=t.clientY-touchState.lastY;
+    if(Math.abs(dx)+Math.abs(dy)>2) touchState.moved=true;
+    if(graphView.draggingNode){
+      graphView.draggingNode.x += dx/graphView.scale;
+      graphView.draggingNode.y += dy/graphView.scale;
+      graphView.draggingNode.vx=0; graphView.draggingNode.vy=0;
+    }else{
+      graphView.offsetX += dx;
+      graphView.offsetY += dy;
+    }
+    touchState.lastX=t.clientX; touchState.lastY=t.clientY;
+  }else if(e.touches.length>=2){
+    const a=e.touches[0], b=e.touches[1], mid=touchMidpoint(a,b);
+    const factor=touchDistance(a,b)/touchState.startDist;
+    const mx=touchState.midX-rect.left, my=touchState.midY-rect.top;
+    const before={x:(mx-touchState.startOffsetX)/touchState.startScale,y:(my-touchState.startOffsetY)/touchState.startScale};
+    graphView.scale=Math.max(0.25,Math.min(4,touchState.startScale*factor));
+    graphView.offsetX=(mid.x-rect.left)-before.x*graphView.scale;
+    graphView.offsetY=(mid.y-rect.top)-before.y*graphView.scale;
+    touchState.moved=true;
+  }
+},{passive:false});
+canvas.addEventListener("touchend",e=>{
+  if(touchState.mode==="single" && !touchState.moved && touchState.startNode){
+    selectedNode=touchState.startNode;
+    showNodeInfo(touchState.startNode);
+  }
+  if(e.touches.length===0){
+    graphView.draggingNode=null;
+    touchState={mode:null,lastX:0,lastY:0,startDist:0,startScale:1,startOffsetX:0,startOffsetY:0,midX:0,midY:0,startNode:null,moved:false};
+  }
+},{passive:false});
+
+// La versión móvil trabaja siempre sobre una única operación interna.
+ensureMobileInvest();
+
+window.addEventListener("resize",()=>{resizeCanvas(); buildGraph();});
+resizeCanvas(); renderAll(); drawGraph();
+
+</script>
+</body>
+</html>
