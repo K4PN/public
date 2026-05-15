@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Time Converter</title>
+  <style>
+    :root{
+      --bg:#070a0f;
+      --bg2:#0b111a;
+      --panel:#101722;
+      --panel2:#121d2b;
+      --panel3:#0d141f;
+      --line:#26384d;
+      --line2:#38516e;
+      --text:#dce8f5;
+      --muted:#8fa1b8;
+      --soft:#61758d;
+      --accent:#00d4ff;
+      --accent2:#5df0ff;
+      --ok:#62f2a3;
+      --warn:#f5c542;
+      --danger:#ff5f7a;
+      --shadow:0 24px 70px rgba(0,0,0,.45);
+      --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      --sans:Inter,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:var(--sans);
+      background:
+        radial-gradient(circle at 20% 0%,rgba(0,212,255,.16),transparent 34%),
+        radial-gradient(circle at 90% 16%,rgba(98,242,163,.08),transparent 28%),
+        linear-gradient(135deg,var(--bg),var(--bg2) 55%,#05070b);
+      overflow-x:hidden;
+    }
+    body::before{
+      content:"";
+      position:fixed;inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+      background-size:38px 38px;
+      mask-image:linear-gradient(to bottom,rgba(0,0,0,.95),rgba(0,0,0,.18));
+    }
+    .shell{width:min(1260px,calc(100% - 28px));margin:0 auto;padding:24px 0 34px;position:relative;z-index:1}
+    .topbar{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:18px;
+      align-items:end;
+      padding:18px 18px 16px;
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(16,23,34,.88),rgba(10,15,23,.82));
+      box-shadow:var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .topbar::after{
+      content:"";position:absolute;left:0;right:0;bottom:0;height:2px;
+      background:linear-gradient(90deg,transparent,var(--accent),transparent);
+      opacity:.75;
+    }
+    .eyebrow{font:700 12px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+    h1{font-size:clamp(26px,4vw,46px);line-height:1;margin:.35rem 0 .6rem;letter-spacing:-.04em}
+    .lead{margin:0;color:var(--muted);max-width:840px;font-size:15px;line-height:1.55}
+    .status{
+      display:grid;gap:8px;min-width:220px;
+      border-left:1px solid var(--line);padding-left:18px;
+      font:12px/1.35 var(--mono);color:var(--muted)
+    }
+    .dot{display:inline-block;width:8px;height:8px;background:var(--ok);box-shadow:0 0 16px var(--ok);margin-right:7px}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 430px;gap:18px;margin-top:18px}
+    .card{
+      border:1px solid var(--line);
+      background:linear-gradient(180deg,rgba(18,29,43,.9),rgba(12,20,31,.92));
+      box-shadow:var(--shadow);
+      position:relative;
+    }
+    .card::before{content:"";position:absolute;left:0;top:0;width:4px;height:46px;background:var(--accent);box-shadow:0 0 24px rgba(0,212,255,.7)}
+    .cardHead{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .cardHead h2{margin:0;font-size:16px;letter-spacing:.02em}
+    .tag{font:700 11px/1 var(--mono);color:var(--accent);border:1px solid rgba(0,212,255,.45);padding:6px 8px;background:rgba(0,212,255,.06);white-space:nowrap}
+    .cardBody{padding:18px}
+    label{display:block;font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px}
+    input,select,textarea,button{
+      font:14px/1.35 var(--sans);
+    }
+    input,select,textarea{
+      width:100%;
+      border:1px solid var(--line2);
+      color:var(--text);
+      background:rgba(6,10,16,.86);
+      outline:none;
+      padding:12px 12px;
+      border-radius:0;
+      transition:border-color .15s,box-shadow .15s,background .15s;
+    }
+    input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.12);background:#07111b}
+    textarea{min-height:316px;resize:vertical;font-family:var(--mono);font-size:13px;line-height:1.52;tab-size:2}
+    .grid2{display:grid;grid-template-columns:1fr 150px;gap:12px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 150px;gap:12px}
+    .hint{margin:9px 0 0;color:var(--soft);font-size:12px;line-height:1.45}
+    .buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    button{
+      border:1px solid var(--line2);
+      color:var(--text);
+      background:linear-gradient(180deg,#172336,#0d1622);
+      padding:11px 13px;
+      cursor:pointer;
+      border-radius:0;
+      font-weight:800;
+      letter-spacing:.02em;
+      transition:transform .12s,border-color .12s,box-shadow .12s,filter .12s;
+    }
+    button:hover{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.1);filter:brightness(1.06)}
+    button:active{transform:translateY(1px)}
+    .primary{background:linear-gradient(180deg,rgba(0,212,255,.34),rgba(0,110,145,.38));border-color:rgba(0,212,255,.72);color:#eaffff;text-shadow:0 0 12px rgba(0,212,255,.55)}
+    .danger{border-color:rgba(255,95,122,.5);color:#ffd8df;background:linear-gradient(180deg,rgba(255,95,122,.16),rgba(80,20,32,.25))}
+    .ghost{background:rgba(255,255,255,.035)}
+    .resultBox{
+      min-height:420px;
+      white-space:pre-wrap;
+      word-break:break-word;
+      margin:0;
+      padding:16px;
+      border:1px solid var(--line2);
+      background:linear-gradient(180deg,rgba(3,7,12,.92),rgba(5,10,16,.96));
+      color:#dff7ff;
+      font:13px/1.56 var(--mono);
+      box-shadow:inset 0 0 34px rgba(0,0,0,.24);
+    }
+    .miniStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+    .stat{border:1px solid var(--line);background:rgba(255,255,255,.035);padding:12px}
+    .stat b{display:block;font:800 22px/1 var(--mono);color:var(--accent2);margin-bottom:6px}
+    .stat span{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+    .formats{display:grid;gap:8px;margin:0;padding:0;list-style:none;color:var(--muted);font-size:13px;line-height:1.4}
+    .formats li{border:1px solid rgba(56,81,110,.6);background:rgba(255,255,255,.03);padding:9px 10px;font-family:var(--mono)}
+    .footerNote{margin-top:12px;color:var(--soft);font-size:12px;line-height:1.5}
+    .toast{position:fixed;right:18px;bottom:18px;background:#06111a;border:1px solid var(--accent);color:var(--text);padding:12px 14px;box-shadow:var(--shadow);font:13px var(--mono);transform:translateY(18px);opacity:0;pointer-events:none;transition:.2s;z-index:20}
+    .toast.show{transform:translateY(0);opacity:1}
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+      .topbar{grid-template-columns:1fr}
+      .status{border-left:0;border-top:1px solid var(--line);padding:12px 0 0;min-width:0}
+    }
+    @media (max-width:640px){
+      .shell{width:min(100% - 18px,1260px);padding-top:9px}
+      .grid2,.grid3{grid-template-columns:1fr}
+      .miniStats{grid-template-columns:1fr 1fr}
+      textarea{min-height:260px}
+      .buttons button{flex:1 1 100%}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="topbar" aria-label="Cabecera">
+      <div>
+        <div class="eyebrow">Time Converter</div>
+        <h1>Conversor universal de horas</h1>
+              </div>
+      <div class="status">
+        <div><span class="dot"></span>Parser Local</div>
+        <div>Zona destino: Europe/Madrid</div>
+        <div id="nowLine">Sistema: --</div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="card">
+        <div class="cardHead">
+          <h2>Entrada y conversión</h2>
+          <span class="tag">IP + TIME + TZ</span>
+        </div>
+        <div class="cardBody">
+          <div class="grid3">
+            <div>
+              <label for="baseDate">Fecha base</label>
+              <input id="baseDate" type="date" />
+            </div>
+            <div>
+              <label for="baseTime">Hora modo simple</label>
+              <input id="baseTime" type="time" step="1" />
+            </div>
+            <div>
+              <label for="utcSelect">UTC origen</label>
+              <select id="utcSelect"></select>
+            </div>
+          </div>
+          <p class="hint">Si el texto crudo está vacío, el botón convierte la fecha/hora superior desde el UTC elegido a hora peninsular. Si hay texto crudo, se procesa línea a línea.</p>
+
+          <div style="margin-top:16px">
+            <label for="rawInput">Texto crudo / logs / listados</label>
+            <textarea id="rawInput" spellcheck="false" placeholder="Ejemplos admitidos:\n8.8.8.8 2026-02-23T12:00:00Z\n1.1.1.1 23/Feb/2026:12:00:00 +0000\n2001:4860:4860::8888 Mon, 23 Feb 2026 12:00:00 +0000\n192.168.1.10 Feb 23 12:00:00 UTC+0\n81.2.69.142 23/02/2026 12:00 CEST"></textarea>
+          </div>
+
+          <div class="buttons">
+            <button class="primary" id="convertBtn">Convertir / procesar</button>
+            <button class="ghost" id="copyBtn">Copiar resultado</button>
+            <button class="ghost" id="sampleBtn">Cargar ejemplos</button>
+            <button class="danger" id="clearBtn">Limpiar</button>
+          </div>
+        </div>
+      </div>
+
+      <aside class="card">
+        <div class="cardHead">
+          <h2>Formatos detectados</h2>
+          <span class="tag">AUTO PARSE</span>
+        </div>
+        <div class="cardBody">
+          <ul class="formats">
+            <li>ISO8601 · 2026-02-23T12:00:00Z / +01:00</li>
+            <li>Apache/Nginx · 23/Feb/2026:12:00:00 +0000</li>
+            <li>RFC2822 · Mon, 23 Feb 2026 12:00:00 +0000</li>
+            <li>Syslog · Feb 23 12:00:00</li>
+            <li>Fecha + hora · dd/MM/yyyy, yyyy-MM-dd, dd.MM.yyyy</li>
+            <li>Zonas · Z, CET, CEST, UTC/GMT±H, ±HHmm, ±HH:mm</li>
+            <li>IP obligatoria · IPv4 e IPv6</li>
+          </ul>
+          <p class="footerNote">En Syslog sin año se usa la fecha base. Si el día/mes quedara más de dos días por delante de la fecha base, se interpreta como año anterior.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <div class="cardHead">
+        <h2>Resultado</h2>
+        <span class="tag" id="summaryTag">SIN EJECUTAR</span>
+      </div>
+      <div class="cardBody">
+        <div class="miniStats" aria-label="Resumen">
+          <div class="stat"><b id="statOk">0</b><span>Convertidas</span></div>
+          <div class="stat"><b id="statFail">0</b><span>Errores</span></div>
+          <div class="stat"><b id="statOld">0</b><span>&gt; 1 año</span></div>
+        </div>
+        <pre class="resultBox" id="resultBox">Introduce una fecha/hora o pega líneas de logs y pulsa “Convertir / procesar”.</pre>
+      </div>
+    </section>
+  </main>
+  <div class="toast" id="toast">Copiado</div>
+
+  <script>
+    "use strict";
+
+    const TZ_MADRID = "Europe/Madrid";
+    const $ = (id) => document.getElementById(id);
+
+    const RX_HORA = /\b([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?\b/;
+    const RX_FECHA = /\b(\d{4}[-\/]\d{2}[-\/]\d{2}|\d{2}[-\/]\d{2}[-\/]\d{4}|\d{2}\.\d{2}\.\d{4}|\d{4}\.\d{2}\.\d{2})\b/;
+    const RX_UTC_GMT = /\b(UTC|GMT)\s*([+\-]?\s*\d{1,2})?\b/i;
+    const RX_ISO = /\b\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:?\d{2})\b/i;
+    const RX_APACHE = /\b(\d{2})\/([A-Za-z]{3})\/(\d{4}):(\d{2}):(\d{2}):(\d{2})\s([+\-]\d{4})\b/;
+    const RX_RFC2822 = /\b(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),\s(\d{1,2})\s(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s(\d{4})\s(\d{2}):(\d{2}):(\d{2})\s([+\-]\d{4}|[A-Z]{1,5})\b/;
+    const RX_SYSLOG = /\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})\b/;
+    const RX_OFFSET = /\b[+\-]\d{2}:?\d{2}\b/;
+    const RX_CET_CEST = /\bCEST\b|\bCET\b/i;
+
+    const MONTHS = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+
+    function pad2(n){ return String(n).padStart(2,"0"); }
+
+    function init(){
+      const now = new Date();
+      $("baseDate").value = `${now.getFullYear()}-${pad2(now.getMonth()+1)}-${pad2(now.getDate())}`;
+      $("baseTime").value = `${pad2(now.getHours())}:${pad2(now.getMinutes())}:${pad2(now.getSeconds())}`;
+
+      const sel = $("utcSelect");
+      for(let i=-12;i<=14;i++){
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = i >= 0 ? `UTC+${i}` : `UTC${i}`;
+        if(i === 0) opt.selected = true;
+        sel.appendChild(opt);
+      }
+
+      const savedRaw = localStorage.getItem("osinterTimeRaw") || "";
+      if(savedRaw) $("rawInput").value = savedRaw;
+
+      $("convertBtn").addEventListener("click", convertMain);
+      $("copyBtn").addEventListener("click", copyResult);
+      $("sampleBtn").addEventListener("click", loadSample);
+      $("clearBtn").addEventListener("click", clearAll);
+      $("rawInput").addEventListener("input", () => localStorage.setItem("osinterTimeRaw", $("rawInput").value));
+      setInterval(updateClock, 1000);
+      updateClock();
+    }
+
+    function updateClock(){
+      $("nowLine").textContent = `Sistema: ${formatLocal(new Date())}`;
+    }
+
+    function convertMain(){
+      const raw = $("rawInput").value;
+      if(raw.trim()) convertRaw(raw);
+      else convertSimple();
+    }
+
+    function convertSimple(){
+      const base = getBaseDateTimeParts();
+      const offsetHours = parseInt($("utcSelect").value,10) || 0;
+      const utcDate = dateFromLocalWithOffset(base.y, base.mo, base.d, base.h, base.mi, base.s, offsetHours * 60);
+      const spain = `${formatInZone(utcDate, TZ_MADRID)} (Hora peninsular)`;
+      setStats(1,0,olderThanOneYear(utcDate) ? 1 : 0);
+      $("summaryTag").textContent = "MODO SIMPLE";
+      $("resultBox").textContent = spain;
+    }
+
+    function convertRaw(raw){
+      const lines = raw.split(/\r?\n/);
+      const baseDate = getBaseDateOnlyParts();
+      const offsetBase = parseInt($("utcSelect").value,10) || 0;
+      let ok = 0, fail = 0, old = 0;
+      const out = [];
+
+      for(const original of lines){
+        const line = (original || "").trim();
+        if(!line) continue;
+
+        const parsed = tryParseLineaUniversal(line, baseDate, offsetBase);
+        if(!parsed.success){
+          fail++;
+          out.push(`❌ ${line}`);
+          out.push(`   → ${parsed.error}`);
+          out.push("");
+          continue;
+        }
+
+        ok++;
+        const isOld = olderThanOneYear(parsed.dtUtc);
+        if(isOld) old++;
+        const madridLabel = getMadridAbbr(parsed.dtUtc);
+
+        let row = `✅ ${parsed.ip} | UTC: ${formatUtc(parsed.dtUtc)} | España: ${formatInZone(parsed.dtUtc, TZ_MADRID)} (${madridLabel}) | Origen: ${parsed.infoZona}`;
+        if(isOld) row += "  ⚠️ ANTIGÜEDAD > 1 AÑO";
+        out.push(row);
+      }
+
+      out.push("");
+      out.push(`Resumen: ${ok} convertidas, ${fail} con error.`);
+      setStats(ok,fail,old);
+      $("summaryTag").textContent = `${ok} OK · ${fail} ERROR`;
+      $("resultBox").textContent = out.join("\n");
+    }
+
+    function tryParseLineaUniversal(lineRaw, baseDate, offsetBase){
+      const line = normalizeSpanishMonths(lineRaw);
+      const ip = tryExtractFirstIp(line);
+      if(!ip) return {success:false, error:"No encuentro IP válida (IPv4/IPv6) en la línea."};
+
+      const iso = line.match(RX_ISO);
+      if(iso){
+        const dt = parseIso(iso[0]);
+        if(dt) return {success:true, ip, dtUtc:dt, infoZona:`ISO8601 (${offsetLabelFromIso(iso[0])})`};
+      }
+
+      const apache = line.match(RX_APACHE);
+      if(apache){
+        const dt = parseApache(apache);
+        if(dt) return {success:true, ip, dtUtc:dt.date, infoZona:`Apache (${dt.label})`};
+      }
+
+      const rfc = line.match(RX_RFC2822);
+      if(rfc){
+        const dt = parseRfc2822(rfc);
+        if(dt) return {success:true, ip, dtUtc:dt.date, infoZona:`RFC2822 (${dt.label})`};
+      }
+
+      const sys = line.match(RX_SYSLOG);
+      if(sys){
+        const local = parseSyslog(sys, baseDate);
+        if(local){
+          const zone = detectZoneToken(line, offsetBase);
+          const dtUtc = dateFromLocalWithOffset(local.y, local.mo, local.d, local.h, local.mi, local.s, zone.offsetMinutes);
+          return {success:true, ip, dtUtc, infoZona:`Syslog (${zone.label})`};
+        }
+      }
+
+      return tryParseLoose(line, ip, baseDate, offsetBase);
+    }
+
+    function tryParseLoose(line, ip, baseDate, offsetBase){
+      const mh = line.match(RX_HORA);
+      if(!mh) return {success:false, error:"No encuentro hora (HH:mm o HH:mm:ss)."};
+
+      const h = parseInt(mh[1],10);
+      const mi = parseInt(mh[2],10);
+      const s = mh[3] ? parseInt(mh[3],10) : 0;
+
+      let dateParts = {...baseDate};
+      const mf = line.match(RX_FECHA);
+      if(mf){
+        const parsedDate = parseFlexibleDate(mf[1]);
+        if(!parsedDate) return {success:false, error:`Encuentro fecha '${mf[1]}' pero no puedo interpretarla.`};
+        dateParts = parsedDate;
+      }
+
+      const zone = detectZoneToken(line, offsetBase);
+      const dtUtc = dateFromLocalWithOffset(dateParts.y, dateParts.mo, dateParts.d, h, mi, s, zone.offsetMinutes);
+      return {success:true, ip, dtUtc, infoZona:zone.label};
+    }
+
+    function parseIso(text){
+      const normalized = normalizeOffsetNoColon(text).replace(" ","T");
+      const ms = Date.parse(normalized);
+      return Number.isNaN(ms) ? null : new Date(ms);
+    }
+
+    function offsetLabelFromIso(text){
+      if(/Z$/i.test(text)) return "+00:00";
+      const m = text.match(/([+\-]\d{2}:?\d{2})$/);
+      return m ? normalizeOffsetNoColon(m[1]) : "+00:00";
+    }
+
+    function parseApache(m){
+      const day = parseInt(m[1],10);
+      const mon = MONTHS[toTitleMonth(m[2])];
+      const year = parseInt(m[3],10);
+      const h = parseInt(m[4],10), mi = parseInt(m[5],10), s = parseInt(m[6],10);
+      const off = parseOffsetToMinutes(m[7]);
+      if(mon === undefined || off === null) return null;
+      return {date:dateFromLocalWithOffset(year, mon, day, h, mi, s, off), label:formatOffsetLabel(off)};
+    }
+
+    function parseRfc2822(m){
+      const day = parseInt(m[1],10);
+      const mon = MONTHS[m[2]];
+      const year = parseInt(m[3],10);
+      const h = parseInt(m[4],10), mi = parseInt(m[5],10), s = parseInt(m[6],10);
+      const zone = m[7].toUpperCase();
+      let off = null;
+      if(/^[+\-]\d{4}$/.test(zone)) off = parseOffsetToMinutes(zone);
+      else if(zone === "CET") off = 60;
+      else if(zone === "CEST") off = 120;
+      else if(zone === "UT" || zone === "UTC" || zone === "GMT") off = 0;
+      if(mon === undefined || off === null) return null;
+      return {date:dateFromLocalWithOffset(year, mon, day, h, mi, s, off), label:formatOffsetLabel(off)};
+    }
+
+    function parseSyslog(m, baseDate){
+      const mon = MONTHS[m[1]];
+      const d = parseInt(m[2],10);
+      const h = parseInt(m[3],10), mi = parseInt(m[4],10), s = parseInt(m[5],10);
+      if(mon === undefined) return null;
+      let y = baseDate.y;
+      const candidate = new Date(Date.UTC(y, mon, d, h, mi, s));
+      const basePlusTwo = new Date(Date.UTC(baseDate.y, baseDate.mo, baseDate.d + 2, 0, 0, 0));
+      if(candidate > basePlusTwo) y -= 1;
+      return {y, mo:mon, d, h, mi, s};
+    }
+
+    function detectZoneToken(line, offsetBase){
+      if(/\bZ\b/.test(line)) return {offsetMinutes:0, label:"Z"};
+
+      const cet = line.match(RX_CET_CEST);
+      if(cet){
+        const z = cet[0].toUpperCase();
+        if(z === "CET") return {offsetMinutes:60, label:"CET"};
+        if(z === "CEST") return {offsetMinutes:120, label:"CEST"};
+      }
+
+      const off = line.match(RX_OFFSET);
+      if(off){
+        const mins = parseOffsetToMinutes(off[0]);
+        if(mins !== null) return {offsetMinutes:mins, label:off[0]};
+      }
+
+      const ug = tryParseUtcGmtToken(line, offsetBase);
+      if(ug) return ug;
+
+      return {offsetMinutes:offsetBase * 60, label:`base UTC${offsetBase >= 0 ? "+" : ""}${offsetBase}`};
+    }
+
+    function tryParseUtcGmtToken(line, offsetBase){
+      const m = line.match(RX_UTC_GMT);
+      if(!m) return null;
+      const kind = m[1].toUpperCase();
+      let g = m[2] ? m[2].replace(/\s/g,"").trim() : "0";
+      if(!g) g = "0";
+      const hours = Number.isFinite(parseInt(g,10)) ? parseInt(g,10) : offsetBase;
+      return {offsetMinutes:hours * 60, label:`${kind}${hours >= 0 ? "+" : ""}${hours}`};
+    }
+
+    function parseFlexibleDate(s){
+      const t = s.trim();
+      let m;
+      if((m = t.match(/^(\d{4})[-\/](\d{2})[-\/](\d{2})$/))) return validDateParts(+m[1], +m[2]-1, +m[3]);
+      if((m = t.match(/^(\d{2})[-\/](\d{2})[-\/](\d{4})$/))) return validDateParts(+m[3], +m[2]-1, +m[1]);
+      if((m = t.match(/^(\d{2})\.(\d{2})\.(\d{4})$/))) return validDateParts(+m[3], +m[2]-1, +m[1]);
+      if((m = t.match(/^(\d{4})\.(\d{2})\.(\d{2})$/))) return validDateParts(+m[1], +m[2]-1, +m[3]);
+      return null;
+    }
+
+    function validDateParts(y, mo, d){
+      const test = new Date(Date.UTC(y, mo, d));
+      if(test.getUTCFullYear() !== y || test.getUTCMonth() !== mo || test.getUTCDate() !== d) return null;
+      return {y, mo, d};
+    }
+
+    function dateFromLocalWithOffset(y, mo, d, h, mi, s, offsetMinutes){
+      return new Date(Date.UTC(y, mo, d, h, mi, s) - offsetMinutes * 60000);
+    }
+
+    function parseOffsetToMinutes(token){
+      const m = String(token).trim().match(/^([+\-])(\d{2}):?(\d{2})$/);
+      if(!m) return null;
+      const hh = parseInt(m[2],10);
+      const mm = parseInt(m[3],10);
+      if(hh > 23 || mm > 59) return null;
+      const sign = m[1] === "-" ? -1 : 1;
+      return sign * (hh * 60 + mm);
+    }
+
+    function formatOffsetLabel(mins){
+      const sign = mins < 0 ? "-" : "+";
+      const abs = Math.abs(mins);
+      return `${sign}${pad2(Math.floor(abs/60))}:${pad2(abs%60)}`;
+    }
+
+    function normalizeOffsetNoColon(input){
+      return String(input).replace(/([+\-]\d{2})(\d{2})\b/g,"$1:$2");
+    }
+
+    function normalizeSpanishMonths(input){
+      const map = [
+        ["enero","Jan"],["ene","Jan"],
+        ["febrero","Feb"],["feb","Feb"],
+        ["marzo","Mar"],["mar","Mar"],
+        ["abril","Apr"],["abr","Apr"],
+        ["mayo","May"],["may","May"],
+        ["junio","Jun"],["jun","Jun"],
+        ["julio","Jul"],["jul","Jul"],
+        ["agosto","Aug"],["ago","Aug"],
+        ["septiembre","Sep"],["setiembre","Sep"],["sep","Sep"],["set","Sep"],
+        ["octubre","Oct"],["oct","Oct"],
+        ["noviembre","Nov"],["nov","Nov"],
+        ["diciembre","Dec"],["dic","Dec"]
+      ];
+      let s = String(input || "");
+      for(const [es,en] of map){
+        s = s.replace(new RegExp(`\\b${es}\\b`,"gi"), en);
+      }
+      return s;
+    }
+
+    function toTitleMonth(s){
+      const x = String(s || "").slice(0,3).toLowerCase();
+      return x.charAt(0).toUpperCase() + x.slice(1);
+    }
+
+    function tryExtractFirstIp(line){
+      const candidates = [];
+      const ipv4Re = /\b\d{1,3}(?:\.\d{1,3}){3}\b/g;
+      let m;
+      while((m = ipv4Re.exec(line)) !== null){
+        candidates.push({value:m[0], index:m.index});
+      }
+
+      const ipv6Re = /(^|[^0-9A-Fa-f:])((?:[0-9A-Fa-f]{0,4}:){2,7}[0-9A-Fa-f]{0,4})(?![0-9A-Fa-f:])/g;
+      while((m = ipv6Re.exec(line)) !== null){
+        candidates.push({value:m[2], index:m.index + m[1].length});
+      }
+
+      candidates.sort((a,b) => a.index - b.index);
+      for(const c of candidates){
+        const cleaned = c.value.trim().replace(/^[\[\(\{,'"]+|[\]\)\},;'".]+$/g,"");
+        if(isValidIPv4(cleaned) || isValidIPv6(cleaned)) return cleaned;
+      }
+      return "";
+    }
+
+    function isValidIPv4(ip){
+      const parts = ip.split(".");
+      if(parts.length !== 4) return false;
+      return parts.every(p => /^\d{1,3}$/.test(p) && Number(p) >= 0 && Number(p) <= 255);
+    }
+
+    function isValidIPv6(ip){
+      if(!ip || ip.includes(":::")) return false;
+      if((ip.match(/::/g) || []).length > 1) return false;
+      const hasCompress = ip.includes("::");
+      const rawParts = ip.split("::");
+      const left = rawParts[0] ? rawParts[0].split(":") : [];
+      const right = rawParts[1] ? rawParts[1].split(":") : [];
+      const groups = left.concat(right);
+      if(groups.some(g => !/^[0-9A-Fa-f]{1,4}$/.test(g))) return false;
+      if(hasCompress) return groups.length < 8;
+      return groups.length === 8;
+    }
+
+    function getBaseDateOnlyParts(){
+      const v = $("baseDate").value;
+      const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if(!m){
+        const n = new Date();
+        return {y:n.getFullYear(), mo:n.getMonth(), d:n.getDate()};
+      }
+      return {y:+m[1], mo:+m[2]-1, d:+m[3]};
+    }
+
+    function getBaseDateTimeParts(){
+      const d = getBaseDateOnlyParts();
+      const t = $("baseTime").value || "00:00:00";
+      const m = t.match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);
+      return {...d, h:m ? +m[1] : 0, mi:m ? +m[2] : 0, s:m && m[3] ? +m[3] : 0};
+    }
+
+    function formatUtc(date){
+      return `${pad2(date.getUTCDate())}/${pad2(date.getUTCMonth()+1)}/${date.getUTCFullYear()} ${pad2(date.getUTCHours())}:${pad2(date.getUTCMinutes())}:${pad2(date.getUTCSeconds())}`;
+    }
+
+    function formatLocal(date){
+      return `${pad2(date.getDate())}/${pad2(date.getMonth()+1)}/${date.getFullYear()} ${pad2(date.getHours())}:${pad2(date.getMinutes())}:${pad2(date.getSeconds())}`;
+    }
+
+    function formatInZone(date, timeZone){
+      const parts = new Intl.DateTimeFormat("en-GB",{
+        timeZone, day:"2-digit", month:"2-digit", year:"numeric",
+        hour:"2-digit", minute:"2-digit", second:"2-digit", hour12:false, hourCycle:"h23"
+      }).formatToParts(date).reduce((acc,p) => (acc[p.type] = p.value, acc), {});
+      return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}:${parts.second}`;
+    }
+
+    function getMadridAbbr(date){
+      try{
+        const zoneName = new Intl.DateTimeFormat("en-GB",{timeZone:TZ_MADRID,timeZoneName:"short",hour:"2-digit"})
+          .formatToParts(date).find(p => p.type === "timeZoneName")?.value || "";
+        if(/CEST/i.test(zoneName)) return "CEST";
+        if(/CET/i.test(zoneName)) return "CET";
+      }catch(e){ /* fallback */ }
+      return getTimeZoneOffsetMinutes(TZ_MADRID, date) === 120 ? "CEST" : "CET";
+    }
+
+    function getTimeZoneOffsetMinutes(timeZone, date){
+      const parts = new Intl.DateTimeFormat("en-GB",{
+        timeZone, year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false,hourCycle:"h23"
+      }).formatToParts(date).reduce((acc,p) => (acc[p.type] = p.value, acc), {});
+      const asUTC = Date.UTC(+parts.year, +parts.month-1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+      return Math.round((asUTC - date.getTime()) / 60000);
+    }
+
+    function olderThanOneYear(date){
+      return date.getTime() < Date.now() - 365.2425 * 24 * 60 * 60 * 1000;
+    }
+
+    function setStats(ok, fail, old){
+      $("statOk").textContent = String(ok);
+      $("statFail").textContent = String(fail);
+      $("statOld").textContent = String(old);
+    }
+
+    async function copyResult(){
+      const text = $("resultBox").textContent || "";
+      if(!text.trim()) return;
+      try{
+        await navigator.clipboard.writeText(text);
+      }catch(e){
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+      showToast("Resultado copiado");
+    }
+
+    function showToast(msg){
+      const t = $("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(showToast._timer);
+      showToast._timer = setTimeout(() => t.classList.remove("show"), 1800);
+    }
+
+    function loadSample(){
+      $("rawInput").value = [
+        "8.8.8.8 2026-02-23T12:00:00Z",
+        "1.1.1.1 23/Feb/2026:12:00:00 +0000",
+        "2001:4860:4860::8888 Mon, 23 Feb 2026 12:00:00 +0000",
+        "192.168.1.10 Feb 23 12:00:00 UTC+0",
+        "81.2.69.142 23/02/2026 12:00 CEST",
+        "31.13.83.36 2026.02.23 12:00:00 GMT -1",
+        "malformada sin ip 23/02/2026 12:00 UTC+0"
+      ].join("\n");
+      localStorage.setItem("osinterTimeRaw", $("rawInput").value);
+      convertRaw($("rawInput").value);
+    }
+
+    function clearAll(){
+      $("rawInput").value = "";
+      localStorage.removeItem("osinterTimeRaw");
+      $("resultBox").textContent = "Introduce una fecha/hora o pega líneas de logs y pulsa “Convertir / procesar”.";
+      $("summaryTag").textContent = "SIN EJECUTAR";
+      setStats(0,0,0);
+    }
+
+    init();
+  </script>
+</body>
+</html>
